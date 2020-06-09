@@ -1,0 +1,3234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Acceleration" xml:space="preserve">
+    <value>加速</value>
+  </data>
+  <data name="AccelerationMax" xml:space="preserve">
+    <value>最大加速</value>
+  </data>
+  <data name="AccelerationStep" xml:space="preserve">
+    <value>加速步</value>
+  </data>
+  <data name="BandPct" xml:space="preserve">
+    <value>带 %</value>
+  </data>
+  <data name="BarCount" xml:space="preserve">
+    <value>K棒计数</value>
+  </data>
+  <data name="BarDown" xml:space="preserve">
+    <value>下跌 bar</value>
+  </data>
+  <data name="BarUp" xml:space="preserve">
+    <value>K棒上涨</value>
+  </data>
+  <data name="DataBarsTypeDaily" xml:space="preserve">
+    <value>日线</value>
+  </data>
+  <data name="DataBarsTypeDay" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="DataBarsTypeMinute" xml:space="preserve">
+    <value>{0} 分 {1}</value>
+  </data>
+  <data name="DataBarsTypeMonth" xml:space="preserve">
+    <value>{0} 月</value>
+  </data>
+  <data name="DataBarsTypeMonthly" xml:space="preserve">
+    <value>每月</value>
+  </data>
+  <data name="DataBarsTypeRange" xml:space="preserve">
+    <value>{0} 等价线 {1}</value>
+  </data>
+  <data name="DataBarsTypeRenko" xml:space="preserve">
+    <value>{0} 砖型图</value>
+  </data>
+  <data name="DataBarsTypeSecond" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="DataBarsTypeTick" xml:space="preserve">
+    <value>{0} Tick {1}</value>
+  </data>
+  <data name="DataBarsTypeVolume" xml:space="preserve">
+    <value>{0} 等量线 {1}</value>
+  </data>
+  <data name="DataBarsTypeWeek" xml:space="preserve">
+    <value>{0} 周</value>
+  </data>
+  <data name="DataBarsTypeWeekly" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="DataBarsTypeYear" xml:space="preserve">
+    <value>{0} 年</value>
+  </data>
+  <data name="DataBarsTypeYearly" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="DeviationType" xml:space="preserve">
+    <value>偏差类型</value>
+  </data>
+  <data name="DeviationValue" xml:space="preserve">
+    <value>偏差值</value>
+  </data>
+  <data name="EMA1" xml:space="preserve">
+    <value>EMA1 期</value>
+  </data>
+  <data name="EMA2" xml:space="preserve">
+    <value>EMA2 期</value>
+  </data>
+  <data name="EnvelopePercentage" xml:space="preserve">
+    <value>信封的百分比</value>
+  </data>
+  <data name="Fast" xml:space="preserve">
+    <value>快速</value>
+  </data>
+  <data name="FastLimit" xml:space="preserve">
+    <value>快速的限制</value>
+  </data>
+  <data name="Forecast" xml:space="preserve">
+    <value>预测</value>
+  </data>
+  <data name="HigherHigh" xml:space="preserve">
+    <value>更高</value>
+  </data>
+  <data name="HigherLow" xml:space="preserve">
+    <value>较低</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Intermediate" xml:space="preserve">
+    <value>中间</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>时间间隔</value>
+  </data>
+  <data name="Length" xml:space="preserve">
+    <value>长度</value>
+  </data>
+  <data name="Line1Value" xml:space="preserve">
+    <value>第 1 行值</value>
+  </data>
+  <data name="Line2Value" xml:space="preserve">
+    <value>第 2 行的值</value>
+  </data>
+  <data name="Line3Value" xml:space="preserve">
+    <value>第 3 行值</value>
+  </data>
+  <data name="Line4Value" xml:space="preserve">
+    <value>第 4 行值</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="LowerHigh" xml:space="preserve">
+    <value>低高</value>
+  </data>
+  <data name="LowerLow" xml:space="preserve">
+    <value>低低</value>
+  </data>
+  <data name="MAPeriod" xml:space="preserve">
+    <value>移动平均周期</value>
+  </data>
+  <data name="MAType" xml:space="preserve">
+    <value>移动平均的类型</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAskPrice" xml:space="preserve">
+    <value>当前买价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAskSize" xml:space="preserve">
+    <value>当前买价数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAverageDailyVolume" xml:space="preserve">
+    <value>日平均成交量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBeta" xml:space="preserve">
+    <value>波动或系统性风险、 安全或组合相比，整体市场的措施。</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidAskSpread" xml:space="preserve">
+    <value>当前的区别买价和卖价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidPrice" xml:space="preserve">
+    <value>当前卖价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidSize" xml:space="preserve">
+    <value>当前卖价数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearHigh" xml:space="preserve">
+    <value>当前日历年的高昂代价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearHighDate" xml:space="preserve">
+    <value>当前日历年发生日期的高价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearLow" xml:space="preserve">
+    <value>低廉的价格为当前日历年</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearLowDate" xml:space="preserve">
+    <value>当前日历年发生日期的低价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCurrentRatio" xml:space="preserve">
+    <value>流动资产除以流动负债</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyHigh" xml:space="preserve">
+    <value>当日的高</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyLow" xml:space="preserve">
+    <value>当日的低</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyVolume" xml:space="preserve">
+    <value>当日的成交量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDescription" xml:space="preserve">
+    <value>商品描述</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendAmount" xml:space="preserve">
+    <value>股息数额</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendPayDate" xml:space="preserve">
+    <value>股利支付日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendYield" xml:space="preserve">
+    <value>显示多少公司支付股息每年其股票价格的比率 </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionEarningsPerShare" xml:space="preserve">
+    <value>公司的收益分配给普通股每个未偿份额的部分。</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionFiveYearsGrowthPercentage" xml:space="preserve">
+    <value>五年增长百分比</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHigh52Weeks" xml:space="preserve">
+    <value>过去 52 周内的高</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHigh52WeeksDate" xml:space="preserve">
+    <value>过去 52 周内的高价格发生日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHistoricalVolatility" xml:space="preserve">
+    <value>随着时间的推移已实现波动率的品种</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionInstrument" xml:space="preserve">
+    <value>品种名称</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastClose" xml:space="preserve">
+    <value>关闭的最后一个交易日</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastPrice" xml:space="preserve">
+    <value>最后成交价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLow52Weeks" xml:space="preserve">
+    <value>过去 52 周内的低</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLow52WeeksDate" xml:space="preserve">
+    <value>过去 52 周内的低价格发生日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionMarketCap" xml:space="preserve">
+    <value>市场资本化。发行的股份的总价值。</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChange" xml:space="preserve">
+    <value>当前的价格相比去年收盘价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNextYearsEarningsPerShare" xml:space="preserve">
+    <value>预计每股收益</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNotes" xml:space="preserve">
+    <value>用户可定义的字段。双击要创建或编辑注释的应用的笔记列。</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionOpening" xml:space="preserve">
+    <value>当前的交易时段开放价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPercentHeldByInstitutions" xml:space="preserve">
+    <value>机构持有的股份比例</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPositionAvgPrice" xml:space="preserve">
+    <value>当前的位置的平均入门价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPositionSize" xml:space="preserve">
+    <value>当前仓位数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionProfitLoss" xml:space="preserve">
+    <value>总共有未实现，实现利润和损失 </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionRealizedProfitLoss" xml:space="preserve">
+    <value>以实现利润或损失</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionRevenuePerShare" xml:space="preserve">
+    <value>财政收入为二级市场股价的比重</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionSharesOutstanding" xml:space="preserve">
+    <value>流通股数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionShortInterest" xml:space="preserve">
+    <value>投资者有卖，但不是短的股票数量尚未覆盖或平仓。</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionShortInterestRatio" xml:space="preserve">
+    <value>短息除以每日平均量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTimeLastTick" xml:space="preserve">
+    <value>最近的贸易发生的时间</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTradedContracts" xml:space="preserve">
+    <value>今天的填充的合同</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionUnrealizedProfitLoss" xml:space="preserve">
+    <value>利润或损失为当前的位置 </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAskPrice" xml:space="preserve">
+    <value>买价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAskSize" xml:space="preserve">
+    <value>买价数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAverageDailyVolume" xml:space="preserve">
+    <value>日平均成交量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBeta" xml:space="preserve">
+    <value>试用版</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidAskSpread" xml:space="preserve">
+    <value>点差</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidPrice" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidSize" xml:space="preserve">
+    <value>卖价数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearHigh" xml:space="preserve">
+    <value>历年高</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearHighDate" xml:space="preserve">
+    <value>日历年高日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearLow" xml:space="preserve">
+    <value>日历年新低</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearLowDate" xml:space="preserve">
+    <value>日历年低日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCurrentRatio" xml:space="preserve">
+    <value>流动比率</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyHigh" xml:space="preserve">
+    <value>每日高点</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyLow" xml:space="preserve">
+    <value>每日低点</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyVolume" xml:space="preserve">
+    <value>日成交量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendAmount" xml:space="preserve">
+    <value>股息数额</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendPayDate" xml:space="preserve">
+    <value>股利支付日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendYield" xml:space="preserve">
+    <value>股息收益率</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameEarningsPerShare" xml:space="preserve">
+    <value>每股收益</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameFiveYearsGrowthPercentage" xml:space="preserve">
+    <value>五年增长百分比</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHigh52Weeks" xml:space="preserve">
+    <value>高 52 周</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHigh52WeeksDate" xml:space="preserve">
+    <value>高 52 周日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHistoricalVolatility" xml:space="preserve">
+    <value>历史波动率</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameInstrument" xml:space="preserve">
+    <value>品种</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastClose" xml:space="preserve">
+    <value>收盘价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastPrice" xml:space="preserve">
+    <value>当前价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLow52Weeks" xml:space="preserve">
+    <value>低 52 周</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLow52WeeksDate" xml:space="preserve">
+    <value>低 52 周日期</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameMarketCap" xml:space="preserve">
+    <value>市场资本化</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChange" xml:space="preserve">
+    <value>涨跌幅</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNextYearsEarningsPerShare" xml:space="preserve">
+    <value>明年的每股收益</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNotes" xml:space="preserve">
+    <value>笔记</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameOpening" xml:space="preserve">
+    <value>开幕</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePercentHeldByInstitutions" xml:space="preserve">
+    <value>%的股份由机构</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePositionAvgPrice" xml:space="preserve">
+    <value>职位平均价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePositionSize" xml:space="preserve">
+    <value>位置尺寸</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePriceEarningsRatio" xml:space="preserve">
+    <value>市盈率</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameProfitLoss" xml:space="preserve">
+    <value>利润损失</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameRealizedProfitLoss" xml:space="preserve">
+    <value>实现的利润损失</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameRevenuePerShare" xml:space="preserve">
+    <value>每股收益</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameSharesOutstanding" xml:space="preserve">
+    <value>流通股</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameShortInterest" xml:space="preserve">
+    <value>短息</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameShortInterestRatio" xml:space="preserve">
+    <value>短息率</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTimeLastTick" xml:space="preserve">
+    <value>最后Tick时间</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTradedContracts" xml:space="preserve">
+    <value>合约数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameUnrealizedProfitLoss" xml:space="preserve">
+    <value>利润损失</value>
+  </data>
+  <data name="NinjaScriptIndicator" xml:space="preserve">
+    <value>指标</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADL" xml:space="preserve">
+    <value>积累/分布 (AD) 研究试图量化的体积流动进入或离开品种所标识的位置的那期高/低系列期结束。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADX" xml:space="preserve">
+    <value>平均的定向指数以及运动是否存在在市场措施强度的一种普遍趋势。ADX 是的 0 100 的尺度来衡量。一个低的 ADX 值 (一般小于 20) 可以表明非趋势分析市场容量低，而跨 20 以上可能表明趋势的开始，（向上或向下）。如果 ADX 是超过 40，并开始下跌，它可以指示当前的趋势放缓。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADXR" xml:space="preserve">
+    <value>平均定向运动评分量化中 ADX 动量变化。它是通过添加两个值的 ADX （当前值和值 n 期回来），然后除以两个计算。这种额外的平滑使 ADXR 比 ADX 的反应略较小。解释是 ADX; 相同值越高，趋势越强，。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAPZ" xml:space="preserve">
+    <value>APZ （自适应奖区） 形成稳定的通道，基于双平滑指数移动平均线周围的平均价格。请参见 S/C，2006 年 9 月，第 28 页。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAroon" xml:space="preserve">
+    <value>阿隆指标是由参数随时开发的。它由两个地块组成： 一个测量以来最新的 x 时期高 （阿隆最多） 和其他测量以来最新的 x 时期低 (阿隆 Down) 期数的期数。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAroonOscillator" xml:space="preserve">
+    <value>阿隆振荡器基于他阿隆指标。多像阿隆指标，阿隆振荡器措施强度的一种趋势。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionATR" xml:space="preserve">
+    <value>平均真实范围 (ATR) 是衡量波动性的。它介绍了由威尔斯威尔德在他的书 ' 中技术交易系统的新概念和自用作很多指标和交易系统的一个组成部分。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBollinger" xml:space="preserve">
+    <value>布林线绘制在上方和下方移动平均值的标准偏差水平。由于标准偏差是衡量波动性的带的是自我调节： 期间动荡的市场，扩大和收缩平静时期。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBOP" xml:space="preserve">
+    <value>平衡的电源指示灯措施的强度与熊公牛通过评估每个价格推到极端的水平的能力。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBuySellPressure" xml:space="preserve">
+    <value>指示当前买进或卖出压力为 perecentage。这是一个滴答，滴答指标。如果计算设置为上K棒关闭 '，指示符值总是会 100。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCCI" xml:space="preserve">
+    <value>商品通道指数 (CCI) 措施安全价格从其统计平均值的变化。高值表明，价格奇高相比平均价格，而低值，表示价格非常低。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinMoneyFlow" xml:space="preserve">
+    <value>计算资金流量的金额超过 n K棒。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinOscillator" xml:space="preserve">
+    <value>计算累积分布行使用的区别两个指数移动平均线的势头。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinVolatility" xml:space="preserve">
+    <value>比较使用指数移动平均线文书当前和历史范围之间的区别。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCMO" xml:space="preserve">
+    <value>中医药条例 》 有别于其他如相对强度指数 (RSI) 和随机的势头振荡器。它使用两种上下天数据在计算分子中直接测量的势头。主要用来寻找极端超买和超卖情况，奇美也可用来寻找趋势。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionConstantLines" xml:space="preserve">
+    <value>在用户定义值的情节线。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCurrentDayOHL" xml:space="preserve">
+    <value>绘制在当前的第一天的会议中开放，高和低的值。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDEMA" xml:space="preserve">
+    <value>双指数移动平均 （德玛依） 是单一的指数移动平均线和双指数移动平均线的组合。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDM" xml:space="preserve">
+    <value>定向运动 (DM)。这是作为 adx 指标，加上两个定向运动指标 + DI 和-DI 的同一指标。+ DI 和-DI 测量向上和向下的势头。生成一个买入信号当 + DI 交叉-DI 到有利的一面。卖出信号生成-DI 交叉时 + DI 下行。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDMI" xml:space="preserve">
+    <value>定向运动的索引。定向运动指数是非常类似于威尔斯王尔德的相对强弱指数。区别是 DMI 使用可变的时间段 （从 3 到 30) 与 RSI 的固定期。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDMIndex" xml:space="preserve">
+    <value>动态的动量指标是一个可变的术语 RSI。RSI 期限从 3 到 30 的不同。可变的时间段让 RSI 更加适应短期举措。价格挥发越多，越短的时间段是。它在 RSI，相同的方式解释，但早些时候提供信号。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDonchianChannel" xml:space="preserve">
+    <value>唐通道。唐通道指示灯是由理查德 · 唐创建的。它使用最高和最低点的一段时间来绘制通道。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDoubleStochastics" xml:space="preserve">
+    <value>双随机指标是由威廉 · 布劳的随机指标变化。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionEaseOfMovement" xml:space="preserve">
+    <value>运动易用性 (EMV) 指标强调的天搬迁容易和最小化的股票发现很难移动的天存量。当 EMV 十字架高于零，当它穿过零度以下的卖出信号产生买入信号。当 EMV 悬停在零附近时，然后有很小的价格变动和 （或） 高卷，也就是，价格不动很容易。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionEMA" xml:space="preserve">
+    <value>指数移动平均线是一个标记，表明证券价格的平均价值在一段时间。当计算移动平均趋势线，均线适用于最近价格比 SMA 更多的重量。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFisherTransform" xml:space="preserve">
+    <value>Fisher 变换有锋利和独特的转折点发生在及时。由此产生的峰值波动用来确定价格的反转。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFOSC" xml:space="preserve">
+    <value>预测振荡器 (FOSC) 是扩展的线性回归基础指标由参数随时受欢迎。预测振荡器阴谋 （由 x 时期线性回归直线生成） 的预测的价格与实际价格之间的差异百分比。振荡器是零度以上当预测的价格大于实际的价格。 相反，它是小于零如果其下面。在罕见的情况下预测的价格和实际价格相同时，振荡器会绘制零。坚持如下预测价格的实际价格建议未来更低的价格。 同样，总是不断地预测价格之上的实际价格表明，更高的价格。短线交易者应该使用较短的时段，也许更多放宽标准，为所需的长度，时间上面或下面的预测价格。对所需的长度，时间上面或下面的预测价格，长期交易者应使用较长时间段和也许更严格的标准。尚德也表明密谋三天移动平均触发线的预测振荡器在趋势中生成变化的早期预警。当振荡器交叉触发线的下方时，提出更低的价格。当振荡器交叉触发线之上时，提出了更高的价格。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionHMA" xml:space="preserve">
+    <value>船体移动平均 (HMA) 采用加权马计算提供优越的平滑和少得多的滞后，在传统的 SMA 指标。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKAMA" xml:space="preserve">
+    <value>由佩里考夫曼，这一指标是使用效率比修改平滑常数，最大限度地慢长度范围从快长度最低 EMA。由于此移动平均线是自适应它往往要比其他马更密切关注价格。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeltnerChannel" xml:space="preserve">
+    <value>凯尔特纳通道是林带的一个类似的指标。这里正中线是区别的标准的移动平均线，上部和下部带抵消 SMA 的高和低的以前K棒。偏移量的乘数，以及 SMA 期间是可配置。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeyReversalDown" xml:space="preserve">
+    <value>返回值为 1，当当前关闭小于事先关闭穿透最后 n K棒的最高价后。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeyReversalUp" xml:space="preserve">
+    <value>返回值为 1，穿透最低低的最后 n K棒后大于事先关闭当前关闭时。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinReg" xml:space="preserve">
+    <value>线性回归是 '预测' 的证券价格价值指标。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinRegIntercept" xml:space="preserve">
+    <value>线性回归拦截提供线性回归趋势线的截距值。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinRegSlope" xml:space="preserve">
+    <value>线性回归斜率提供线性回归趋势线的斜率值。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMACD" xml:space="preserve">
+    <value>MACD （移动平均线） 是一种趋势后势头指示器，以显示两条移动平均线的价格之间的关系。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAEnvelopes" xml:space="preserve">
+    <value>一条移动平均线情节 %信封</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAMA" xml:space="preserve">
+    <value>妈妈 （MESA 自适应移动平均） 是由约翰 · 埃勒斯开发的。它在新的和独特的方式适应价格运动。适应基于希尔伯特变换鉴。这种方法的优势特点快速攻击平均和缓慢的腐烂平均。妈妈 + FAMA （以下自适应移动平均） 线只集中在主要的市场逆转。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAX" xml:space="preserve">
+    <value>最后 n K棒最多可显示的最大值。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMFI" xml:space="preserve">
+    <value>MFI （钱流动指数） 是一个动量指标，钱进出安全强度的措施。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMIN" xml:space="preserve">
+    <value>最小显示最后一个 n 栏的最小值。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMomentum" xml:space="preserve">
+    <value>动量指标用来衡量在给定的时间段安全价格变化量。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNBarsDown" xml:space="preserve">
+    <value>这一指标返回 1，当我们有 n 连续K棒下来，否则为返回 0。下栏被定义为低于公开在哪里结束栏和条使较低的高和低低。您可以调整指示器可供选择的具体要求。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNBarsUp" xml:space="preserve">
+    <value>这一指标返回 1，当我们有 n 连续K棒了，否则为返回 0。向上的杆被定义为结束在哪里上方打开一个K棒和K棒使较高和较高的低。您可以调整指示器可供选择的具体要求。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionOBV" xml:space="preserve">
+    <value>OBV （平衡卷） 是卷的运行总和。它表明是否卷流动进入或离开安全。当安全关闭比上日收市价高时，所有当天的卷被认为是向上卷。当安全比以前低关门时，所有当天的卷被认为是下卷。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionParabolicSAR" xml:space="preserve">
+    <value>抛物型香港特区根据股票和大宗商品杂志 V 11:11 (477-479)。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPFE" xml:space="preserve">
+    <value>PFE （极化分形效率） 是使用分形几何来确定如何有效价格是移动指示器。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPPO" xml:space="preserve">
+    <value>PPO （百分比价格振荡器） 基于两条移动平均线，以百分比表示。PPO 发现通过减去从短马长马，然后将该差值除以长马。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriceOscillator" xml:space="preserve">
+    <value>价格振荡器指示器显示安全之间两条移动平均线的价格的变化。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriorDayOHLC" xml:space="preserve">
+    <value>情节的打开、 关闭、 高、 低的值，从会议开始前一天。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRange" xml:space="preserve">
+    <value>计算栏的范围。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRegressionChannel" xml:space="preserve">
+    <value>线性回归用于计算最优拟合线的价格数据。另外通过计算标准偏差的价格从回归行添加上部和下部的乐队。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRIND" xml:space="preserve">
+    <value>果皮 （范围指示器） 比较盘中范围 （高-低） 间的一天 （关闭-以前附近） 范围。当盘中范围大于间天范围时，范围指示器将较高的价值。这标志着结束到当前的趋势。当范围指示器处于低水平时，新的趋势即将开始。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionROC" xml:space="preserve">
+    <value>中华民国 （变化速率） 指示器显示当前价格与价格 x 时间周期前的百分比变化。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSI" xml:space="preserve">
+    <value>RSI （相对强弱指数） 是一种范围介于 0 和 100 之间的价格以下振荡器。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSquared" xml:space="preserve">
+    <value>R 平方指标计算如何很好的价格接近线性回归直线。指标的计算，即，（数学所述希腊字母 ρ 或 r） 的相关系数的平方从获取其名称。R-平方的范围是从零到一。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSS" xml:space="preserve">
+    <value>两条移动平均线之间传播的相对传播实力雄厚。TASC，2006 年 10 月，p.16。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRVI" xml:space="preserve">
+    <value>RVI （相对波动性指数） 是由唐纳德 · 多尔西对恭维和基于动量指标确认开发的。当用于确认其他信号，只买 RVI 时超过 50 和只卖 RVI 时下 50。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSMA" xml:space="preserve">
+    <value>SMA （简单即移动平均） 是一个标记，表明证券价格的平均价值在一段时间。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStdDev" xml:space="preserve">
+    <value>标准偏差是测量的波动率的统计度量。标准偏差通常用于作为其他指标的一个组成部分，而不是作为一个独立的指标。例如，通过添加移动平均趋势线安全标准偏差计算林带。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStdError" xml:space="preserve">
+    <value>标准错误显示如何在价格附近绕线性回归直线。 越接近的价格是对线性回归线，越强的趋势。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochastics" xml:space="preserve">
+    <value>随机振荡器的振荡垂直比例尺的 0 到 100 之间的两条线组成。%K 是主线，它画为实线。第二个是 %D 线与 %k.移动平均%D 线作为一条虚线。使用作为买入/卖出信号发生器，购买时上述快速移动很慢和销售时快速移动缓慢的下方。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochasticsFast" xml:space="preserve">
+    <value>随机振荡器的振荡垂直比例尺的 0 到 100 之间的两条线组成。%K 是主线，它画为实线。第二个是 %D 线与 %k.移动平均%D 线作为一条虚线。使用作为买入/卖出信号发生器，购买时上述快速移动很慢和销售时快速移动缓慢的下方。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochRSI" xml:space="preserve">
+    <value>StochRSI 是振荡器类似随机测量，计算中除而不是价格值作为输入，StochRSI 使用 RSI 值。StochRSI 在指定的天数计算相对于高、 低 RSI 值 RSI 的当前位置。这一措施，由参数随时和赤柱 Kroll，设计的目的是提供进一步的 RSI 的超买超卖的性质有关的信息。StochRSI 范围介于 0.0 和 1.0 之间。值高于 0.8 一般被确定超买的水平，而低于 0.2 值被认为表明超卖的条件。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSUM" xml:space="preserve">
+    <value>总和显示最后的 n 个数据点的总和。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSwing" xml:space="preserve">
+    <value>摆动指标图线表示的秋千高和低点。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionT3" xml:space="preserve">
+    <value>T3 是移动平均线，或平滑函数的类型。它基于德玛。T3 采用德玛计算并添加 vfactor 这是零和 1 之间。由此产生的函数称为 GD 或广义德玛。与 vfactor 1 GD 是德玛相同。与零 vfactor GD 是指数移动平均线相同。T3 通常使用 vfactor 0.7。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTEMA" xml:space="preserve">
+    <value>特马是一个平滑的指标。它由帕特里克 · 穆洛伊设计，文章描述了他在今年 1 月，1994 年发行的股票技术分析和商品杂志。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTMA" xml:space="preserve">
+    <value>TMA （三角形即移动平均） 是加权移动平均。相比为 WMA 的最新的价格栏上投入更多的重量，TMA 放更多的重量在指定期期间数据。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTRIX" xml:space="preserve">
+    <value>TRIX （三重指数平均） 显示的百分比率的变化 (ROC) 的三重均线。Trix 振荡的上方和下方的零值。指标应用三重平滑，企图消除微不足道的价格变动中你想要隔离的趋势。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTSF" xml:space="preserve">
+    <value>TSF （时间系列预测） 通过线性回归直线拟合给定数量价格K棒及向前行成未来的以下计算价格的可能未来值。线性回归直线是尽可能是尽可能的所有给定的价格点的直线。此外看到线性回归指示器。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTSI" xml:space="preserve">
+    <value>TSI （真实强度指标） 是一个基于动量的指标，由威廉 · 布劳。设计用来确定趋势和超买超卖情况，TSI 是适用于盘中的时间框架，以及长期交易。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionUltimateOscillator" xml:space="preserve">
+    <value>最终的振荡器是不同时间段的三个振荡器的加权的和。典型的时间段是 7、 14 和 28。终极振荡器范围从 0 到 100 的值。值超过 70 指示超买的状况，而值下 30 指示超跌的条件。也看以确认趋势或信号的一种趋势结束的价格的差距大协议。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVMA" xml:space="preserve">
+    <value>VMA （变量移动平均，也称为维迪亚或变量指数动态平均） 是自动调整基于波动性的数据系列的平滑权重的指数移动平均线。VMA 解决大多数移动平均线。在时代的低波动，例如当价格潮流趋势，移动平均的时间段内应该更短一些敏感到这一趋势中的必然断点。而在波动性更大的非趋势的时代，移动的平均时间段应该是更长的时间筛选出乱套。维迪亚使用 CMO 指标，因为它是内部波动计算。VMA 和 CMO 期间是可调。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVOL" xml:space="preserve">
+    <value>卷是只需在指定的时间内 （例如，小时、 天、 周、 月等） 交易的股票 （或合同） 的数目。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVOLMA" xml:space="preserve">
+    <value>（卷移动平均） VOLMA 地块指数移动平均线 (EMA) 的卷。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeOscillator" xml:space="preserve">
+    <value>通过计算差异的一种快速和缓慢的移动平均线的卷卷振荡器措施卷。音量振荡器可以洞察价格走势的强弱。积极的价值表明，有足够的市场支持，将继续推高价格活动在当前趋势的方向。负值表明缺乏支持，价格可能开始变得停滞不前或反向。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVROC" xml:space="preserve">
+    <value>VROC （体积的变化率） 显示卷趋势是发展中要么向上或向下的方向。它是类似于中华民国的指标，但是应用于卷。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVWMA" xml:space="preserve">
+    <value>心梗 （Volume-Weighted 移动平均） 返回的体积加权移动平均指定的价格系列和期间。心梗是类似于简单移动平均 (SMA)，但每个栏数据加权由大律师公会的容量。心梗地方更多意义上最大的体积与天和天期间的最低体积至少指定。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionWilliamsR" xml:space="preserve">
+    <value>威廉姆斯 %R 是旨在确定一个动量指标超买和超卖区域股市场。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionWMA" xml:space="preserve">
+    <value>WMA （加权移动平均） 是移动平均线的指示器，以显示安全价格的平均价值在一段时间特别强调下分析而不是更早的时间段的最近部分。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionZigZag" xml:space="preserve">
+    <value>锯齿形指示器显示过滤掉下面定义的水平变化的趋势线。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionZLEMA" xml:space="preserve">
+    <value>ZLEMA （零滞后指数移动平均线） 是试图调整滞后 EMA 变种。</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADL" xml:space="preserve">
+    <value>ADL</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADX" xml:space="preserve">
+    <value>ADX</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADXR" xml:space="preserve">
+    <value>ADXR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAPZ" xml:space="preserve">
+    <value>APZ</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAroon" xml:space="preserve">
+    <value>Aroon</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAroonOscillator" xml:space="preserve">
+    <value>Aroon oscillator</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameATR" xml:space="preserve">
+    <value>ATR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBollinger" xml:space="preserve">
+    <value>Bollinger</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBOP" xml:space="preserve">
+    <value>BOP</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBuySellPressure" xml:space="preserve">
+    <value>Buy sell pressure</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCCI" xml:space="preserve">
+    <value>CCI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinMoneyFlow" xml:space="preserve">
+    <value>Chaikin money flow</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinOscillator" xml:space="preserve">
+    <value>Chaikin oscillator</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinVolatility" xml:space="preserve">
+    <value>Chaikin volatility</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCMO" xml:space="preserve">
+    <value>CMO</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameConstantLines" xml:space="preserve">
+    <value>Constant lines</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCurrentDayOHL" xml:space="preserve">
+    <value>Current day OHL</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDEMA" xml:space="preserve">
+    <value>DEMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDM" xml:space="preserve">
+    <value>DM</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDMI" xml:space="preserve">
+    <value>DMI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDMIndex" xml:space="preserve">
+    <value>DM index</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDonchianChannel" xml:space="preserve">
+    <value>Donchian channel</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDoubleStochastics" xml:space="preserve">
+    <value>Double stochastics</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameEaseOfMovement" xml:space="preserve">
+    <value>Ease of movement</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameEMA" xml:space="preserve">
+    <value>EMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFisherTransform" xml:space="preserve">
+    <value>Fisher transform</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFOSC" xml:space="preserve">
+    <value>FOSC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameHMA" xml:space="preserve">
+    <value>HMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKAMA" xml:space="preserve">
+    <value>KAMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKelterChannel" xml:space="preserve">
+    <value>Keltner channel</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKeyReversalDown" xml:space="preserve">
+    <value>Key reversal down</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKeyReversalUp" xml:space="preserve">
+    <value>Key reversal up</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinReg" xml:space="preserve">
+    <value>Lin. reg.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinRegIntercept" xml:space="preserve">
+    <value>Lin. reg. intercept</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinRegSlope" xml:space="preserve">
+    <value>Lin. reg. slope</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMACD" xml:space="preserve">
+    <value>MACD</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAEnvelopes" xml:space="preserve">
+    <value>MACD信封</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAMA" xml:space="preserve">
+    <value>MAMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAX" xml:space="preserve">
+    <value>MAX</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMFI" xml:space="preserve">
+    <value>MFI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMomentum" xml:space="preserve">
+    <value>Momentum</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNBarsDown" xml:space="preserve">
+    <value>N 条形图下</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNBarsUp" xml:space="preserve">
+    <value>N 条形图上</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameOBV" xml:space="preserve">
+    <value>OBV</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameParabolicSAR" xml:space="preserve">
+    <value>Parabolic SAR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePFE" xml:space="preserve">
+    <value>PFE</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePPO" xml:space="preserve">
+    <value>PPO</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriceOscillator" xml:space="preserve">
+    <value>Price oscillator</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriorDayOHLC" xml:space="preserve">
+    <value>Prior day OHLC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRange" xml:space="preserve">
+    <value>等价线</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRegressionChannel" xml:space="preserve">
+    <value>Regression channel</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRIND" xml:space="preserve">
+    <value>RIND</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameROC" xml:space="preserve">
+    <value>ROC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSI" xml:space="preserve">
+    <value>RSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSquared" xml:space="preserve">
+    <value>R squared</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSS" xml:space="preserve">
+    <value>RSS</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRVI" xml:space="preserve">
+    <value>RVI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSMA" xml:space="preserve">
+    <value>SMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStdDev" xml:space="preserve">
+    <value>Std. dev.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStdError" xml:space="preserve">
+    <value>Std. error</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochastics" xml:space="preserve">
+    <value>Stochastics</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochasticsFast" xml:space="preserve">
+    <value>Stochastics fast</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochRSI" xml:space="preserve">
+    <value>Stoch RSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSUM" xml:space="preserve">
+    <value>SUM</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSwing" xml:space="preserve">
+    <value>中线</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameT3" xml:space="preserve">
+    <value>T3</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTEMA" xml:space="preserve">
+    <value>TEMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTMA" xml:space="preserve">
+    <value>TMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTRIX" xml:space="preserve">
+    <value>TRIX</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTSF" xml:space="preserve">
+    <value>TSF</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTSI" xml:space="preserve">
+    <value>TSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameUltimateOscillator" xml:space="preserve">
+    <value>Ultimate oscillator</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVMA" xml:space="preserve">
+    <value>VMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVOL" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVOLMA" xml:space="preserve">
+    <value>VOLMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeOscillator" xml:space="preserve">
+    <value>成交量振荡器</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVROC" xml:space="preserve">
+    <value>VROC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVWMA" xml:space="preserve">
+    <value>VWMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameWilliamsR" xml:space="preserve">
+    <value>Williams R</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameWMA" xml:space="preserve">
+    <value>WMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameZigZag" xml:space="preserve">
+    <value>Zig zag</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameZLEMA" xml:space="preserve">
+    <value>ZLEMA</value>
+  </data>
+  <data name="NinjaScriptParameters" xml:space="preserve">
+    <value>参数</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMACrossOver" xml:space="preserve">
+    <value>简单移动平均线交叉策略。</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMultiInstrument" xml:space="preserve">
+    <value>多品种采样策略。</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMultiTimeFrame" xml:space="preserve">
+    <value>多个时间框架示例策略。</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMACrossOver" xml:space="preserve">
+    <value>示例均线交叉</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMultiInstrument" xml:space="preserve">
+    <value>示例多商品</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMultiTimeFrame" xml:space="preserve">
+    <value>示例多时间段</value>
+  </data>
+  <data name="NumStdDev" xml:space="preserve">
+    <value>标准偏差数</value>
+  </data>
+  <data name="OffsetMultiplier" xml:space="preserve">
+    <value>偏移量的乘数</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>期间</value>
+  </data>
+  <data name="PeriodD" xml:space="preserve">
+    <value>期 D</value>
+  </data>
+  <data name="PeriodK" xml:space="preserve">
+    <value>期间 K</value>
+  </data>
+  <data name="PeriodQ" xml:space="preserve">
+    <value>期间 Q</value>
+  </data>
+  <data name="PlotCurrentValue" xml:space="preserve">
+    <value>只绘制当前值</value>
+  </data>
+  <data name="ROCPeriod" xml:space="preserve">
+    <value>转型期的率</value>
+  </data>
+  <data name="ShowClose" xml:space="preserve">
+    <value>显示图片关闭窗口</value>
+  </data>
+  <data name="ShowHigh" xml:space="preserve">
+    <value>显示高</value>
+  </data>
+  <data name="ShowLow" xml:space="preserve">
+    <value>表明低</value>
+  </data>
+  <data name="ShowOpen" xml:space="preserve">
+    <value>显示打开</value>
+  </data>
+  <data name="SignalPeriod" xml:space="preserve">
+    <value>信号周期</value>
+  </data>
+  <data name="Slow" xml:space="preserve">
+    <value>缓慢</value>
+  </data>
+  <data name="SlowLimit" xml:space="preserve">
+    <value>缓慢的极限</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>顺利</value>
+  </data>
+  <data name="Smoothing" xml:space="preserve">
+    <value>平滑</value>
+  </data>
+  <data name="UseHighLow" xml:space="preserve">
+    <value>使用高低</value>
+  </data>
+  <data name="VolumeDivisor" xml:space="preserve">
+    <value>量因子</value>
+  </data>
+  <data name="Width" xml:space="preserve">
+    <value>宽度</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPriceEarningsRatio" xml:space="preserve">
+    <value>当前股价相比，其每股收益。</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMIN" xml:space="preserve">
+    <value>MIN</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionSettlement" xml:space="preserve">
+    <value>今天的结算价</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameSettlement" xml:space="preserve">
+    <value>结算价</value>
+  </data>
+  <data name="NinjaScriptStrategyParameters" xml:space="preserve">
+    <value>策略参数</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfe" xml:space="preserve">
+    <value>最大平均漂移值</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfeLong" xml:space="preserve">
+    <value>最大平均漂移 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfeShort" xml:space="preserve">
+    <value>最大值平均漂移 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfit" xml:space="preserve">
+    <value>最大平均利润值</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfitLong" xml:space="preserve">
+    <value>最大平均利润值（长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfitShort" xml:space="preserve">
+    <value>最大平均利润值 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfit" xml:space="preserve">
+    <value>最大净利润</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfitLong" xml:space="preserve">
+    <value>最大净利润 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfitShort" xml:space="preserve">
+    <value>最大净利润 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitable" xml:space="preserve">
+    <value>最大%盈利</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitableLong" xml:space="preserve">
+    <value>最大%盈利 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitableShort" xml:space="preserve">
+    <value>最大值。%盈利 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablity" xml:space="preserve">
+    <value>最大值。概率</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactor" xml:space="preserve">
+    <value>最大值。利润的因素</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactorLong" xml:space="preserve">
+    <value>最大值。利润因素 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactorShort" xml:space="preserve">
+    <value>最大值。利润因素 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatio" xml:space="preserve">
+    <value>最大值。夏普比率</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatioLong" xml:space="preserve">
+    <value>最大值。夏普比率 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatioShort" xml:space="preserve">
+    <value>最大值。夏普比率 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatio" xml:space="preserve">
+    <value>最大值。索提诺比率</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatioLong" xml:space="preserve">
+    <value>最大值。索提诺比率 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatioShort" xml:space="preserve">
+    <value>最大值。索提诺比率 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatio" xml:space="preserve">
+    <value>最大值。溃疡比率</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatioLong" xml:space="preserve">
+    <value>最大值。溃疡比率 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatioShort" xml:space="preserve">
+    <value>最大值。溃疡比率 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMae" xml:space="preserve">
+    <value>最小平均不良漂移</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMaeLong" xml:space="preserve">
+    <value>最小平均不良漂移 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMaeShort" xml:space="preserve">
+    <value>最小平均不良漂移 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDown" xml:space="preserve">
+    <value>最小画下来</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDownLong" xml:space="preserve">
+    <value>最小画下来 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDownShort" xml:space="preserve">
+    <value>最小画下来 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatio" xml:space="preserve">
+    <value>最大值。赢/亏失率</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatioLong" xml:space="preserve">
+    <value>最大值。赢/亏失率 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatioShort" xml:space="preserve">
+    <value>最大值。赢/亏失率 （短）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2" xml:space="preserve">
+    <value>最大值。R ^2</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2Long" xml:space="preserve">
+    <value>最大值。R ^2 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2Short" xml:space="preserve">
+    <value>最大值。R ^2 （短）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerAveragePerformanceOffsetPercent" xml:space="preserve">
+    <value>平均性能偏移量 （%）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerConvergenceThreshold" xml:space="preserve">
+    <value>收敛阈值</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerCrossoverIndex" xml:space="preserve">
+    <value>交叉索引</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelIsVisible" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelLineStroke" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevels" xml:space="preserve">
+    <value>水平</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelsPrompt" xml:space="preserve">
+    <value>1 价格水平 |{0} 价格水平 |添加价格水平...|编辑价格水平...|编辑价格水平。</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelUnset" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelValue" xml:space="preserve">
+    <value>值 （%）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerFastGenerations" xml:space="preserve">
+    <value>快速迭代</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerGenerations" xml:space="preserve">
+    <value>迭代</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerGenerationSize" xml:space="preserve">
+    <value>迭代量</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMinimumPerformance" xml:space="preserve">
+    <value>最低性能</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMutationRatePercent" xml:space="preserve">
+    <value>突变率 （%）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMutationStrengthPercent" xml:space="preserve">
+    <value>突变强度 （%）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerResetSizePercent" xml:space="preserve">
+    <value>重置大小 （%）</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerSlowGenerations" xml:space="preserve">
+    <value>缓慢的迭代</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerStabilitySizePercent" xml:space="preserve">
+    <value>尺寸稳定性 （%）</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleCustomPerformance" xml:space="preserve">
+    <value>示例来演示的自定义性能的用法</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleCustomPerformance" xml:space="preserve">
+    <value>示例自定义性能</value>
+  </data>
+  <data name="SampleCumProfit" xml:space="preserve">
+    <value>示例累计利润</value>
+  </data>
+  <data name="ImportTypeNinjaTraderBeginningOfBar" xml:space="preserve">
+    <value>NinjaTrader （起点的K棒的时间戳）</value>
+  </data>
+  <data name="ImportTypeNinjaTraderEndOfBar" xml:space="preserve">
+    <value>NinjaTrader （结束时间戳栏）</value>
+  </data>
+  <data name="ImportTypeNinjaTraderFieldSeparatorNotIdentified" xml:space="preserve">
+    <value>{0}: 找不到导入字段分隔符。</value>
+  </data>
+  <data name="ImportTypeNinjaTraderDateTimeFormatError" xml:space="preserve">
+    <value>{0}: 行 {1} 中的日期/时间格式错误: {2}: '{3}'</value>
+  </data>
+  <data name="ImportTypeNinjaTraderFormatError" xml:space="preserve">
+    <value>{0}: 格式行 {1} 中的错误: {2}: '{3}'</value>
+  </data>
+  <data name="ImportTypeNinjaTraderInstrumentNotSupported" xml:space="preserve">
+    <value>无法导入文件"{0}"。品种不支持的存储库。</value>
+  </data>
+  <data name="ImportTypeNinjaTraderNumericPriceFormatError" xml:space="preserve">
+    <value>{0}: 数字价格格式不支持。</value>
+  </data>
+  <data name="ImportTypeNinjaTraderUnableReadData" xml:space="preserve">
+    <value>无法从文件"{0}"读取数据： {1}</value>
+  </data>
+  <data name="ImportTypeNinjaTraderUnexpectedFieldNumber" xml:space="preserve">
+    <value>{0}: 意外的线"{1}"中的字段的数量应得到 3、 5 或 6</value>
+  </data>
+  <data name="FileFilterAnyLoadingDialog" xml:space="preserve">
+    <value>任何 (*.*)</value>
+  </data>
+  <data name="FileName" xml:space="preserve">
+    <value>文件名称</value>
+  </data>
+  <data name="PerformanceMetricSampleCumProfit" xml:space="preserve">
+    <value>示例累计利润性能度量</value>
+  </data>
+  <data name="SampleCumProfitDescription" xml:space="preserve">
+    <value>累计利润作为样本的自定义性能度量</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablityLong" xml:space="preserve">
+    <value>最大值。概率 （长）</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablityShort" xml:space="preserve">
+    <value>最大值。概率 （短）</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionVwap" xml:space="preserve">
+    <value>成交量加权平均价格</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameVwap" xml:space="preserve">
+    <value>VWAP</value>
+  </data>
+  <data name="BarsPeriodTypeNameDay" xml:space="preserve">
+    <value>日线</value>
+  </data>
+  <data name="BarsPeriodTypeNameMinute" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="BarsPeriodTypeNameMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="BarsPeriodTypeNameRange" xml:space="preserve">
+    <value>等价线</value>
+  </data>
+  <data name="BarsPeriodTypeNameRenko" xml:space="preserve">
+    <value>砖型图</value>
+  </data>
+  <data name="BarsPeriodTypeNameSecond" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="BarsPeriodTypeNameTick" xml:space="preserve">
+    <value>Tick</value>
+  </data>
+  <data name="BarsPeriodTypeNameVolume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="BarsPeriodTypeNameWeek" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="BarsPeriodTypeNameYear" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandlestick" xml:space="preserve">
+    <value>K线</value>
+  </data>
+  <data name="NinjaScriptOptimizerDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="NinjaScriptOptimizerGenetic" xml:space="preserve">
+    <value>遗传</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnNotes" xml:space="preserve">
+    <value>笔记</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnProfitAndLoss" xml:space="preserve">
+    <value>盈亏</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnVolume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionNotes" xml:space="preserve">
+    <value>备注列在 SuperDOM 中直接提供文本条目价位和可以用来添加备注每价格水平。</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnClose" xml:space="preserve">
+    <value>关闭行</value>
+  </data>
+  <data name="NinjaScriptChartStyleOHLC" xml:space="preserve">
+    <value>OHLC</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenClose" xml:space="preserve">
+    <value>开盘/收盘</value>
+  </data>
+  <data name="NinjaScriptChartStyleBox" xml:space="preserve">
+    <value>框</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigure" xml:space="preserve">
+    <value>点数图</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagi" xml:space="preserve">
+    <value>卡吉线</value>
+  </data>
+  <data name="NinjaScriptChartStyleHeikenAshi" xml:space="preserve">
+    <value>Heiken Ashi</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountain" xml:space="preserve">
+    <value>分时图</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnBaseInitializeBarsPoolError" xml:space="preserve">
+    <value>对加载错误K棒系列 ' {0} / {1}': {2}</value>
+  </data>
+  <data name="FacebookServiceName" xml:space="preserve">
+    <value>Facebook</value>
+  </data>
+  <data name="MailServiceMailAddress" xml:space="preserve">
+    <value>电子邮件地址</value>
+  </data>
+  <data name="MailServiceName" xml:space="preserve">
+    <value>电子邮件</value>
+  </data>
+  <data name="MailServicePort" xml:space="preserve">
+    <value>连接的端口</value>
+  </data>
+  <data name="MailServiceServer" xml:space="preserve">
+    <value>连接服务器</value>
+  </data>
+  <data name="MailServiceSSL" xml:space="preserve">
+    <value>连接-SSL</value>
+  </data>
+  <data name="ShareServiceParameters" xml:space="preserve">
+    <value>凭据</value>
+  </data>
+  <data name="ShareServicePassword" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="ShareServiceUserName" xml:space="preserve">
+    <value>用户名称</value>
+  </data>
+  <data name="StockTwitsServiceName" xml:space="preserve">
+    <value>Stocktwits — —</value>
+  </data>
+  <data name="TwitterServiceName" xml:space="preserve">
+    <value>推特</value>
+  </data>
+  <data name="ShareServiceSignature" xml:space="preserve">
+    <value>有人在共享服务中的异常:"{0}"</value>
+  </data>
+  <data name="NinjaScriptLoadingData" xml:space="preserve">
+    <value>  正在加载数据...{0}</value>
+  </data>
+  <data name="SampleAddOnDescription" xml:space="preserve">
+    <value>示例名称说明</value>
+  </data>
+  <data name="SampleAddOnHiThere" xml:space="preserve">
+    <value>嘿，你好!</value>
+  </data>
+  <data name="SampleAddOnName" xml:space="preserve">
+    <value>示例插件名称</value>
+  </data>
+  <data name="CustomWindowAddOnBuyMarket" xml:space="preserve">
+    <value>买入市价</value>
+  </data>
+  <data name="CustomWindowAddOnSellMarket" xml:space="preserve">
+    <value>卖出市价</value>
+  </data>
+  <data name="CustomWindowSampleDescription" xml:space="preserve">
+    <value>自定义窗口说明</value>
+  </data>
+  <data name="CustomWindowSampleName" xml:space="preserve">
+    <value>自定义窗口示例</value>
+  </data>
+  <data name="Strength" xml:space="preserve">
+    <value>强度</value>
+  </data>
+  <data name="TCount" xml:space="preserve">
+    <value>T 计数</value>
+  </data>
+  <data name="VFactor" xml:space="preserve">
+    <value>V因素</value>
+  </data>
+  <data name="VolatilityPeriod" xml:space="preserve">
+    <value>波动期</value>
+  </data>
+  <data name="BarsPeriodTypeNameKagi" xml:space="preserve">
+    <value>卡吉</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleFramework" xml:space="preserve">
+    <value>这一策略演示一些 NinjaTrader 发展框架的能力</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleFramework" xml:space="preserve">
+    <value>示例框架</value>
+  </data>
+  <data name="EmailSignature" xml:space="preserve">
+    <value> 由 NinjaTrader 发送</value>
+  </data>
+  <data name="FacebookSignature" xml:space="preserve">
+    <value>由 NinjaTrader 发送</value>
+  </data>
+  <data name="StockTwitsSignature" xml:space="preserve">
+    <value> 由 NinjaTrader 发送</value>
+  </data>
+  <data name="TwitterSignature" xml:space="preserve">
+    <value> #NinjaTrader</value>
+  </data>
+  <data name="GuiAuthorize" xml:space="preserve">
+    <value>授权</value>
+  </data>
+  <data name="ShareException" xml:space="preserve">
+    <value>WebException 被扔。状态:"{0}"消息: '{1}'</value>
+  </data>
+  <data name="ShareForbidden" xml:space="preserve">
+    <value>共享提供程序返回禁止消息:"{0}"</value>
+  </data>
+  <data name="ShareImageNoLongerExists" xml:space="preserve">
+    <value>找不到位置"{0}"图像。</value>
+  </data>
+  <data name="ShareNotAuthorized" xml:space="preserve">
+    <value>共享提供程序返回未授权的消息:"{0}"</value>
+  </data>
+  <data name="MailSubject" xml:space="preserve">
+    <value>主题:</value>
+  </data>
+  <data name="MailToAddress" xml:space="preserve">
+    <value>自:</value>
+  </data>
+  <data name="MailSubjectDescription" xml:space="preserve">
+    <value>您的电子邮件消息的主题</value>
+  </data>
+  <data name="MailToAddressDescription" xml:space="preserve">
+    <value>您的收件人电子邮件地址。分隔多个地址与 '，' 或 ';'</value>
+  </data>
+  <data name="ShareFacebookCouldNotRetrieveUser" xml:space="preserve">
+    <value>找不到用户</value>
+  </data>
+  <data name="ShareFacebookCouldNotVerifyToken" xml:space="preserve">
+    <value>Facebook 无法验证此用户令牌</value>
+  </data>
+  <data name="ShareFacebookPermissionDenied" xml:space="preserve">
+    <value>所需的 Facebook 权限被拒绝的用户</value>
+  </data>
+  <data name="ShareFacebookScopesNotFound" xml:space="preserve">
+    <value>无法验证 Facebook 权限</value>
+  </data>
+  <data name="StockTwitsSentiment" xml:space="preserve">
+    <value>人气:</value>
+  </data>
+  <data name="StockTwitsSentimentDescription" xml:space="preserve">
+    <value>为此消息选择 Bearish，中性或乐观</value>
+  </data>
+  <data name="ShareMailSendError" xml:space="preserve">
+    <value>发送邮件时出错： {0}</value>
+  </data>
+  <data name="ShareMailException" xml:space="preserve">
+    <value>发送邮件时出错： {0}</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionOpenInterest" xml:space="preserve">
+    <value>不关闭或在某一天发表的选项和/或期货合约的总数</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameOpenInterest" xml:space="preserve">
+    <value>未平仓合约</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnApq" xml:space="preserve">
+    <value>APQ</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastSize" xml:space="preserve">
+    <value>上个单的数量</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastSize" xml:space="preserve">
+    <value>上一单的手数量</value>
+  </data>
+  <data name="ShareFacebookSentSuccessfully" xml:space="preserve">
+    <value>{0}-邮政发送成功</value>
+  </data>
+  <data name="ShareMailSentSuccessfully" xml:space="preserve">
+    <value>{0}-成功发送消息</value>
+  </data>
+  <data name="ShareStockTwitsSentSuccessfully" xml:space="preserve">
+    <value>{0}-成功发送消息</value>
+  </data>
+  <data name="ShareTwitterSentSuccessfully" xml:space="preserve">
+    <value>{0}-tweet 发送成功</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnCloseColor" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnCloseWidth" xml:space="preserve">
+    <value>线宽</value>
+  </data>
+  <data name="ShareFacebookNoResult" xml:space="preserve">
+    <value>未能从 Facebook 接收响应</value>
+  </data>
+  <data name="NinjaScriptDrawingToolArrowLine" xml:space="preserve">
+    <value>箭头线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolExtendedLine" xml:space="preserve">
+    <value>延长的线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolLine" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRay" xml:space="preserve">
+    <value>射线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolHorizontalLine" xml:space="preserve">
+    <value>水平线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolVerticalLine" xml:space="preserve">
+    <value>垂直线条</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchor" xml:space="preserve">
+    <value>锚点</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorEnd" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorStart" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartArrowDownMarkerName" xml:space="preserve">
+    <value>下箭头</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartArrowUpMarkerName" xml:space="preserve">
+    <value>向上箭头</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartDiamondMarkerName" xml:space="preserve">
+    <value>钻石</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartDotMarkerName" xml:space="preserve">
+    <value>圆点</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartSquareMarkerName" xml:space="preserve">
+    <value>四方型</value>
+  </data>
+  <data name="BarsPeriodTypeNamePointAndFigure" xml:space="preserve">
+    <value>点数图</value>
+  </data>
+  <data name="DataBarsTypePointAndFigure" xml:space="preserve">
+    <value>{0} 点数图</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxDownBarsColor" xml:space="preserve">
+    <value>下跌 k线 颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxDownBarsOutline" xml:space="preserve">
+    <value>下降K线的大纲</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxUpBarsColor" xml:space="preserve">
+    <value>上涨k线颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxUpBarsOutline" xml:space="preserve">
+    <value>上涨K线的大纲</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleDownBarsColor" xml:space="preserve">
+    <value>下跌 k线 颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleOutline" xml:space="preserve">
+    <value>K线边框颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleUpBarsColor" xml:space="preserve">
+    <value>上涨k线颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleWick" xml:space="preserve">
+    <value>阴线</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagiThickLine" xml:space="preserve">
+    <value>粗线</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagiThinLine" xml:space="preserve">
+    <value>细线</value>
+  </data>
+  <data name="NinjaScriptBarsTypeKagiReversal" xml:space="preserve">
+    <value>逆转</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigureBoxSize" xml:space="preserve">
+    <value>框的大小</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigureReversal" xml:space="preserve">
+    <value>逆转</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRenkoBrickSize" xml:space="preserve">
+    <value>砖的大小</value>
+  </data>
+  <data name="NinjaScriptChartStyleBarWidth" xml:space="preserve">
+    <value>k线宽度</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountainColor" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountainOutline" xml:space="preserve">
+    <value>轮廓</value>
+  </data>
+  <data name="NinjaScriptChartStyleOhlcDownBarsColor" xml:space="preserve">
+    <value>下跌 k线 颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleOhlcUpBarsColor" xml:space="preserve">
+    <value>上涨k线颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseDownBarsColor" xml:space="preserve">
+    <value>下跌 k线 颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseDownBarsOutline" xml:space="preserve">
+    <value>下降K线的大纲</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseUpBarsColor" xml:space="preserve">
+    <value>上涨k线颜色</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseUpBarsOutline" xml:space="preserve">
+    <value>上涨K线的大纲</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigureDownColor" xml:space="preserve">
+    <value>下来的颜色</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigureUpColor" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="BarsPeriodTypeNameLineBreak" xml:space="preserve">
+    <value>线断</value>
+  </data>
+  <data name="NinjaScriptBarsTypeLineBreakLineBreaks" xml:space="preserve">
+    <value>换行符</value>
+  </data>
+  <data name="BarsPeriodTypeNameHeikenAshi" xml:space="preserve">
+    <value>Heiken-Ashi</value>
+  </data>
+  <data name="NinjaScriptDrawingToolArc" xml:space="preserve">
+    <value>弧</value>
+  </data>
+  <data name="NinjaScriptDrawingToolEllipse" xml:space="preserve">
+    <value>椭圆</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRectangle" xml:space="preserve">
+    <value>矩形</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTriangle" xml:space="preserve">
+    <value>三角</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorMiddle" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRuler" xml:space="preserve">
+    <value>标尺</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerNumberBarsText" xml:space="preserve">
+    <value># 条形图:</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerTimeText" xml:space="preserve">
+    <value>时间:</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerYValueText" xml:space="preserve">
+    <value>Y 值:</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciLevelsBaseAnchorLineStroke" xml:space="preserve">
+    <value>锚点</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsExtendLinesLeft" xml:space="preserve">
+    <value>延长线左</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsExtendLinesRight" xml:space="preserve">
+    <value>扩展行权</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsTextAlignment" xml:space="preserve">
+    <value>文本对齐方式</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeExtensionsShowText" xml:space="preserve">
+    <value>显示文本</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciCircle" xml:space="preserve">
+    <value>斐波纳契圆</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracements" xml:space="preserve">
+    <value>斐波纳契回撤</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeCircleDivideTimeSeparately" xml:space="preserve">
+    <value>分别划分时间/价格</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeExtensions" xml:space="preserve">
+    <value>斐波纳契时间扩展</value>
+  </data>
+  <data name="NinjaScriptGeneral" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="NinjaScriptDrawingToolShapesAreaBrush" xml:space="preserve">
+    <value>颜色-区域</value>
+  </data>
+  <data name="NinjaScriptDrawingToolText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextBrush" xml:space="preserve">
+    <value>颜色-字体</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFixed" xml:space="preserve">
+    <value>固定的文本</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFont" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextOutlineStroke" xml:space="preserve">
+    <value>轮廓</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextOutlineVisible" xml:space="preserve">
+    <value>概述-启用</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFixedTextPosition" xml:space="preserve">
+    <value>文本位置</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAreaOpacity" xml:space="preserve">
+    <value>未透明度-面积 （%）</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextAlignment" xml:space="preserve">
+    <value>文本对齐方式</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerYValueDisplayUnit" xml:space="preserve">
+    <value>Y 值显示单元</value>
+  </data>
+  <data name="NinjaScriptBarsTypeDay" xml:space="preserve">
+    <value>日线</value>
+  </data>
+  <data name="NinjaScriptBarsTypeHeikenAshi" xml:space="preserve">
+    <value>Heiken Ashi</value>
+  </data>
+  <data name="NinjaScriptBarsTypeKagi" xml:space="preserve">
+    <value>卡吉</value>
+  </data>
+  <data name="NinjaScriptBarsTypeLineBreak" xml:space="preserve">
+    <value>线断</value>
+  </data>
+  <data name="NinjaScriptBarsTypeMinute" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="NinjaScriptBarsTypeMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigure" xml:space="preserve">
+    <value>点数图</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRange" xml:space="preserve">
+    <value>等价线</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRenko" xml:space="preserve">
+    <value>砖型图</value>
+  </data>
+  <data name="NinjaScriptBarsTypeSecond" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="NinjaScriptBarsTypeTick" xml:space="preserve">
+    <value>Tick</value>
+  </data>
+  <data name="NinjaScriptBarsTypeVolume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="NinjaScriptBarsTypeWeek" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerDaysFormat" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="NinjaScriptDrawingToolStroke" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanFanDirection" xml:space="preserve">
+    <value>扇形图的方向</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanDisplayText" xml:space="preserve">
+    <value>显示文本</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFan" xml:space="preserve">
+    <value>江恩的风扇</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngles" xml:space="preserve">
+    <value>江恩角度</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAnglesPrompt" xml:space="preserve">
+    <value>1 江恩角度 |{0} 江恩角度 |添加江恩角度...|编辑江恩角度...|编辑江恩角度。</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorLineStroke" xml:space="preserve">
+    <value>锚点</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardCategoryColors" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardDescription" xml:space="preserve">
+    <value>自动计算您基于用户定义停止损失的目标</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorEntry" xml:space="preserve">
+    <value>进入锚</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeEntry" xml:space="preserve">
+    <value>进入扩展</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardName" xml:space="preserve">
+    <value>风险回报</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardRatio" xml:space="preserve">
+    <value>比率</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorRisk" xml:space="preserve">
+    <value>风险锚</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeRisk" xml:space="preserve">
+    <value>风险扩展</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorReward" xml:space="preserve">
+    <value>奖励锚</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeReward" xml:space="preserve">
+    <value>奖励扩展</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorExtension" xml:space="preserve">
+    <value>扩展 </value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchfork" xml:space="preserve">
+    <value>安德鲁斯干草叉</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkCalculationMethod" xml:space="preserve">
+    <value>计算方法</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkCategoryStrokes" xml:space="preserve">
+    <value>中风</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkDescription" xml:space="preserve">
+    <value>安德鲁音叉描述</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkExtensionStroke" xml:space="preserve">
+    <value>延长线描边</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkRetracement" xml:space="preserve">
+    <value>回调</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannel" xml:space="preserve">
+    <value>趋势通道</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelDescription" xml:space="preserve">
+    <value>绘制使用平行线的趋势通道</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelEnd1AnchorDisplayName" xml:space="preserve">
+    <value>趋势结束</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelStart1AnchorDisplayName" xml:space="preserve">
+    <value>趋势开始</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelStart2AnchorDisplayName" xml:space="preserve">
+    <value>并行</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>日线</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>以天计算</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Currency" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Percent" xml:space="preserve">
+    <value>百分比</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Pips" xml:space="preserve">
+    <value>点值</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Price" xml:space="preserve">
+    <value>价格</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Ticks" xml:space="preserve">
+    <value>Tick</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightDirection" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightDirectionStroke" xml:space="preserve">
+    <value>描边方向</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightHorizontalTextFormat" xml:space="preserve">
+    <value>{0} K棒时间： {1}</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightVerticalRangeUnit" xml:space="preserve">
+    <value>垂直范围单位</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightVerticalTextFormat" xml:space="preserve">
+    <value>范围值： {0} {1}</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextBackBrush" xml:space="preserve">
+    <value>文本背景画笔</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannel" xml:space="preserve">
+    <value>回归通道</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelLowerChannel" xml:space="preserve">
+    <value>低通道</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelLowerChannelColor" xml:space="preserve">
+    <value>低通道颜色</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelPriceType" xml:space="preserve">
+    <value>价格类型</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelRegressionChannel" xml:space="preserve">
+    <value>回归</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationExtendLeft" xml:space="preserve">
+    <value>左扩展</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationExtendRight" xml:space="preserve">
+    <value>扩展权利</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationLowerDistance" xml:space="preserve">
+    <value>对下游河道的距离</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationUpperDistance" xml:space="preserve">
+    <value>到通道距离</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelType" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelUpperChannel" xml:space="preserve">
+    <value>通道</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelUpperChannelColor" xml:space="preserve">
+    <value>上部通道颜色</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciExtensions" xml:space="preserve">
+    <value>斐波纳契扩展</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_ModifiedSchiff" xml:space="preserve">
+    <value>修改后的希夫</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_Schiff" xml:space="preserve">
+    <value>希夫</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_StandardPitchfork" xml:space="preserve">
+    <value>标准</value>
+  </data>
+  <data name="TextPosition_BottomLeft" xml:space="preserve">
+    <value>左下角</value>
+  </data>
+  <data name="TextPosition_BottomRight" xml:space="preserve">
+    <value>右下角</value>
+  </data>
+  <data name="TextPosition_Center" xml:space="preserve">
+    <value>中心</value>
+  </data>
+  <data name="TextPosition_TopLeft" xml:space="preserve">
+    <value>左上角</value>
+  </data>
+  <data name="TextPosition_TopRight" xml:space="preserve">
+    <value>右上角</value>
+  </data>
+  <data name="FibonacciTextAlignment_ExtremeLeft" xml:space="preserve">
+    <value>最左端。</value>
+  </data>
+  <data name="FibonacciTextAlignment_ExtremeRight" xml:space="preserve">
+    <value>极右</value>
+  </data>
+  <data name="FibonacciTextAlignment_Left" xml:space="preserve">
+    <value>左边</value>
+  </data>
+  <data name="FibonacciTextAlignment_Off" xml:space="preserve">
+    <value>不绘制 </value>
+  </data>
+  <data name="FibonacciTextAlignment_Right" xml:space="preserve">
+    <value>右边</value>
+  </data>
+  <data name="GannFanDirection_DownLeft" xml:space="preserve">
+    <value>向下向左</value>
+  </data>
+  <data name="GannFanDirection_DownRight" xml:space="preserve">
+    <value>向右下</value>
+  </data>
+  <data name="GannFanDirection_UpLeft" xml:space="preserve">
+    <value>向上向左</value>
+  </data>
+  <data name="GannFanDirection_UpRight" xml:space="preserve">
+    <value>右上</value>
+  </data>
+  <data name="RegionHighlightDirection_Horizontal" xml:space="preserve">
+    <value>水平</value>
+  </data>
+  <data name="RegionHighlightDirection_Vertical" xml:space="preserve">
+    <value>垂直</value>
+  </data>
+  <data name="RegressionChannelType_Segment" xml:space="preserve">
+    <value>部分</value>
+  </data>
+  <data name="RegressionChannelType_StandardDeviation" xml:space="preserve">
+    <value>标准偏差的距离</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngleRatioX" xml:space="preserve">
+    <value>时间对比</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngleRatioY" xml:space="preserve">
+    <value>价格对比</value>
+  </data>
+  <data name="CurrentDayOHLError" xml:space="preserve">
+    <value>CurrentDayOHL 只适用于盘中间隔</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegion" xml:space="preserve">
+    <value>地区</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartTriangleDownMarkerName" xml:space="preserve">
+    <value>倒三角形</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartTriangleUpMarkerName" xml:space="preserve">
+    <value>正三角形</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsTextLocation" xml:space="preserve">
+    <value>文本位置</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanPointsPerBar" xml:space="preserve">
+    <value>指向每根bar</value>
+  </data>
+  <data name="NinjaScriptDrawingToolShapesOutlineBrush" xml:space="preserve">
+    <value>颜色-概述</value>
+  </data>
+  <data name="NinjaScriptLines" xml:space="preserve">
+    <value>Lines</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHiglightX" xml:space="preserve">
+    <value>突出显示区域 X</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHiglightY" xml:space="preserve">
+    <value>区域突出显示 Y</value>
+  </data>
+  <data name="ShareStockTwitsNoAccount" xml:space="preserve">
+    <value>无法验证 stocktwits — — 帐户</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelParallelStroke" xml:space="preserve">
+    <value>并行</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelTrendStroke" xml:space="preserve">
+    <value>趋势</value>
+  </data>
+  <data name="ShareBadGatewayError" xml:space="preserve">
+    <value>共享提供程序返回一个坏网关错误:"{0}"</value>
+  </data>
+  <data name="ShareBadRequestError" xml:space="preserve">
+    <value>共享提供程序返回错误请求的错误:"{0}"</value>
+  </data>
+  <data name="ShareGatewayTimeoutError" xml:space="preserve">
+    <value>共享提供程序返回一个网关超时错误:"{0}"</value>
+  </data>
+  <data name="ShareInternalServerError" xml:space="preserve">
+    <value>共享提供程序返回一个内部服务器错误:"{0}"</value>
+  </data>
+  <data name="ShareNonSuccessCode" xml:space="preserve">
+    <value>共享提供程序返回一个 {0} 的错误消息: '{1}'</value>
+  </data>
+  <data name="ShareTooManyRequests" xml:space="preserve">
+    <value>共享提供程序返回一个 TooManyRequests 消息:"{0}"</value>
+  </data>
+  <data name="BarSpacing" xml:space="preserve">
+    <value>k线间距</value>
+  </data>
+  <data name="CountDown" xml:space="preserve">
+    <value>倒计时</value>
+  </data>
+  <data name="DownBarColor" xml:space="preserve">
+    <value>下降条形图颜色</value>
+  </data>
+  <data name="DrawLines" xml:space="preserve">
+    <value>绘制线条</value>
+  </data>
+  <data name="HLCCalculationMode" xml:space="preserve">
+    <value>HLC 计算模式</value>
+  </data>
+  <data name="HLCCalculationModeDescription" xml:space="preserve">
+    <value>前一天 HLC 值计算方法。</value>
+  </data>
+  <data name="LineColor" xml:space="preserve">
+    <value>线条颜色</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBarTimer" xml:space="preserve">
+    <value>显示剩余时间的基于时间栏</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBuySellVolume" xml:space="preserve">
+    <value>阴谋分裂之间问或更高的交易与交易在投标和低体积直方图。 仅适用于历史数据，如果使用Tick重播</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCandlestickPattern" xml:space="preserve">
+    <value>检测常见烛台模式并将它们标记在图表上</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSampleCustomRender" xml:space="preserve">
+    <value>示例脚本来显示 OnRender() 功能</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDarvas" xml:space="preserve">
+    <value>软件是内置盒取自尼古拉斯软件是内置书页如何我在股票市场赚了 $2,000,000。框用于正常化的趋势。当股票价格超过顶部的框中，将表示 '买' 的信号。将表示 '出售' 的信号，当股票的价格低于框的底部。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPivots" xml:space="preserve">
+    <value>支点 （支点） 指标绘制高、 低和事先会话或组会议召开之前，关闭的平均值。这基于历史数据提供的你方市场饲料的数据提供程序。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRangeCounter" xml:space="preserve">
+    <value>显示范围计数的一家酒吧"</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTickCounter" xml:space="preserve">
+    <value>显示滴答计数的K棒</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeCounter" xml:space="preserve">
+    <value>显示每个条形的卷数</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeProfile" xml:space="preserve">
+    <value>按价格图卷水平直方图。</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeZones" xml:space="preserve">
+    <value>卷区地块水平直方图覆盖价格图表。直方图条延伸从左到右开始在图表的左侧。每个栏的长度确定累计的所有卷K棒的时期期间，价格跌了直方图条垂直范围。</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBarTimer" xml:space="preserve">
+    <value>Bar timer</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBuySellVolume" xml:space="preserve">
+    <value>买卖成交量</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCandlestickPattern" xml:space="preserve">
+    <value>K2线模式</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSampleCustomRender" xml:space="preserve">
+    <value>Sample custom render</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDarvas" xml:space="preserve">
+    <value>Darvas</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePivots" xml:space="preserve">
+    <value>Pivots</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRangeCounter" xml:space="preserve">
+    <value>Range counter</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTickCounter" xml:space="preserve">
+    <value>Tick counter</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeCounter" xml:space="preserve">
+    <value>成交量计数器</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeProfile" xml:space="preserve">
+    <value>成交量的配置文件</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumesZones" xml:space="preserve">
+    <value>成交量卷带</value>
+  </data>
+  <data name="Opacity" xml:space="preserve">
+    <value>透明度</value>
+  </data>
+  <data name="PivotRange" xml:space="preserve">
+    <value>枢轴范围</value>
+  </data>
+  <data name="SelectPattern" xml:space="preserve">
+    <value>选择模式</value>
+  </data>
+  <data name="SelectPatternDescription" xml:space="preserve">
+    <value>选择要检测的模式</value>
+  </data>
+  <data name="SendAlerts" xml:space="preserve">
+    <value>发送警报</value>
+  </data>
+  <data name="SendAlertsDescription" xml:space="preserve">
+    <value>真实的发送警报消息设置为警报窗口</value>
+  </data>
+  <data name="ShowPatternCount" xml:space="preserve">
+    <value>显示模式计数</value>
+  </data>
+  <data name="ShowPatternCountDescription" xml:space="preserve">
+    <value>设置为 true 可在图表上显示的模式发现的计数</value>
+  </data>
+  <data name="ShowPercent" xml:space="preserve">
+    <value>显示百分比</value>
+  </data>
+  <data name="SmallAreaColor" xml:space="preserve">
+    <value>小区域颜色</value>
+  </data>
+  <data name="TextColor" xml:space="preserve">
+    <value>文本颜色</value>
+  </data>
+  <data name="TextFont" xml:space="preserve">
+    <value>文本字体</value>
+  </data>
+  <data name="TrendStrength" xml:space="preserve">
+    <value>趋势的力量</value>
+  </data>
+  <data name="TrendStrengthDescription" xml:space="preserve">
+    <value>定义一种趋势，当一种模式需要一种普遍趋势所需的条形的数目。\nA 值为零将禁用趋势要求。</value>
+  </data>
+  <data name="UpBarColor" xml:space="preserve">
+    <value>K棒上涨颜色</value>
+  </data>
+  <data name="UserDefinedClose" xml:space="preserve">
+    <value>用户自定义关闭</value>
+  </data>
+  <data name="UserDefinedHigh" xml:space="preserve">
+    <value>用户定义高</value>
+  </data>
+  <data name="UserDefinedLow" xml:space="preserve">
+    <value>用户定义低</value>
+  </data>
+  <data name="VolumeDownColor" xml:space="preserve">
+    <value>成交量跌颜色</value>
+  </data>
+  <data name="VolumeNeutralColor" xml:space="preserve">
+    <value>成交量平颜色</value>
+  </data>
+  <data name="VolumeUpColor" xml:space="preserve">
+    <value>成交量涨颜色</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeUpDown" xml:space="preserve">
+    <value>当前K线的颜色体积直方图不同的颜色取决于如果卷 （卷） 指标变化是向上或向下栏</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeUpDown" xml:space="preserve">
+    <value>成交量上下</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleATMStrategy" xml:space="preserve">
+    <value>先进的贸易管理示例策略。</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleATMStrategy" xml:space="preserve">
+    <value>示例 ATM 策略</value>
+  </data>
+  <data name="HLCCalculationMode_CalcFromIntradayData" xml:space="preserve">
+    <value>从盘中的数据计算</value>
+  </data>
+  <data name="HLCCalculationMode_DailyBars" xml:space="preserve">
+    <value>使用日线K线</value>
+  </data>
+  <data name="HLCCalculationMode_UserDefinedValues" xml:space="preserve">
+    <value>使用用户定义的值</value>
+  </data>
+  <data name="PivotRange_Daily" xml:space="preserve">
+    <value>日线</value>
+  </data>
+  <data name="PivotRange_Monthly" xml:space="preserve">
+    <value>每月</value>
+  </data>
+  <data name="PivotRange_Weekly" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="ShareArgsException" xml:space="preserve">
+    <value>带参数调用 OnShare 时出错： {0}</value>
+  </data>
+  <data name="FileFilterAnyWinForms" xml:space="preserve">
+    <value>任何 (*.*) | *.*</value>
+  </data>
+  <data name="ADLAD" xml:space="preserve">
+    <value>AD</value>
+  </data>
+  <data name="BollingerLowerBand" xml:space="preserve">
+    <value>下端</value>
+  </data>
+  <data name="BollingerMiddleBand" xml:space="preserve">
+    <value>中端</value>
+  </data>
+  <data name="BollingerUpperBand" xml:space="preserve">
+    <value>上端</value>
+  </data>
+  <data name="BuySellPressureBuyPressure" xml:space="preserve">
+    <value>买压</value>
+  </data>
+  <data name="BuySellPressureSellPressure" xml:space="preserve">
+    <value>卖压力</value>
+  </data>
+  <data name="BuySellVolumeBuys" xml:space="preserve">
+    <value>买入</value>
+  </data>
+  <data name="BuySellVolumeSells" xml:space="preserve">
+    <value>卖出</value>
+  </data>
+  <data name="CandlestickPatternFound" xml:space="preserve">
+    <value>发现模式</value>
+  </data>
+  <data name="CCILevel1" xml:space="preserve">
+    <value>级别 1</value>
+  </data>
+  <data name="CCILevel2" xml:space="preserve">
+    <value>级别 2</value>
+  </data>
+  <data name="CCILevelMinus1" xml:space="preserve">
+    <value>一级-1</value>
+  </data>
+  <data name="CCILevelMinus2" xml:space="preserve">
+    <value>一级-2</value>
+  </data>
+  <data name="ConstantLines1" xml:space="preserve">
+    <value>第.1.行</value>
+  </data>
+  <data name="ConstantLines2" xml:space="preserve">
+    <value>第 2 行</value>
+  </data>
+  <data name="ConstantLines3" xml:space="preserve">
+    <value>第 3 行</value>
+  </data>
+  <data name="ConstantLines4" xml:space="preserve">
+    <value>第 4 行</value>
+  </data>
+  <data name="CurrentDayOHLHigh" xml:space="preserve">
+    <value>当前高</value>
+  </data>
+  <data name="CurrentDayOHLLow" xml:space="preserve">
+    <value>当前低</value>
+  </data>
+  <data name="CurrentDayOHLOpen" xml:space="preserve">
+    <value>当前开盘</value>
+  </data>
+  <data name="DMMinusDI" xml:space="preserve">
+    <value>- DI</value>
+  </data>
+  <data name="DMPlusDI" xml:space="preserve">
+    <value>+ DI</value>
+  </data>
+  <data name="DonchianChannelMean" xml:space="preserve">
+    <value>平均数</value>
+  </data>
+  <data name="KeltnerChannelMidline" xml:space="preserve">
+    <value>中线</value>
+  </data>
+  <data name="KeyReversalPlot0" xml:space="preserve">
+    <value>剧情 0</value>
+  </data>
+  <data name="MAMAFAMA" xml:space="preserve">
+    <value>法玛</value>
+  </data>
+  <data name="NBarsDownTrigger" xml:space="preserve">
+    <value>触发器</value>
+  </data>
+  <data name="NinjaScriptIndicatorAvg" xml:space="preserve">
+    <value>Avg</value>
+  </data>
+  <data name="NinjaScriptIndicatorDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="NinjaScriptIndicatorDiff" xml:space="preserve">
+    <value>Diff</value>
+  </data>
+  <data name="NinjaScriptIndicatorDown" xml:space="preserve">
+    <value>Down</value>
+  </data>
+  <data name="NinjaScriptIndicatorLower" xml:space="preserve">
+    <value>Lower</value>
+  </data>
+  <data name="NinjaScriptIndicatorMiddle" xml:space="preserve">
+    <value>Middle</value>
+  </data>
+  <data name="NinjaScriptIndicatorNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverbought" xml:space="preserve">
+    <value>Overbought</value>
+  </data>
+  <data name="NinjaScriptIndicatorOversold" xml:space="preserve">
+    <value>Oversold</value>
+  </data>
+  <data name="NinjaScriptIndicatorUp" xml:space="preserve">
+    <value>Up</value>
+  </data>
+  <data name="NinjaScriptIndicatorUpper" xml:space="preserve">
+    <value>Upper</value>
+  </data>
+  <data name="NinjaScriptIndicatorZeroLine" xml:space="preserve">
+    <value>Zero line</value>
+  </data>
+  <data name="PFEZero" xml:space="preserve">
+    <value>零</value>
+  </data>
+  <data name="PivotsPP" xml:space="preserve">
+    <value>PP</value>
+  </data>
+  <data name="PivotsR1" xml:space="preserve">
+    <value>R1</value>
+  </data>
+  <data name="PivotsR2" xml:space="preserve">
+    <value>R2</value>
+  </data>
+  <data name="PivotsR3" xml:space="preserve">
+    <value>R3</value>
+  </data>
+  <data name="PivotsS1" xml:space="preserve">
+    <value>S1</value>
+  </data>
+  <data name="PivotsS2" xml:space="preserve">
+    <value>S2</value>
+  </data>
+  <data name="PivotsS3" xml:space="preserve">
+    <value>S3</value>
+  </data>
+  <data name="PPOSmoothed" xml:space="preserve">
+    <value>平滑处理</value>
+  </data>
+  <data name="PriorDayOHLCClose" xml:space="preserve">
+    <value>事先关闭</value>
+  </data>
+  <data name="PriorDayOHLCHigh" xml:space="preserve">
+    <value>前高</value>
+  </data>
+  <data name="PriorDayOHLCLow" xml:space="preserve">
+    <value>前低</value>
+  </data>
+  <data name="PriorDayOHLCOpen" xml:space="preserve">
+    <value>事先开放</value>
+  </data>
+  <data name="RangeValue" xml:space="preserve">
+    <value>范围值</value>
+  </data>
+  <data name="RVISignalLine" xml:space="preserve">
+    <value>信号线</value>
+  </data>
+  <data name="StochasticsD" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="StochasticsK" xml:space="preserve">
+    <value>K</value>
+  </data>
+  <data name="SwingHigh" xml:space="preserve">
+    <value>高摆动</value>
+  </data>
+  <data name="SwingLow" xml:space="preserve">
+    <value>低摆动</value>
+  </data>
+  <data name="TRIXSignal" xml:space="preserve">
+    <value>信号</value>
+  </data>
+  <data name="VolumeDown" xml:space="preserve">
+    <value>成交量跌</value>
+  </data>
+  <data name="VolumeUp" xml:space="preserve">
+    <value>成交量涨</value>
+  </data>
+  <data name="VOLVolume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="WilliamsPercentR" xml:space="preserve">
+    <value>威廉姆斯 %R</value>
+  </data>
+  <data name="BarTimerDisconnectedError" xml:space="preserve">
+    <value>条形图计时器禁用自你目前断开数据提供程序</value>
+  </data>
+  <data name="BarTimerSessionTimeError" xml:space="preserve">
+    <value>条形图计时器禁用自当前时间是外部会议时间或图表结束日期</value>
+  </data>
+  <data name="BarTimerTimeBasedError" xml:space="preserve">
+    <value>条形图计时器仅适用于盘中时间基于时间间隔</value>
+  </data>
+  <data name="BarTimerTimeRemaining" xml:space="preserve">
+    <value>剩余时间 = </value>
+  </data>
+  <data name="NinjaScriptOnBarCloseError" xml:space="preserve">
+    <value>{0} 依赖卖价Tick更新等计算 '对每个刻度线</value>
+  </data>
+  <data name="NinjaScriptOnPriceChangeError" xml:space="preserve">
+    <value>{0} 依成交量更新计算 '使用每个Tick' 或 ' K棒关闭 '</value>
+  </data>
+  <data name="PiviotsDailyBarsError" xml:space="preserve">
+    <value>日内或日常K棒必须用于支点</value>
+  </data>
+  <data name="PiviotsDailyDataError" xml:space="preserve">
+    <value>日常数据不足以计算支点</value>
+  </data>
+  <data name="PiviotsInsufficentDataError" xml:space="preserve">
+    <value>不足的历史数据来计算支点。增加图表看回收期 （DaysToLoad，BarsToLoad 或开始日期）</value>
+  </data>
+  <data name="PiviotsPeriodTypeError" xml:space="preserve">
+    <value>期间类型将需要每天值为 1 的</value>
+  </data>
+  <data name="PiviotsWeeklyBarsError" xml:space="preserve">
+    <value>日常的K棒需要使用每周或每月枢轴范围</value>
+  </data>
+  <data name="PriorDayOHLCIntradayError" xml:space="preserve">
+    <value>PriorDayOHLC 只适用于盘中间隔</value>
+  </data>
+  <data name="RangeCounterBarError" xml:space="preserve">
+    <value>范围计数器仅适用于范围K棒</value>
+  </data>
+  <data name="RangeCounterRemaing" xml:space="preserve">
+    <value>剩余的范围 = {0}</value>
+  </data>
+  <data name="RangerCounterCount" xml:space="preserve">
+    <value>范围计数 = {0}</value>
+  </data>
+  <data name="SampleCustomPlotLowerRightCorner" xml:space="preserve">
+    <value>右下角</value>
+  </data>
+  <data name="SampleCustomPlotUpperLeftCorner" xml:space="preserve">
+    <value>左上的角</value>
+  </data>
+  <data name="SwingSwingHighBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0}。SwingHighBar: barsAgo 一定更大/平等 0 但是是 {1}</value>
+  </data>
+  <data name="SwingSwingHighBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0}。SwingHighBar: barsAgo 超出有效范围 0 通过 {1}，是 {2}。</value>
+  </data>
+  <data name="SwingSwingHighBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0}。SwingHighBar： 实例一定更大/平等 1 但是是 {1}</value>
+  </data>
+  <data name="SwingSwingLowBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0}。SwingLowBar: barsAgo 一定更大/平等 0 但是是 {1}</value>
+  </data>
+  <data name="SwingSwingLowBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0}。SwingLowBar: barsAgo 超出有效范围 0 通过 {1}，是 {2}。</value>
+  </data>
+  <data name="SwingSwingLowBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0}。SwingLowBar： 实例一定更大/平等 1 但是是 {1}</value>
+  </data>
+  <data name="TickCounterBarError" xml:space="preserve">
+    <value>时钟计数器仅适用于K棒建立一系列的Tick</value>
+  </data>
+  <data name="TickCounterTickCount" xml:space="preserve">
+    <value>Tick计数 = </value>
+  </data>
+  <data name="TickCounterTicksRemaining" xml:space="preserve">
+    <value>Ticks剩余 = </value>
+  </data>
+  <data name="VolumeCounterBarError" xml:space="preserve">
+    <value>无成交量数据</value>
+  </data>
+  <data name="VolumeCounterVolumeCount" xml:space="preserve">
+    <value>   = </value>
+  </data>
+  <data name="VolumeCounterVolumeRemaining" xml:space="preserve">
+    <value>剩余的成交量 = </value>
+  </data>
+  <data name="ZigZagDeviationValueError" xml:space="preserve">
+    <value>"曲折不能绘制任何值，鉴于偏差值太大。请减少它。</value>
+  </data>
+  <data name="ZigZagHighBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0}。HighBar: barsAgo 超出有效范围 0 通过 {1}，是 {2}</value>
+  </data>
+  <data name="ZigZagHighBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0}。HighBar： 实例一定更大/平等 1 但是是 {1}</value>
+  </data>
+  <data name="ZigZagLowBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0}。LowBar： 超出有效范围 0 通过 {1}，barsAgo 是 {2}</value>
+  </data>
+  <data name="ZigZagLowBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0}。LowBar： 实例一定更大/平等 1 但是是 {1}</value>
+  </data>
+  <data name="ZigZigHighBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0}。HighBar: barsAgo 一定更大/平等 0 但是是 {1}</value>
+  </data>
+  <data name="ZigZigLowBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0}。LowBar: barsAgo 一定更大/平等 0 但是是 {1}</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionApq" xml:space="preserve">
+    <value>近似位置在队列 (APQ) 指标给你的当前位置为订单队列中放置了保守估计。</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionPnl" xml:space="preserve">
+    <value>利润和损失 (PnL) 列将显示潜在的利润和损失在每个价格点一次你在贸易。</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionVolume" xml:space="preserve">
+    <value>成交量将使用历史Tick数据来显示在每一个价格水平交易合约的数量。你可以选择颜色基于如果交易发生在 ask 或出价的K棒。</value>
+  </data>
+  <data name="BarTimerWaitingOnDataError" xml:space="preserve">
+    <value>K棒Timer 在启动之前等待实时数据</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPriceLevelsOpacity" xml:space="preserve">
+    <value>价位不透明度 （%）</value>
+  </data>
+  <data name="NinjaScriptDrawingToolBackgroundOpacity" xml:space="preserve">
+    <value>背景不透明 （%）</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionMarketPrice" xml:space="preserve">
+    <value>当前价格和净变动</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameMarketPrice" xml:space="preserve">
+    <value>市场价格</value>
+  </data>
+  <data name="AskLineLength" xml:space="preserve">
+    <value>询问行长度 (图表的百分比)</value>
+  </data>
+  <data name="AskLineStroke" xml:space="preserve">
+    <value>询问行</value>
+  </data>
+  <data name="BasePeriod" xml:space="preserve">
+    <value>基准期</value>
+  </data>
+  <data name="BidLineLength" xml:space="preserve">
+    <value>投标线长度 (图表的百分比)</value>
+  </data>
+  <data name="BidLineStroke" xml:space="preserve">
+    <value>投标线路</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="IncrementalPeriod" xml:space="preserve">
+    <value>增量周期</value>
+  </data>
+  <data name="LastLineLength" xml:space="preserve">
+    <value>最后一行长度 (图表的百分比)</value>
+  </data>
+  <data name="LastLineStroke" xml:space="preserve">
+    <value>最后一行</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="MovingAverage" xml:space="preserve">
+    <value>移动平均线</value>
+  </data>
+  <data name="MovingAverageRibbonPlot1" xml:space="preserve">
+    <value>移动平均线1</value>
+  </data>
+  <data name="MovingAverageRibbonPlot2" xml:space="preserve">
+    <value>移动平均线2</value>
+  </data>
+  <data name="MovingAverageRibbonPlot3" xml:space="preserve">
+    <value>移动平均线3</value>
+  </data>
+  <data name="MovingAverageRibbonPlot4" xml:space="preserve">
+    <value>移动平均线4</value>
+  </data>
+  <data name="MovingAverageRibbonPlot5" xml:space="preserve">
+    <value>移动平均线5</value>
+  </data>
+  <data name="MovingAverageRibbonPlot6" xml:space="preserve">
+    <value>移动平均线6</value>
+  </data>
+  <data name="MovingAverageRibbonPlot7" xml:space="preserve">
+    <value>移动平均线7</value>
+  </data>
+  <data name="MovingAverageRibbonPlot8" xml:space="preserve">
+    <value>移动平均线8</value>
+  </data>
+  <data name="NegativeColor" xml:space="preserve">
+    <value>负色</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMovingAverageRibbon" xml:space="preserve">
+    <value>移动平均线功能区是一系列递增的移动平均线.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNetChangeDisplay" xml:space="preserve">
+    <value>显示图表上的净变化.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriceLine" xml:space="preserve">
+    <value>显示图表上的 "询问"、"出价" 和 "最后一行".</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMovingAverageRibbon" xml:space="preserve">
+    <value>移动平均功能区</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNetChangeDisplay" xml:space="preserve">
+    <value>净变更显示</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriceLine" xml:space="preserve">
+    <value>价格线</value>
+  </data>
+  <data name="PositiveColor" xml:space="preserve">
+    <value>正色</value>
+  </data>
+  <data name="PriceLinePlotAsk" xml:space="preserve">
+    <value>询问行</value>
+  </data>
+  <data name="PriceLinePlotBid" xml:space="preserve">
+    <value>投标线路</value>
+  </data>
+  <data name="PriceLinePlotLast" xml:space="preserve">
+    <value>最后一行</value>
+  </data>
+  <data name="ShowAskLine" xml:space="preserve">
+    <value>显示请求行</value>
+  </data>
+  <data name="ShowBidLine" xml:space="preserve">
+    <value>显示出价行</value>
+  </data>
+  <data name="ShowLastLine" xml:space="preserve">
+    <value>显示最后一行</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDisparityIndex" xml:space="preserve">
+    <value>差异指数测量价格和指数移动平均线之间的差异。大于值可能表明看涨势头, 而低于零的价值可能表明看跌势头.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMoneyFlowOscillator" xml:space="preserve">
+    <value>资金流动振荡器测量特定时期内的资金流量。进入正区间表示买入压力, 而进入负区间则表示卖出压力.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDisparityLine" xml:space="preserve">
+    <value>差异线</value>
+  </data>
+  <data name="NinjaScriptIndicatorMoneyFlowLine" xml:space="preserve">
+    <value>资金流动线</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDisparityIndex" xml:space="preserve">
+    <value>差距指数</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMoneyFlowOscillator" xml:space="preserve">
+    <value>资金流动振荡器</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPolygon" xml:space="preserve">
+    <value>多边形</value>
+  </data>
+  <data name="NetChangePosition_BottomLeft" xml:space="preserve">
+    <value>左下角</value>
+  </data>
+  <data name="NetChangePosition_BottomRight" xml:space="preserve">
+    <value>右下角</value>
+  </data>
+  <data name="NetChangePosition_TopLeft" xml:space="preserve">
+    <value>左上角</value>
+  </data>
+  <data name="NetChangePosition_TopRight" xml:space="preserve">
+    <value>右上角</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRelativeVigorIndex" xml:space="preserve">
+    <value>相对活力指数通过将工具收盘价与其价格区间进行比较来衡量趋势的强度。这是基于这样一个事实, 即价格往往收盘价高于上行趋势的收盘价, 也比下跌趋势中的价格更低.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRelativeVigorIndex" xml:space="preserve">
+    <value>相对活力指数</value>
+  </data>
+  <data name="BarsPeriodType" xml:space="preserve">
+    <value>条形周期类型</value>
+  </data>
+  <data name="BarsPeriodValue" xml:space="preserve">
+    <value>条形周期值</value>
+  </data>
+  <data name="FastPeriod" xml:space="preserve">
+    <value>快速周期</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMcClellanOscillator" xml:space="preserve">
+    <value>麦克莱伦振荡器是纽约证券交易所股票型上涨点差的两个指数移动平均线之间的差异。此指标需要 adv 和 decl 指数数据.</value>
+  </data>
+  <data name="NinjaScriptIndicatorMcClellanOscillatorLine" xml:space="preserve">
+    <value>麦克莱伦振荡器生产线</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMcClellanOscillator" xml:space="preserve">
+    <value>麦克莱伦振荡器</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverBoughtLine" xml:space="preserve">
+    <value>购买的线</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverSoldLine" xml:space="preserve">
+    <value>超过已售出的行</value>
+  </data>
+  <data name="NinjaScriptIndicatorRelativeVigorIndex" xml:space="preserve">
+    <value>相对活力指数</value>
+  </data>
+  <data name="NinjaScriptIndicatorSignal" xml:space="preserve">
+    <value>信号</value>
+  </data>
+  <data name="SlowPeriod" xml:space="preserve">
+    <value>慢速期</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTimeCycles" xml:space="preserve">
+    <value>时间周期</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineWidth" xml:space="preserve">
+    <value>线宽</value>
+  </data>
+  <data name="ImportTypeTickData" xml:space="preserve">
+    <value>刻度数据, 有限责任公司</value>
+  </data>
+  <data name="NinjaScriptStrategyGenerator" xml:space="preserve">
+    <value>策略生成器</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrength" xml:space="preserve">
+    <value>麦克斯。强度</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrengthLong" xml:space="preserve">
+    <value>麦克斯。强度 (长)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrengthShort" xml:space="preserve">
+    <value>麦克斯。强度 (短)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerCrossoverRatePercent" xml:space="preserve">
+    <value>交叉率 （%）</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorEntriesOrExits" xml:space="preserve">
+    <value>您至少需要一个进入订单退出条件.</value>
+  </data>
+  <data name="ChartSpan_Day" xml:space="preserve">
+    <value>1天</value>
+  </data>
+  <data name="ChartSpan_Min1" xml:space="preserve">
+    <value>1分钟</value>
+  </data>
+  <data name="ChartSpan_Min15" xml:space="preserve">
+    <value>15分钟</value>
+  </data>
+  <data name="ChartSpan_Min240" xml:space="preserve">
+    <value>240分钟</value>
+  </data>
+  <data name="ChartSpan_Min30" xml:space="preserve">
+    <value>30分钟</value>
+  </data>
+  <data name="ChartSpan_Min5" xml:space="preserve">
+    <value>5分钟</value>
+  </data>
+  <data name="ChartSpan_Min60" xml:space="preserve">
+    <value>60分钟</value>
+  </data>
+  <data name="ChartSpan_Month" xml:space="preserve">
+    <value>1个月</value>
+  </data>
+  <data name="ChartSpan_Week" xml:space="preserve">
+    <value>1周</value>
+  </data>
+  <data name="ChartSpan_Year" xml:space="preserve">
+    <value>1年</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVortex" xml:space="preserve">
+    <value>涡流指示器是用于识别趋势的振荡器。当 viplus 线越过 viminus 线上方时, 就会触发一个看涨信号。当 viminus 线越过 viplus 线时, 将触发看跌信号.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVortex" xml:space="preserve">
+    <value>涡</value>
+  </data>
+  <data name="NinjaScriptIndicatorVIMinus" xml:space="preserve">
+    <value>维米努斯</value>
+  </data>
+  <data name="NinjaScriptIndicatorVIPlus" xml:space="preserve">
+    <value>viplus</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPsychologicalLine" xml:space="preserve">
+    <value>心理线是上升的柱数与指定柱数的比率.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePsychologicalLine" xml:space="preserve">
+    <value>心理线</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChoppinessIndex" xml:space="preserve">
+    <value>切碎指数</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChoppinessIndex" xml:space="preserve">
+    <value>切碎指数的设计是为了确定市场是波动 (横向交易) 还是不波动 (在两个方向的趋势范围内交易)</value>
+  </data>
+  <data name="BlockTradeSize" xml:space="preserve">
+    <value>块交易规模</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBlockVolume" xml:space="preserve">
+    <value>块交易量检测块交易, 并显示每个柱发生的次数。这可以显示为交易或交易量。历史刻度数据需要历史上的绘制.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBlockVolume" xml:space="preserve">
+    <value>块音量</value>
+  </data>
+  <data name="NinjaScriptIndicatorCount" xml:space="preserve">
+    <value>计数</value>
+  </data>
+  <data name="CountType_Trades" xml:space="preserve">
+    <value>交易单子</value>
+  </data>
+  <data name="CountType_Volume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCamarillaPivots" xml:space="preserve">
+    <value>camarilla 枢轴也是一种价格分析, 它通过将先前的范围相乘, 然后从收盘价中添加或减去, 从而产生潜在的支撑和阻力水平.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFibonacciPivots" xml:space="preserve">
+    <value>斐波那契枢轴也是价格分析，通过将先前范围与斐波那契值相乘，然后从先前高点、最低价和收盘价的平均值中加法或减法，生成潜在的支撑和阻力水平.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCamarillaPivots" xml:space="preserve">
+    <value>卡马里拉枢轴</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFibonacciPivots" xml:space="preserve">
+    <value>斐波那契支点</value>
+  </data>
+  <data name="PivotsR4" xml:space="preserve">
+    <value>r4</value>
+  </data>
+  <data name="PivotsS4" xml:space="preserve">
+    <value>s4</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionChartMini" xml:space="preserve">
+    <value>此市场分析仪列根据输入属性绘制一个迷你图表.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameChartMini" xml:space="preserve">
+    <value>图表-迷你</value>
+  </data>
+  <data name="NinjaScriptIndicatorVisualGroup" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionChartNetChange" xml:space="preserve">
+    <value>此市场分析仪列根据输入属性绘制一个迷你图表.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameChartNetChange" xml:space="preserve">
+    <value>图表-净变化</value>
+  </data>
+  <data name="ShareMailPreconfiguredAol" xml:space="preserve">
+    <value>Aol</value>
+  </data>
+  <data name="ShareMailPreconfiguredComcast" xml:space="preserve">
+    <value>康卡斯特</value>
+  </data>
+  <data name="ShareMailPreconfiguredGmail" xml:space="preserve">
+    <value>Gmail</value>
+  </data>
+  <data name="ShareMailPreconfiguredICloud" xml:space="preserve">
+    <value>Icloud</value>
+  </data>
+  <data name="ShareMailPreconfiguredManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="ShareMailPreconfiguredOutlook" xml:space="preserve">
+    <value>前景</value>
+  </data>
+  <data name="ShareMailPreconfiguredYahoo" xml:space="preserve">
+    <value>雅虎</value>
+  </data>
+  <data name="ShareTextMessageEmail" xml:space="preserve">
+    <value>电子邮件</value>
+  </data>
+  <data name="ShareTextMessageMmsAddress" xml:space="preserve">
+    <value>彩信地址</value>
+  </data>
+  <data name="ShareTextMessageName" xml:space="preserve">
+    <value>通过电子邮件发送短信</value>
+  </data>
+  <data name="ShareTextMessagePhoneNumber" xml:space="preserve">
+    <value>电话号码</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredAtt" xml:space="preserve">
+    <value>at &amp; t</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredSprint" xml:space="preserve">
+    <value>冲刺</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredTMobile" xml:space="preserve">
+    <value>t-mobile</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredVerizon" xml:space="preserve">
+    <value>Verizon</value>
+  </data>
+  <data name="ShareTextMessageSmsAddress" xml:space="preserve">
+    <value>短信地址</value>
+  </data>
+  <data name="ShareTextMessageErrorOnShare" xml:space="preserve">
+    <value>通过 {0} 电子邮件服务发送消息时出错: "{1}"</value>
+  </data>
+  <data name="ShareTextMessageSentSuccessfully" xml:space="preserve">
+    <value>{0}-发送的短信</value>
+  </data>
+  <data name="ShareTextMessageEmailRequired" xml:space="preserve">
+    <value>要通过电子邮件共享服务配置短信, 必须首先设置电子邮件共享服务.</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPath" xml:space="preserve">
+    <value>路径</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathBegin" xml:space="preserve">
+    <value>路径开始</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathEnd" xml:space="preserve">
+    <value>路径结束</value>
+  </data>
+  <data name="PathToolCapMode_Arrow" xml:space="preserve">
+    <value>箭头</value>
+  </data>
+  <data name="PathToolCapMode_Line" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathSegment" xml:space="preserve">
+    <value>段</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChangeMaxDown" xml:space="preserve">
+    <value>当前较低的价格与上次收盘价相比</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChangeMaxUp" xml:space="preserve">
+    <value>当前高点与上一次收盘价相比</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChangeMaxDown" xml:space="preserve">
+    <value>净变化最大下降</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChangeMaxUp" xml:space="preserve">
+    <value>净变化最大值</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathShowCount" xml:space="preserve">
+    <value>显示计数</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDaysUntilRollover" xml:space="preserve">
+    <value>显示从翻转到下一个合同还有多少天</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDaysUntilRollover" xml:space="preserve">
+    <value>滚转前的天数</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTSTrend" xml:space="preserve">
+    <value>此列显示一个彩色条形图, 表示传入的刻度与 T &amp; S 窗口使用的颜色相同</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTSTrend" xml:space="preserve">
+    <value>T &amp; S 趋势</value>
+  </data>
+  <data name="DrawingToolIndicatorDescription" xml:space="preserve">
+    <value>"绘图工具磁贴" 指示器增加了在图表中具有浮动磁贴的功能, 该磁贴可以进行自定义, 以快速访问最常用的绘图工具。</value>
+  </data>
+  <data name="DrawingToolIndicatorName" xml:space="preserve">
+    <value>绘图工具磁贴</value>
+  </data>
+  <data name="NinjaScriptDrawingTools" xml:space="preserve">
+    <value>绘图工具</value>
+  </data>
+  <data name="NinjaScriptIsVisibleOnlyFocused" xml:space="preserve">
+    <value>仅在焦点时可见</value>
+  </data>
+  <data name="NinjaScriptNumberOfRows" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="NinjaScriptTileError" xml:space="preserve">
+    <value>加载绘图工具 {0} 时出错: {1}</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorPeformance" xml:space="preserve">
+    <value>{0} = {1} 的性能</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandlestickHollow" xml:space="preserve">
+    <value>空心烛台</value>
+  </data>
+  <data name="GuiChartStyleDojiBrush" xml:space="preserve">
+    <value>多吉酒吧的颜色</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorTerminated" xml:space="preserve">
+    <value>策略生成器在 {1} 代之后终止到 "{0}", 因为 {2} 代的性能没有提高</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorIndicatorException" xml:space="preserve">
+    <value>Expression:{0}{1} 上的例外情况</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerThresholdGenerations" xml:space="preserve">
+    <value>门槛世代</value>
+  </data>
+  <data name="SuperDomColumnException" xml:space="preserve">
+    <value>SuperDOM 列 "{0}": 调用 "{1}" 方法时出错: {2}</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorProperties" xml:space="preserve">
+    <value>AI 生成属性</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorUseIndicators" xml:space="preserve">
+    <value>指标</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorIndicatorsPrompt" xml:space="preserve">
+    <value>1个指标{0} 指示器添加指标..。配置指示器..。配置指标。</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorUseCandleStickPattern" xml:space="preserve">
+    <value>k线 类型</value>
+  </data>
+  <data name="NinjaScriptChartStyleEquivolume" xml:space="preserve">
+    <value>装备量</value>
+  </data>
+  <data name="PathCapMode_Arrow" xml:space="preserve">
+    <value>箭头</value>
+  </data>
+  <data name="PathCapMode_Line" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorCandleStickPatternPrompt" xml:space="preserve">
+    <value>1 烛棒图案*{0}烛台图案*添加烛台图案...配置烛台图案...配置烛台图案.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTrendLines" xml:space="preserve">
+    <value>当高摆动后跟较低的高摆动时，趋势线高将自动绘制。当低摆动后跟较高的低摆动时，趋势线低将自动绘制.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTrendLines" xml:space="preserve">
+    <value>趋势线</value>
+  </data>
+  <data name="NumberOfTrendLines" xml:space="preserve">
+    <value>趋势线的数量</value>
+  </data>
+  <data name="TrendLinesTrendLineHigh" xml:space="preserve">
+    <value>趋势线高</value>
+  </data>
+  <data name="TrendLinesTrendLineLow" xml:space="preserve">
+    <value>趋势线低</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorEntries" xml:space="preserve">
+    <value>入学条件</value>
+  </data>
+  <data name="OldTrendsOpacity" xml:space="preserve">
+    <value>旧趋势不透明</value>
+  </data>
+  <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
+    <value>当前趋势线</value>
+  </data>
+  <data name="AlertOnBreak" xml:space="preserve">
+    <value>中断时发出警报</value>
+  </data>
+  <data name="AlertOnBreakSound" xml:space="preserve">
+    <value>断时声发出警报</value>
+  </data>
+  <data name="TrendLinesTrendLineBroken" xml:space="preserve">
+    <value>{0}破碎</value>
+  </data>
+  <data name="NinjaScriptLine" xml:space="preserve">
+    <value>线</value>
+  </data>
+  <data name="NinjaScriptBackground" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="NinjaScriptBorder" xml:space="preserve">
+    <value>边境</value>
+  </data>
+  <data name="NinjaScriptYOffset" xml:space="preserve">
+    <value>Y 像素偏移</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCorrelation" xml:space="preserve">
+    <value>相关指标将绘制数据系列与所需工具的相关性。值接近 1 表示在同一方向上移动。值接近 -1 表示方向相反。值接近 0 表示没有关联.</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCorrelation" xml:space="preserve">
+    <value>相关</value>
+  </data>
+  <data name="MailServiceSenderDisplayName" xml:space="preserve">
+    <value>从名称</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCOT" xml:space="preserve">
+    <value>交易者的承诺</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCOT" xml:space="preserve">
+    <value>交易者的承诺</value>
+  </data>
+  <data name="COT1" xml:space="preserve">
+    <value>婴儿床 1</value>
+  </data>
+  <data name="COT2" xml:space="preserve">
+    <value>婴儿床 2</value>
+  </data>
+  <data name="COT3" xml:space="preserve">
+    <value>婴儿床 3</value>
+  </data>
+  <data name="COT4" xml:space="preserve">
+    <value>婴儿床 4</value>
+  </data>
+  <data name="COT5" xml:space="preserve">
+    <value>婴儿床 5</value>
+  </data>
+  <data name="NumberOfCotPlots" xml:space="preserve">
+    <value>COT 图数</value>
+  </data>
+  <data name="CotDataError" xml:space="preserve">
+    <value>此仪器不支持 COT 数据</value>
+  </data>
+  <data name="CotDataWarning" xml:space="preserve">
+    <value>您必须启用"启动时下载 COT 数据"才能接收最新的 COT 数据</value>
+  </data>
+  <data name="CotDataStillDownloading" xml:space="preserve">
+    <value>COT 数据仍在下载中。请稍后刷新指示器.</value>
+  </data>
+</root>
