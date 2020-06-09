@@ -377,6 +377,7 @@
     <Compile Include="Strategies\AiTradeStrategy.cs" />
     <Compile Include="Strategies\ContinuationStrategy.cs" />
     <Compile Include="Strategies\ReversalStrategy.cs" />
+    <Compile Include="Strategies\PullbackStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
