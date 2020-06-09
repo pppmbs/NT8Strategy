@@ -336,9 +336,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                ContinuationTrade();
                 ReversalTrade();
                 PullbackTrade();
+                ContinuationTrade();
+
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else

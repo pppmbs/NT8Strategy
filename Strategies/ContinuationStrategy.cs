@@ -181,7 +181,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         if (IsUpTrend() && PriceActionHasMomentum(45))
                         {
-                            profiltsTaking = 30;
+                            profiltsTaking = 24;
                             stopLoss = 6;
                             EnterLong(1, 1, "Long");
                         }
@@ -190,7 +190,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         if (!IsUpTrend() && PriceActionHasMomentum(45))
                         {
-                            profiltsTaking = 30;
+                            profiltsTaking = 24;
                             stopLoss = 6;
                             EnterShort(1, 1, "Short");
                         }
