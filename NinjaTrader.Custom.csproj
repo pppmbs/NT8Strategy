@@ -376,6 +376,7 @@
     <Compile Include="Indicators\%40COT.cs" />
     <Compile Include="Strategies\AiTradeStrategy.cs" />
     <Compile Include="Strategies\ContinuationStrategy.cs" />
+    <Compile Include="Strategies\ReversalStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
