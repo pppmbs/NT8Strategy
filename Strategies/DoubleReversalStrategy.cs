@@ -25,37 +25,35 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-	public class ReversalStrategy : Strategy
-	{
-		private int Fast;
-		private int Slow;
+    public class DoubleReversalStrategy : Strategy
+    {
+        private double lastRSI = 0.0;
+        private Order entryOrder = null; // This variable holds an object representing our entry order
+        private Order stopOrder = null; // This variable holds an object representing our stop loss order
+        private Order targetOrder = null; // This variable holds an object representing our profit target order
+        private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-		private double lastRSI = 0.0;
-		private Order entryOrder = null; // This variable holds an object representing our entry order
-		private Order stopOrder = null; // This variable holds an object representing our stop loss order
-		private Order targetOrder = null; // This variable holds an object representing our profit target order
-		private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
+        private readonly double rsiUpperBound = 80;
+        private readonly double rsiLowerBound = 20;
 
-		private readonly double rsiUpperBound = 80;
-		private readonly double rsiLowerBound = 20;
+        private bool rsiLongOppornuity = false;
+        private bool rsiShortOppornuity = false;
+        private bool firstReversalObserved = false;
 
-		private bool rsiLongOppornuity = false;
-		private bool rsiShortOppornuity = false;
+        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int stopLoss = 6; // number of ticks for stop loss
+        private readonly int maxConsecutiveLosingTrades = 3;
 
-		private int profiltsTaking = 18; // number of ticks for profits taking
-		private int stopLoss = 6; // number of ticks for stop loss
-		private readonly int maxConsecutiveLosingTrades = 3;
+        private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
+        private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
+        private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 
-		private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
-		private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
-		private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
-
-		protected override void OnStateChange()
-		{
-			if (State == State.SetDefaults)
-			{
-				Description									= @"Enter the description for your new custom Strategy here.";
-				Name										= "ReversalStrategy";
+        protected override void OnStateChange()
+        {
+            if (State == State.SetDefaults)
+            {
+                Description = @"Only trade on the second consecutive reversal";
+                Name = "DoubleReversalStrategy";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -71,8 +69,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
                 BarsRequiredToTrade = 20;
-                Fast = 10;
-                Slow = 25;
             }
             else if (State == State.Configure)
             {
@@ -82,15 +78,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 				Note: The primary bar series is whatever you choose for the strategy at startup. In this example I will
 				reference the primary as a 5min bars series. */
                 AddDataSeries(Data.BarsPeriodType.Tick, 1);
-
-                // Add two EMA indicators to be plotted on the primary bar series
-                AddChartIndicator(EMA(Fast));
-                AddChartIndicator(EMA(Slow));
-
-                /* Adjust the color of the EMA plots.
-				For more information on this please see this tip: http://www.ninjatrader-support.com/vb/showthread.php?t=3228 */
-                EMA(Fast).Plots[0].Brush = Brushes.Blue;
-                EMA(Slow).Plots[0].Brush = Brushes.Green;
             }
             else if (State == State.Realtime)
             {
@@ -179,7 +166,43 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        protected void ReversalTrade()
+        protected bool FirstReversal()
+        {
+
+            if (firstReversalObserved)
+                return true;
+
+            CheckforRsiOpportunity();
+
+            if (rsiLongOppornuity)
+            {
+                if (RSI(14, 3)[0] <= lastRSI)
+                {
+                    lastRSI = RSI(14, 3)[0];
+                }
+                else
+                {
+                    firstReversalObserved = true;
+                    return true;
+                }
+            }
+            if (rsiShortOppornuity)
+            {
+                if (RSI(14, 3)[0] >= lastRSI)
+                {
+                    lastRSI = RSI(14, 3)[0];
+                }
+                else
+                {
+                    firstReversalObserved = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected void SecondReversalTrade()
         {
             TradeAccounting();
 
@@ -190,42 +213,27 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
                 {
-
-                    CheckforRsiOpportunity();
-
                     if (rsiLongOppornuity)
                     {
-                        if (RSI(14, 3)[0] <= lastRSI)
+                        if (PriceActionHasMomentum(40))
                         {
-                            lastRSI = RSI(14, 3)[0];
+                            profiltsTaking = 24;
+                            stopLoss = 6;
+                            EnterLong(1, 1, "Long");
                         }
-                        else
-                        {
-                            if (PriceActionHasMomentum(40))
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterLong(1, 1, "Long");
-                            }
-                            rsiLongOppornuity = false;
-                        }
+                        rsiLongOppornuity = false;
+                        firstReversalObserved = false;
                     }
                     else if (rsiShortOppornuity)
                     {
-                        if (RSI(14, 3)[0] >= lastRSI)
+                        if (PriceActionHasMomentum(40))
                         {
-                            lastRSI = RSI(14, 3)[0];
+                            profiltsTaking = 24;
+                            stopLoss = 6;
+                            EnterShort(1, 1, "Short");
                         }
-                        else
-                        {
-                            if (PriceActionHasMomentum(40))
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterShort(1, 1, "Short");
-                            }
-                            rsiShortOppornuity = false;
-                        }
+                        rsiShortOppornuity = false;
+                        firstReversalObserved = false;
                     }
                 }
             }
@@ -262,7 +270,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                ReversalTrade();
+                if (FirstReversal())
+                    SecondReversalTrade();
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else

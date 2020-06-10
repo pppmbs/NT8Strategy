@@ -379,6 +379,7 @@
     <Compile Include="Strategies\ReversalStrategy.cs" />
     <Compile Include="Strategies\PullbackStrategy.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.cs" />
+    <Compile Include="Strategies\DoubleReversalStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

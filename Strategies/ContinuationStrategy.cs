@@ -177,20 +177,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
                 {
-                    if (CrossAbove(RSI(14, 3), 55, 1))
+                    if (CrossAbove(RSI(14, 3), 45, 1))
                     {
-                        if (IsUpTrend() && PriceActionHasMomentum(45))
+                        if (IsUpTrend() && PriceActionHasMomentum(30))
                         {
-                            profiltsTaking = 30;
+                            profiltsTaking = 18;
                             stopLoss = 6;
                             EnterLong(1, 1, "Long");
                         }
                     }
-                    else if (CrossBelow(RSI(14, 3), 45, 1))
+                    else if (CrossBelow(RSI(14, 3), 55, 1))
                     {
-                        if (!IsUpTrend() && PriceActionHasMomentum(45))
+                        if (!IsUpTrend() && PriceActionHasMomentum(30))
                         {
-                            profiltsTaking = 30;
+                            profiltsTaking = 18;
                             stopLoss = 6;
                             EnterShort(1, 1, "Short");
                         }
