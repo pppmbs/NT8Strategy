@@ -48,6 +48,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
         private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 
+        private double lastClose = 0.0;
+
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
@@ -166,42 +168,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        protected bool FirstReversal()
-        {
-
-            if (firstReversalObserved)
-                return true;
-
-            CheckforRsiOpportunity();
-
-            if (rsiLongOppornuity)
-            {
-                if (RSI(14, 3)[0] <= lastRSI)
-                {
-                    lastRSI = RSI(14, 3)[0];
-                }
-                else
-                {
-                    firstReversalObserved = true;
-                    return true;
-                }
-            }
-            if (rsiShortOppornuity)
-            {
-                if (RSI(14, 3)[0] >= lastRSI)
-                {
-                    lastRSI = RSI(14, 3)[0];
-                }
-                else
-                {
-                    firstReversalObserved = true;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         protected void SecondReversalTrade()
         {
             TradeAccounting();
@@ -213,18 +179,34 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
                 {
+
+                    CheckforRsiOpportunity();
+
                     if (rsiLongOppornuity)
                     {
-                        if (PriceActionHasMomentum(40))
+                        if (RSI(14, 3)[0] <= lastRSI)
                         {
-                            profiltsTaking = 24;
-                            stopLoss = 6;
-                            EnterLong(1, 1, "Long");
+                            lastRSI = RSI(14, 3)[0];
                         }
-                        rsiLongOppornuity = false;
-                        firstReversalObserved = false;
+                        else
+                        {
+                            if (PriceActionHasMomentum(40))
+                            {
+                                profiltsTaking = 24;
+                                stopLoss = 6;
+                                EnterLong(1, 1, "Long");
+                            }
+                            rsiLongOppornuity = false;
+                        }
                     }
-                    else if (rsiShortOppornuity)
+                }
+                else if (rsiShortOppornuity)
+                {
+                    if (RSI(14, 3)[0] >= lastRSI)
+                    {
+                        lastRSI = RSI(14, 3)[0];
+                    }
+                    else
                     {
                         if (PriceActionHasMomentum(40))
                         {
@@ -233,7 +215,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                             EnterShort(1, 1, "Short");
                         }
                         rsiShortOppornuity = false;
-                        firstReversalObserved = false;
                     }
                 }
             }
@@ -270,8 +251,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                if (FirstReversal())
-                    SecondReversalTrade();
+                SecondReversalTrade();
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else

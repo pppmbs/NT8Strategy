@@ -115,7 +115,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         protected void TradeAccounting()
         {
             /* Here, SystemPerformance.AllTrades.Count - priorSessionTrades checks to make sure there have been three trades today.
-    priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
+            priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
             if ((SystemPerformance.AllTrades.Count - priorSessionTrades) >= 3 && SystemPerformance.AllTrades.Count != priorNumberOfTrades)
             {
                 // Reset the counter.
@@ -210,22 +210,22 @@ namespace NinjaTrader.NinjaScript.Strategies
                             rsiLongOppornuity = false;
                         }
                     }
-                    else if (rsiShortOppornuity)
+                }
+                else if (rsiShortOppornuity)
+                {
+                    if (RSI(14, 3)[0] >= lastRSI)
                     {
-                        if (RSI(14, 3)[0] >= lastRSI)
+                        lastRSI = RSI(14, 3)[0];
+                    }
+                    else
+                    {
+                        if (PriceActionHasMomentum(40))
                         {
-                            lastRSI = RSI(14, 3)[0];
+                            profiltsTaking = 24;
+                            stopLoss = 6;
+                            EnterShort(1, 1, "Short");
                         }
-                        else
-                        {
-                            if (PriceActionHasMomentum(40))
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterShort(1, 1, "Short");
-                            }
-                            rsiShortOppornuity = false;
-                        }
+                        rsiShortOppornuity = false;
                     }
                 }
             }
