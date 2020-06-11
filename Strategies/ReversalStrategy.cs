@@ -210,22 +210,22 @@ namespace NinjaTrader.NinjaScript.Strategies
                             rsiLongOppornuity = false;
                         }
                     }
-                }
-                else if (rsiShortOppornuity)
-                {
-                    if (RSI(14, 3)[0] >= lastRSI)
+                    else if (rsiShortOppornuity)
                     {
-                        lastRSI = RSI(14, 3)[0];
-                    }
-                    else
-                    {
-                        if (PriceActionHasMomentum(40))
+                        if (RSI(14, 3)[0] >= lastRSI)
                         {
-                            profiltsTaking = 24;
-                            stopLoss = 6;
-                            EnterShort(1, 1, "Short");
+                            lastRSI = RSI(14, 3)[0];
                         }
-                        rsiShortOppornuity = false;
+                        else
+                        {
+                            if (PriceActionHasMomentum(40))
+                            {
+                                profiltsTaking = 24;
+                                stopLoss = 6;
+                                EnterShort(1, 1, "Short");
+                            }
+                            rsiShortOppornuity = false;
+                        }
                     }
                 }
             }
