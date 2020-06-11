@@ -1,0 +1,11 @@
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.csprojAssemblyReference.cache
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.ru-RU.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.fr-FR.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.de-DE.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.pt-PT.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.es-ES.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.zh-Hans.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.Resource.it-IT.resources
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.csproj.GenerateResource.cache
+C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\obj\Debug\NinjaTrader.Custom.csproj.CoreCompileInputs.cache

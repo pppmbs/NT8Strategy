@@ -50,7 +50,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private int barCount = 0;
         private bool firstReversal = false;
-        private readonly int MaxBarCount = 8;
+        private bool secondReversal = false;
+        private double reversalRSI = 0.0;
+        private readonly int MaxBarCount = 5;
 
         protected override void OnStateChange()
         {
@@ -106,7 +108,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         protected void TradeAccounting()
         {
             /* Here, SystemPerformance.AllTrades.Count - priorSessionTrades checks to make sure there have been three trades today.
-    priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
+                priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
             if ((SystemPerformance.AllTrades.Count - priorSessionTrades) >= 3 && SystemPerformance.AllTrades.Count != priorNumberOfTrades)
             {
                 // Reset the counter.
@@ -174,13 +176,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             TradeAccounting();
 
-            if (barCount > MaxBarCount)
-            {
-                barCount = 0;
-                firstReversal = false;
-                return;
-            }
-
             /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
                 Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
             if (NoConsecutiveLosingTrades())
@@ -190,41 +185,52 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     if (firstReversal)
                     {
+                        if (barCount > MaxBarCount)
+                        {
+                            barCount = 0;
+                            firstReversal = false;
+                            secondReversal = false;
+                            return;
+                        }
 
                         if (rsiLongOppornuity)
                         {
-                            if (RSI(14, 3)[2] >= lastRSI)
+                            if (!secondReversal)
                             {
-                                lastRSI = RSI(14, 3)[2];
+                                if (RSI(14, 3)[0] < reversalRSI)
+                                    secondReversal = true;
                             }
                             else
                             {
-                                if (PriceActionHasMomentum(40))
+                                if (IsUpTrend())
                                 {
-                                    profiltsTaking = 24;
+                                    profiltsTaking = 30;
                                     stopLoss = 6;
                                     EnterLong(1, 1, "Long");
                                 }
                                 rsiLongOppornuity = false;
                                 firstReversal = false;
+                                secondReversal = false;
                             }
                         }
                         else if (rsiShortOppornuity)
                         {
-                            if (RSI(14, 3)[2] <= lastRSI)
+                            if (!secondReversal)
                             {
-                                lastRSI = RSI(14, 3)[2];
+                                if (RSI(14, 3)[0] > reversalRSI)
+                                    secondReversal = true;
                             }
                             else
                             {
-                                if (PriceActionHasMomentum(40))
+                                if (!IsUpTrend())
                                 {
-                                    profiltsTaking = 24;
+                                    profiltsTaking = 30;
                                     stopLoss = 6;
                                     EnterShort(1, 1, "Short");
                                 }
                                 rsiShortOppornuity = false;
                                 firstReversal = false;
+                                secondReversal = false;
                             }
                         }
 
@@ -244,7 +250,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                                 if (PriceActionHasMomentum(40))
                                 {
                                     firstReversal = true;
-                                    lastRSI = RSI(14, 3)[0];
+                                    reversalRSI = RSI(14, 3)[1];
                                 }
                             }
                         }
@@ -259,7 +265,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                                 if (PriceActionHasMomentum(40))
                                 {
                                     firstReversal = true;
-                                    lastRSI = RSI(14, 3)[0];
+                                    reversalRSI = RSI(14, 3)[1];
                                 }
                             }
                         }
