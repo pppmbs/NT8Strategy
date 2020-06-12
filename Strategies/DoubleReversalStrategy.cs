@@ -52,7 +52,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool firstReversal = false;
         private bool secondReversal = false;
         private double reversalRSI = 0.0;
-        private readonly int MaxBarCount = 5;
+        private readonly int MaxBarCount = 8;
 
         protected override void OnStateChange()
         {
@@ -197,12 +197,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                         {
                             if (!secondReversal)
                             {
-                                if (RSI(14, 3)[0] < reversalRSI)
+                                if (RSI(14, 3)[0] < (reversalRSI-10))
                                     secondReversal = true;
                             }
                             else
                             {
-                                if (IsUpTrend())
+                                if (IsUpTrend() && PriceActionHasMomentum(40))
                                 {
                                     profiltsTaking = 30;
                                     stopLoss = 6;
@@ -217,14 +217,14 @@ namespace NinjaTrader.NinjaScript.Strategies
                         {
                             if (!secondReversal)
                             {
-                                if (RSI(14, 3)[0] > reversalRSI)
+                                if (RSI(14, 3)[0] > (reversalRSI+10))
                                     secondReversal = true;
                             }
                             else
                             {
-                                if (!IsUpTrend())
+                                if (!IsUpTrend() && PriceActionHasMomentum(50))
                                 {
-                                    profiltsTaking = 30;
+                                    profiltsTaking = 24;
                                     stopLoss = 6;
                                     EnterShort(1, 1, "Short");
                                 }
