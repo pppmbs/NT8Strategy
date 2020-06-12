@@ -25,37 +25,37 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-	public class AfterLunchBollingerStrategy : Strategy
-	{
-		private int Fast;
-		private int Slow;
+    public class AfterLunchBollingerStrategy : Strategy
+    {
+        private int Fast;
+        private int Slow;
 
-		private double lastRSI = 0.0;
-		private Order entryOrder = null; // This variable holds an object representing our entry order
-		private Order stopOrder = null; // This variable holds an object representing our stop loss order
-		private Order targetOrder = null; // This variable holds an object representing our profit target order
-		private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
+        private double lastRSI = 0.0;
+        private Order entryOrder = null; // This variable holds an object representing our entry order
+        private Order stopOrder = null; // This variable holds an object representing our stop loss order
+        private Order targetOrder = null; // This variable holds an object representing our profit target order
+        private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-		private readonly double rsiUpperBound = 80;
-		private readonly double rsiLowerBound = 20;
+        private readonly double rsiUpperBound = 80;
+        private readonly double rsiLowerBound = 20;
 
-		private bool rsiLongOppornuity = false;
-		private bool rsiShortOppornuity = false;
+        private bool rsiLongOppornuity = false;
+        private bool rsiShortOppornuity = false;
 
-		private int profiltsTaking = 18; // number of ticks for profits taking
-		private int stopLoss = 6; // number of ticks for stop loss
-		private readonly int maxConsecutiveLosingTrades = 3;
+        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int stopLoss = 6; // number of ticks for stop loss
+        private readonly int maxConsecutiveLosingTrades = 3;
 
-		private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
-		private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
-		private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
+        private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
+        private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
+        private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 
-		protected override void OnStateChange()
-		{
-			if (State == State.SetDefaults)
-			{
-				Description									= @"Enter the description for your new custom Strategy here.";
-				Name										= "AfterLunchBollingerStrategy";
+        protected override void OnStateChange()
+        {
+            if (State == State.SetDefaults)
+            {
+                Description = @"Enter the description for your new custom Strategy here.";
+                Name = "AfterLunchBollingerStrategy";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -176,15 +176,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
                 {
-                   if (DateTime.Now.Hour == 12)
+                    if ((DateTime.Now.Hour > 12)  && (DateTime.Now.Hour < 13) )
                     {
-                        if (Close[2] > Bollinger(2, 20).Upper[0])
+                        if (Close[1] > Bollinger(2, 20).Upper[0])
                         {
                             profiltsTaking = 24;
                             stopLoss = 6;
                             EnterLong(1, 1, "Long");
-                        } 
-                        else if (Close[2] < Bollinger(2, 20).Lower[0])
+                        }
+                        else if (Close[1] < Bollinger(2, 20).Lower[0])
                         {
                             profiltsTaking = 24;
                             stopLoss = 6;
