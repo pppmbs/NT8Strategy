@@ -36,12 +36,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Order targetOrder = null; // This variable holds an object representing our profit target order
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-        private readonly double rsiUpperBound = 80;
-        private readonly double rsiLowerBound = 20;
-
-        private bool rsiLongOppornuity = false;
-        private bool rsiShortOppornuity = false;
-
         private int profiltsTaking = 18; // number of ticks for profits taking
         private int stopLoss = 6; // number of ticks for stop loss
         private readonly int maxConsecutiveLosingTrades = 3;
@@ -175,20 +169,20 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
-                {
-                    if ((DateTime.Now.Hour > 12)  && (DateTime.Now.Hour < 13) )
+                {   // between 1:00pm and 2:00pm EST
+                    if ((ToTime(Time[0]) > 120000) && (ToTime(Time[0]) < 130000))
                     {
-                        if (Close[1] > Bollinger(2, 20).Upper[0])
+                        if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[0] < Close[1]))
                         {
-                            profiltsTaking = 24;
-                            stopLoss = 6;
-                            EnterLong(1, 1, "Long");
-                        }
-                        else if (Close[1] < Bollinger(2, 20).Lower[0])
-                        {
-                            profiltsTaking = 24;
+                            profiltsTaking = 30;
                             stopLoss = 6;
                             EnterShort(1, 1, "Short");
+                        }
+                        else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[0] > Close[1]))
+                        {
+                            profiltsTaking = 30;
+                            stopLoss = 6;
+                            EnterLong(1, 1, "Long");
                         }
                     }
                 }

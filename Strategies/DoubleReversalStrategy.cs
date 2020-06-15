@@ -197,7 +197,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         {
                             if (!secondReversal)
                             {
-                                if (RSI(14, 3)[0] < (reversalRSI-10))
+                                if (RSI(14, 3)[0] < (reversalRSI - 10))
                                     secondReversal = true;
                             }
                             else
@@ -217,7 +217,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         {
                             if (!secondReversal)
                             {
-                                if (RSI(14, 3)[0] > (reversalRSI+10))
+                                if (RSI(14, 3)[0] > (reversalRSI + 10))
                                     secondReversal = true;
                             }
                             else
