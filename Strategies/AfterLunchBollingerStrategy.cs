@@ -172,13 +172,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {   // between 1:00pm and 2:00pm EST
                     if ((ToTime(Time[0]) > 120000) && (ToTime(Time[0]) < 130000))
                     {
-                        if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[0] < Close[1]))
+                        if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[1] < Close[2]) && (Close[0] < Close[1]))
                         {
                             profiltsTaking = 30;
                             stopLoss = 6;
                             EnterShort(1, 1, "Short");
                         }
-                        else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[0] > Close[1]))
+                        else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[1] > Close[2]) && (Close[0] > Close[1]))
                         {
                             profiltsTaking = 30;
                             stopLoss = 6;
