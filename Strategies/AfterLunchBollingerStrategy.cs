@@ -159,7 +159,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             return (ADX(14)[0] > m);
         }
 
-        protected void AfterLunchBollingeTrade()
+        protected void AfterLunchBollingerTrade()
         {
             TradeAccounting();
 
@@ -220,7 +220,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                AfterLunchBollingeTrade();
+                AfterLunchBollingerTrade();
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else

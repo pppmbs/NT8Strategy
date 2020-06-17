@@ -239,6 +239,37 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        protected void AfterLunchBollingerTrade()
+        {
+            TradeAccounting();
+
+            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+            if (NoConsecutiveLosingTrades())
+            {
+                // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
+                if (NoActiveTrade())
+                {   // between 1:00pm and 2:00pm EST
+                    if ((ToTime(Time[0]) > 120000) && (ToTime(Time[0]) < 130000))
+                    {
+                        if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[1] < Close[2]) && (Close[0] < Close[1]))
+                        {
+                            profiltsTaking = 30;
+                            stopLoss = 6;
+                            EnterShort(1, 1, "Short");
+                        }
+                        else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[1] > Close[2]) && (Close[0] > Close[1]))
+                        {
+                            profiltsTaking = 30;
+                            stopLoss = 6;
+                            EnterLong(1, 1, "Long");
+                        }
+                    }
+                }
+            }
+        }
+
+
         protected void CheckforRsiOpportunity()
         {
             if (CrossAbove(RSI(14, 3), rsiUpperBound, 1))
@@ -337,6 +368,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
 
                 ReversalTrade();
+                AfterLunchBollingerTrade();
                 PullbackTrade();
                 //ContinuationTrade();
 

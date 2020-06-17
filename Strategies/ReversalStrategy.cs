@@ -39,14 +39,16 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private readonly double rsiUpperBound = 80;
 		private readonly double rsiLowerBound = 20;
 
-		private bool rsiLongOppornuity = false;
+
+        private bool rsiLongOppornuity = false;
 		private bool rsiShortOppornuity = false;
 
 		private int profiltsTaking = 18; // number of ticks for profits taking
 		private int stopLoss = 6; // number of ticks for stop loss
 		private readonly int maxConsecutiveLosingTrades = 3;
+        private readonly int TargetProfitsNumber = 2;
 
-		private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
+        private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
 		private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
 		private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 
@@ -150,6 +152,11 @@ namespace NinjaTrader.NinjaScript.Strategies
             return (lastProfitableTrades != -maxConsecutiveLosingTrades);
         }
 
+        protected bool AchievedDailyProfitsGoal()
+        {
+            return (lastProfitableTrades >= TargetProfitsNumber);
+        }
+
         protected bool NoActiveTrade()
         {
             return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
@@ -183,9 +190,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             TradeAccounting();
 
-            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-            if (NoConsecutiveLosingTrades())
+                /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                    Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+                if (NoConsecutiveLosingTrades())
             {
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
