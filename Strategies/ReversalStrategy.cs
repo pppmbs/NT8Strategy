@@ -159,7 +159,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         protected bool NoActiveTrade()
         {
-            return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
+            //return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
+            return (entryOrder == null);
         }
 
         protected bool IsUpTrend()
