@@ -381,6 +381,7 @@
     <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.cs" />
     <Compile Include="Strategies\DoubleReversalStrategy.cs" />
     <Compile Include="Strategies\AfterLunchBollingerStrategy.cs" />
+    <Compile Include="Strategies\CombinedManualStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
