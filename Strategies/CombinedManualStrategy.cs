@@ -50,7 +50,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private int profiltsTaking = 18; // number of ticks for profits taking
         private int stopLoss = 6; // number of ticks for stop loss
-        private readonly int maxConsecutiveLosingTrades = 3;
+        private readonly int maxConsecutiveLosingTrades = 2;
+        private int targetIncrement = 0;
+        private int stopLossIncrement = 0;
 
         private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
         private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
@@ -445,6 +447,43 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        protected void AdjustTargetStopLoss()
+        {
+
+            if (entryOrder == null)
+            {
+                stopLossIncrement = 0;
+                targetIncrement = 0;
+                return;
+            }
+
+            // If a long position is open, allow for stop loss modification to breakeven
+            if (Position.MarketPosition == MarketPosition.Long)
+            {
+                // Once the price is greater than entry price+50 ticks, set stop loss to breakeven
+                if (Close[0] >= (Position.AveragePrice + profiltsTaking + targetIncrement))
+                {
+                    SetStopLoss(CalculationMode.Price, Position.AveragePrice + stopLossIncrement);
+                    SetProfitTarget(CalculationMode.Price, Position.AveragePrice + profiltsTaking + targetIncrement + 4);
+
+                    stopLossIncrement += 4;
+                    targetIncrement += 4;
+                }
+            }
+            else
+            {
+                // Once the price is greater than entry price+50 ticks, set stop loss to breakeven
+                if (Close[0] <= (Position.AveragePrice - profiltsTaking - targetIncrement))
+                {
+                    SetStopLoss(CalculationMode.Price, Position.AveragePrice - stopLossIncrement);
+                    SetProfitTarget(CalculationMode.Price, Position.AveragePrice - profiltsTaking - targetIncrement - 4);
+
+                    stopLossIncrement -= 4;
+                    targetIncrement -= 4;
+                }
+
+            }
+        }
 
         protected override void OnBarUpdate()
         {
@@ -477,11 +516,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
 
                 ReversalTrade();
-                doubleReversalTrade();
+                //doubleReversalTrade();
                 AfterLunchBollingerTrade();
                 PullbackTrade();
                 //ContinuationTrade();
 
+                AdjustTargetStopLoss();
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else
