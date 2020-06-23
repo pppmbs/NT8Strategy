@@ -56,7 +56,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
         private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
-        private int priorSessionTrades = 0;	// This variable holds the number of trades taken prior to each session break.
+        private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
+
+        //AutoStrategy1
+        private Indicators.CandleStickPatternLogic candleStickPatternLogic;
+        private DateTime endTimeForShortEntries;
+        private Data.SessionIterator sessionIterator;
+        private DateTime startTimeForShortEntries;
 
         protected override void OnStateChange()
         {
@@ -460,7 +466,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // If a long position is open, allow for stop loss modification to breakeven
             if (Position.MarketPosition == MarketPosition.Long)
             {
-                // Once the price is greater than entry price+50 ticks, set stop loss to breakeven
+                // Once the price is greater than target, set stop loss to breakeven
                 if (Close[0] >= (Position.AveragePrice + profiltsTaking + targetIncrement))
                 {
                     SetStopLoss(CalculationMode.Price, Position.AveragePrice + stopLossIncrement);
@@ -472,7 +478,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else
             {
-                // Once the price is greater than entry price+50 ticks, set stop loss to breakeven
+                // Once the price is greater than target, set stop loss to breakeven
                 if (Close[0] <= (Position.AveragePrice - profiltsTaking - targetIncrement))
                 {
                     SetStopLoss(CalculationMode.Price, Position.AveragePrice - stopLossIncrement);
@@ -483,6 +489,28 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
 
             }
+        }
+
+        protected void AutoStrategy1()
+        {
+            if (sessionIterator == null || BarsArray[0].IsFirstBarOfSession)
+            {
+                if (sessionIterator == null)
+                {
+                    sessionIterator = new Data.SessionIterator(BarsArray[0]);
+                    sessionIterator.GetNextSession(Times[0][0], true);
+                }
+                else if (BarsArray[0].IsFirstBarOfSession)
+                    sessionIterator.GetNextSession(Times[0][0], true);
+
+                startTimeForShortEntries = sessionIterator.ActualSessionBegin.AddMinutes(15);
+                endTimeForShortEntries = startTimeForShortEntries.AddMinutes(45);
+            }
+
+            if (candleStickPatternLogic.Evaluate(ChartPattern.MorningStar)
+                && startTimeForShortEntries < Times[0][0] && Times[0][0] <= endTimeForShortEntries
+                && (Times[0][0].DayOfWeek == DayOfWeek.Monday || Times[0][0].DayOfWeek == DayOfWeek.Tuesday || Times[0][0].DayOfWeek == DayOfWeek.Thursday || Times[0][0].DayOfWeek == DayOfWeek.Saturday))
+                EnterShort();
         }
 
         protected override void OnBarUpdate()
@@ -520,12 +548,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 AfterLunchBollingerTrade();
                 PullbackTrade();
                 //ContinuationTrade();
-
-                AdjustTargetStopLoss();
+                AutoStrategy1();
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else
             {
+                //AdjustTargetStopLoss();
                 return;
             }
         }
