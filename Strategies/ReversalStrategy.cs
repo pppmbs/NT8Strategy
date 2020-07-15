@@ -25,39 +25,41 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-	public class ReversalStrategy : Strategy
-	{
-		private int Fast;
-		private int Slow;
+    public class ReversalStrategy : Strategy
+    {
+        private int Fast;
+        private int Slow;
 
-		private double lastRSI = 0.0;
-		private Order entryOrder = null; // This variable holds an object representing our entry order
-		private Order stopOrder = null; // This variable holds an object representing our stop loss order
-		private Order targetOrder = null; // This variable holds an object representing our profit target order
-		private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
+        private double lastRSI = 0.0;
+        private Order entryOrder = null; // This variable holds an object representing our entry order
+        private Order stopOrder = null; // This variable holds an object representing our stop loss order
+        private Order targetOrder = null; // This variable holds an object representing our profit target order
+        private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-		private readonly double rsiUpperBound = 80;
-		private readonly double rsiLowerBound = 20;
+        private readonly double rsiUpperBound = 80;
+        private readonly double rsiLowerBound = 20;
 
 
         private bool rsiLongOppornuity = false;
-		private bool rsiShortOppornuity = false;
+        private bool rsiShortOppornuity = false;
 
-		private int profiltsTaking = 18; // number of ticks for profits taking
-		private int stopLoss = 6; // number of ticks for stop loss
-		private readonly int maxConsecutiveLosingTrades = 3;
+        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int stopLoss = 6; // number of ticks for stop loss
+        private readonly int maxConsecutiveLosingTrades = 3;
         private readonly int TargetProfitsNumber = 2;
+        private int targetIncrement = 0;
+        private int stopLossIncrement = 0;
 
         private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
-		private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
-		private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
+        private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
+        private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 
-		protected override void OnStateChange()
-		{
-			if (State == State.SetDefaults)
-			{
-				Description									= @"Enter the description for your new custom Strategy here.";
-				Name										= "ReversalStrategy";
+        protected override void OnStateChange()
+        {
+            if (State == State.SetDefaults)
+            {
+                Description = @"Enter the description for your new custom Strategy here.";
+                Name = "ReversalStrategy";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -73,8 +75,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
                 BarsRequiredToTrade = 20;
-                Fast = 10;
-                Slow = 25;
+                Fast = 9;
+                Slow = 20;
             }
             else if (State == State.Configure)
             {
@@ -191,9 +193,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             TradeAccounting();
 
-                /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                    Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-                if (NoConsecutiveLosingTrades())
+            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+            if (NoConsecutiveLosingTrades())
             {
                 // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
                 if (NoActiveTrade())
@@ -209,11 +211,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                         }
                         else
                         {
+                            //if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
                             if (PriceActionHasMomentum(40))
                             {
                                 profiltsTaking = 24;
                                 stopLoss = 6;
                                 EnterLong(1, 1, "Long");
+                                //EnterLongLimit(1, Close[0], "Long");
                             }
                             rsiLongOppornuity = false;
                         }
@@ -226,11 +230,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                         }
                         else
                         {
+                            //if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
                             if (PriceActionHasMomentum(40))
                             {
                                 profiltsTaking = 24;
                                 stopLoss = 6;
                                 EnterShort(1, 1, "Short");
+                                //EnterShortLimit(1, High[0], "Short");
                             }
                             rsiShortOppornuity = false;
                         }
@@ -239,6 +245,43 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        protected void AdjustTargetStopLoss()
+        {
+
+            if (entryOrder == null)
+            {
+                stopLossIncrement = 0;
+                targetIncrement = 0;
+                return;
+            }
+
+            // If a long position is open, allow for stop loss modification to breakeven
+            if (Position.MarketPosition == MarketPosition.Long)
+            {
+                // Once the price is greater than target, set stop loss to breakeven
+                if (Close[0] >= (Position.AveragePrice + profiltsTaking + targetIncrement))
+                {
+                    SetStopLoss(CalculationMode.Price, Position.AveragePrice + stopLossIncrement);
+                    SetProfitTarget(CalculationMode.Price, Position.AveragePrice + profiltsTaking + targetIncrement + 4);
+
+                    stopLossIncrement += 4;
+                    targetIncrement += 4;
+                }
+            }
+            else
+            {
+                // Once the price is greater than target, set stop loss to breakeven
+                if (Close[0] <= (Position.AveragePrice - profiltsTaking - targetIncrement))
+                {
+                    SetStopLoss(CalculationMode.Price, Position.AveragePrice - stopLossIncrement);
+                    SetProfitTarget(CalculationMode.Price, Position.AveragePrice - profiltsTaking - targetIncrement - 4);
+
+                    stopLossIncrement -= 4;
+                    targetIncrement -= 4;
+                }
+
+            }
+        }
 
         protected override void OnBarUpdate()
         {
@@ -275,6 +318,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else
             {
+                //AdjustTargetStopLoss();
                 return;
             }
         }
