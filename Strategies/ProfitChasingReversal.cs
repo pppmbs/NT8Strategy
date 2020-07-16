@@ -60,7 +60,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 			if (State == State.SetDefaults)
 			{
 				Description = @"Reversal with profit chasing characteristic";
-				Name = "ProfitChaseStopTrailExitOrdersExample";
+				Name = "ProfitChasingReversal";
 				Calculate = Calculate.OnBarClose;
 				EntriesPerDirection = 1;
 				EntryHandling = EntryHandling.AllEntries;
