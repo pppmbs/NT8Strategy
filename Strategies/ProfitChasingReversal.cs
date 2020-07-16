@@ -147,7 +147,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 		protected bool NoActiveTrade()
 		{
 			//return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
-			return (entryOrder == null);
+			return (entryOrder == null || entryOrder.OrderState == OrderState.Initialized);
 		}
 
 		protected bool IsUpTrend()
@@ -185,8 +185,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 				// Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
 				if (NoActiveTrade())
 				{
+                    //if (PrintDetails)
+                    //    Print(string.Format("ReversalTrade:: {0} | Order state {1}", Times[1][0], entryOrder.OrderState));
 
-					CheckforRsiOpportunity();
+                    CheckforRsiOpportunity();
 
 					if (rsiLongOppornuity)
 					{
@@ -196,14 +198,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 						}
 						else
 						{
+							if (PrintDetails)
+								Print(string.Format("ReversalTrade:: Long | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+
 							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
-							if (PriceActionHasMomentum(40))
+							if (PriceActionHasMomentum(25))
 							{
-								profiltsTaking = 24;
-								stopLossVal = 6;
 								isLongTrade = true;
 								EnterLong(1, 1, "entry");
-								//EnterLongLimit(1, Close[0], "Long");
 							}
 							rsiLongOppornuity = false;
 						}
@@ -216,14 +218,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 						}
 						else
 						{
+							if (PrintDetails)
+								Print(string.Format("ReversalTrade:: Short | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+
 							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
-							if (PriceActionHasMomentum(40))
+							if (PriceActionHasMomentum(25))
 							{
-								profiltsTaking = 24;
-								stopLossVal = 6;
 								isLongTrade = false;
 								EnterShort(1, 1, "entry");
-								//EnterShortLimit(1, High[0], "Short");
 							}
 							rsiShortOppornuity = false;
 						}
