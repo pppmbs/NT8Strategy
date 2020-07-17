@@ -39,7 +39,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private readonly double rsiUpperBound = 80;
         private readonly double rsiLowerBound = 20;
 
-
         private bool rsiLongOppornuity = false;
         private bool rsiShortOppornuity = false;
 

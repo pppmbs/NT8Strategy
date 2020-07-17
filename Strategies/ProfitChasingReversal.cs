@@ -36,6 +36,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private SessionIterator sessionIterator;
 
 		private double lastRSI = 0.0;
+		private int tradeCount = 0;
 
 		private readonly double rsiUpperBound = 80;
 		private readonly double rsiLowerBound = 20;
@@ -99,6 +100,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 				suppressOco = false;
 				tickSizeSecondary = BarsArray[1].Instrument.MasterInstrument.TickSize;
 			}
+		}
+
+		protected void InitializeTradeAccounting()
+		{
+			lastProfitableTrades = 0;
+			priorSessionTrades = SystemPerformance.AllTrades.Count;
 		}
 
 		protected void TradeAccounting()
@@ -176,6 +183,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 		protected void ReversalTrade()
 		{
+			if (PrintDetails)
+				Print(string.Format("ProfitChasingReversal:: tradeCount {0}",tradeCount++));
+
 			TradeAccounting();
 
 			/* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
@@ -199,10 +209,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 						else
 						{
 							if (PrintDetails)
-								Print(string.Format("ReversalTrade:: Long | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+								Print(string.Format("ProfitChasingReversal:: Long | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
 
 							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
-							if (PriceActionHasMomentum(25))
+							if (PriceActionHasMomentum(40))
 							{
 								isLongTrade = true;
 								EnterLong(1, 1, "entry");
@@ -219,10 +229,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 						else
 						{
 							if (PrintDetails)
-								Print(string.Format("ReversalTrade:: Short | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+								Print(string.Format("ProfitChasingReversal:: Short | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
 
 							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
-							if (PriceActionHasMomentum(25))
+							if (PriceActionHasMomentum(40))
 							{
 								isLongTrade = false;
 								EnterShort(1, 1, "entry");
@@ -322,6 +332,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 			// the entry logic can be done when the primary series is processing
 			if (BarsInProgress == 0)
 			{
+				// Reset the trade profitability counter every day and get the number of trades taken in total.
+				if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
+				{
+					InitializeTradeAccounting();
+				}
+
 				// because this is a demonstration, this code will cause any historical position
 				// to be exited on the last historical bar so the strategy will always start flat in real-time
 				if (State == State.Historical && CurrentBar == BarsArray[0].Count - 2)
@@ -332,7 +348,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 					}
 				}
 				// if this is not the last historical bar, and entryOrder is null, then place an entry order
-				else if (!exitOnCloseWait && entryOrder == null && profitTarget == null && stopLoss == null)
+				//else if (!exitOnCloseWait && entryOrder == null && profitTarget == null && stopLoss == null)
+				else if (!exitOnCloseWait)
 				{
 					suppressOco = false;
 					entryOrder = placeHolderOrder;
