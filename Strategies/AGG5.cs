@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,8 +27,8 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AiTradeStrategy : Strategy
-    {
+	public class AGG5 : Strategy
+	{
         private int Fast;
         private int Slow;
 
@@ -38,12 +40,16 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int profiltsTaking = 18; // number of ticks for profits taking
         private int stopLoss = 18; // number of ticks for stop loss
 
+        private Socket sender = null; 
+        private byte[] bytes = new byte[2048];
+        int lineNo = 0;
+
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
             {
                 Description = @"Sample Using OnOrderUpdate() and OnExecution() methods to submit protective orders";
-                Name = "AiTradeStrategy";
+                Name = "AGG5";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -61,6 +67,58 @@ namespace NinjaTrader.NinjaScript.Strategies
                 BarsRequiredToTrade = 20;
                 Fast = 10;
                 Slow = 25;
+
+                //Set this scripts Print() calls to the first output tab
+                PrintTo = PrintTo.OutputTab1;
+
+                // Connect to DLNN Server  
+                try
+                {
+                    // Do not attempt connection if already connected
+                    if (sender!=null)
+                        return;
+
+                    // Establish the remote endpoint for the socket.  
+                    // connecting server on port 3333  
+                    IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                    IPAddress ipAddress = ipHostInfo.AddressList[1];
+                    IPEndPoint remoteEP = new IPEndPoint(ipAddress, 3333);
+
+                    // Create a TCP/IP  socket.  
+                    sender = new Socket(ipAddress.AddressFamily,
+                        SocketType.Stream, ProtocolType.Tcp);
+
+                    // Connect the socket to the remote endpoint. Catch any errors.  
+                    try
+                    {
+                        sender.Connect(remoteEP);
+ 
+                        Print(" ************ Socket connected to : " + 
+                            sender.RemoteEndPoint.ToString() + "*************");
+
+                        // TODO: Release the socket.  
+                        //sender.Shutdown(SocketShutdown.Both);
+                        //sender.Close();
+
+                    }
+                    catch (ArgumentNullException ane)
+                    {
+                        Print("ArgumentNullException : " + ane.ToString());
+                    }
+                    catch (SocketException se)
+                    {
+                        Print("SocketException : " + se.ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        Print("Unexpected exception : " + e.ToString());
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Print(e.ToString());
+                }
             }
             else if (State == State.Configure)
             {
@@ -94,61 +152,15 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-         protected override void OnBarUpdate()
-        {
-            /* When working with multiple bar series objects it is important to understand the sequential order in which the
-            OnBarUpdate() method is triggered. The bars will always run with the primary first followed by the secondary and
-            so on.
+        protected override void OnAccountItemUpdate(Cbi.Account account, Cbi.AccountItem accountItem, double value)
+		{
+			
+		}
 
-            Important: Primary bars will always execute before the secondary bar series.
-            If a bar is timestamped as 12:00PM on the 5min bar series, the call order between the equally timestamped 12:00PM
-            bar on the 1min bar series is like this:
-                12:00PM 5min
-                12:00PM 1min
-                12:01PM 1min
-                12:02PM 1min
-                12:03PM 1min
-                12:04PM 1min
-                12:05PM 5min
-                12:05PM 1min 
-
-            When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
-            if (BarsInProgress == 0)
-            {
-                // Reset the trade profitability counter every day and get the number of trades taken in total.
-                if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
-                {
-                }
-
-                if (CurrentBar < BarsRequiredToTrade)
-                    return;
-
-
-            }
-            // When the OnBarUpdate() is called from the secondary bar series, do nothing.
-            else
-            {
-                return;
-            }
-        }
-
-        protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
-        {
-            // Handle entry orders here. The entryOrder object allows us to identify that the order that is calling the OnOrderUpdate() method is the entry order.
-            // Assign entryOrder in OnOrderUpdate() to ensure the assignment occurs when expected.
-            // This is more reliable than assigning Order objects in OnBarUpdate, as the assignment is not gauranteed to be complete if it is referenced immediately after submitting
-            if (order.Name == "Long" || order.Name == "Short")
-            {
-                entryOrder = order;
-
-                // Reset the entryOrder object to null if order was cancelled without any fill
-                if (order.OrderState == OrderState.Cancelled && order.Filled == 0)
-                {
-                    entryOrder = null;
-                    sumFilled = 0;
-                }
-            }
-        }
+		protected override void OnConnectionStatusUpdate(ConnectionStatusEventArgs connectionStatusUpdate)
+		{
+			
+		}
 
         protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
         {
@@ -211,6 +223,102 @@ namespace NinjaTrader.NinjaScript.Strategies
                     stopOrder = null;
                     targetOrder = null;
                 }
+            }
+        }
+
+        protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
+        {
+            // Handle entry orders here. The entryOrder object allows us to identify that the order that is calling the OnOrderUpdate() method is the entry order.
+            // Assign entryOrder in OnOrderUpdate() to ensure the assignment occurs when expected.
+            // This is more reliable than assigning Order objects in OnBarUpdate, as the assignment is not gauranteed to be complete if it is referenced immediately after submitting
+            if (order.Name == "Long" || order.Name == "Short")
+            {
+                entryOrder = order;
+
+                // Reset the entryOrder object to null if order was cancelled without any fill
+                if (order.OrderState == OrderState.Cancelled && order.Filled == 0)
+                {
+                    entryOrder = null;
+                    sumFilled = 0;
+                }
+            }
+        }
+
+        protected override void OnPositionUpdate(Cbi.Position position, double averagePrice, 
+			int quantity, Cbi.MarketPosition marketPosition)
+		{
+			
+		}
+
+        protected override void OnBarUpdate()
+        {
+            /* When working with multiple bar series objects it is important to understand the sequential order in which the
+            OnBarUpdate() method is triggered. The bars will always run with the primary first followed by the secondary and
+            so on.
+
+            Important: Primary bars will always execute before the secondary bar series.
+            If a bar is timestamped as 12:00PM on the 5min bar series, the call order between the equally timestamped 12:00PM
+            bar on the 1min bar series is like this:
+                12:00PM 5min
+                12:00PM 1min
+                12:01PM 1min
+                12:02PM 1min
+                12:03PM 1min
+                12:04PM 1min
+                12:05PM 5min
+                12:05PM 1min 
+
+            When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
+            if (BarsInProgress == 0)
+            {
+                // Reset the trade profitability counter every day and get the number of trades taken in total.
+                if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
+                {
+                }
+
+                if (CurrentBar < BarsRequiredToTrade)
+                    return;
+
+                // construct the string buffer to be sent to DLNN
+                string bufString = lineNo.ToString() + ',' + 
+                    Bars.GetTime(CurrentBar-1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
+                    Bars.GetOpen(CurrentBar).ToString() + ',' + Bars.GetClose(CurrentBar).ToString() + ',' +
+                    Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
+                    Bars.GetVolume(CurrentBar).ToString() + ',' +
+                    SMA(9)[0].ToString() + ',' + SMA(20)[0].ToString() + ',' + SMA(50)[0].ToString() + ',' +
+                    MACD(12, 26, 9).Diff[0].ToString() + ',' + RSI(14, 3)[0].ToString() + ',' +
+                    Bollinger(2, 20).Lower[0].ToString() + ',' + Bollinger(2, 20).Upper[0].ToString() + ',' +
+                    CCI(20)[0].ToString() + ',' +
+                    Bars.GetHigh(0).ToString() + ',' + Bars.GetLow(0).ToString() + ',' +
+                    Momentum(20)[0].ToString() + ',' +
+                    DM(14).DiPlus[0].ToString() + ',' + DM(14).DiMinus[0].ToString() + ',' +
+                    VROC(25, 3)[0].ToString() + ',' +
+                    '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
+                    '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
+
+                Print("bufString = " + bufString);
+
+                byte[] msg = Encoding.ASCII.GetBytes(bufString);
+
+                // Send the data through the socket.  
+                int bytesSent = sender.Send(msg);
+
+                // Receive the response from the remote device.  
+                int bytesRec = sender.Receive(bytes);
+
+                Print("Server response: " +
+                    Encoding.ASCII.GetString(bytes, bytesRec - 2, bytesRec).Substring(1));
+
+                if (bytesRec == -1)
+                    lineNo = 0;
+                else
+                    lineNo++;
+
+            }
+            // When the OnBarUpdate() is called from the secondary bar series, do nothing.
+            else
+            {
+                return;
             }
         }
     }

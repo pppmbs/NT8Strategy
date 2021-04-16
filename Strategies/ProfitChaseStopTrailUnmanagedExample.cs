@@ -34,6 +34,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private bool exitOnCloseWait, ordersCancelled, suppressCancelExit;
 		private string entryName, exitName, ptName, slName, message, ocoString;
 		private SessionIterator sessionIterator;
+
+		private int tradeCount = 0;
 		#endregion
 
 		protected override void OnStateChange()
@@ -163,6 +165,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 				// if this is not the last historical bar, and entryOrder is null, then place an entry order
 				else if (!exitOnCloseWait && entryOrder == null && profitTarget == null && stopLoss == null)
 				{
+					Print(string.Format("ProfitChaseStopTrailUnmanagedExample:: tradeCount {0}", tradeCount++));
+
 					entryName = "entry";
 					entryOrder = placeHolderOrder;
 					SubmitOrderUnmanaged(1, OrderAction.Buy, OrderType.Market, 1, 0, 0, string.Empty, entryName);

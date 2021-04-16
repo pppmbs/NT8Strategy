@@ -25,7 +25,7 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-	public class ProfitChaseStopTrailExitOrdersExample : Strategy
+	public class ProfitChasingCombined : Strategy
 	{
 		#region Variables
 		private double currentPtPrice, currentSlPrice, tickSizeSecondary;
@@ -35,15 +35,35 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private bool exitOnCloseWait, ordersCancelled, suppressOco;
 		private SessionIterator sessionIterator;
 
+		private double lastRSI = 0.0;
 		private int tradeCount = 0;
+
+		private readonly double rsiUpperBound = 80;
+		private readonly double rsiLowerBound = 20;
+
+		private bool rsiLongOppornuity = false;
+		private bool rsiShortOppornuity = false;
+		private bool isLongTrade = false;
+
+		private int profiltsTaking = 24; // number of ticks for profits taking
+		private int stopLossVal = 6; // number of ticks for stop loss
+		private int profitsTakingInc = 10; // the increment of profit chasing
+		private int stopLossInc = 10; // the increment of stop loss should be the same as profitsTakingInc
+
+		private readonly int maxConsecutiveLosingTrades = 3;
+		private readonly int TargetProfitsNumber = 2;
+
+		private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
+		private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
+		private int priorSessionTrades = 0; // This variable holds the number of trades taken prior to each session break.
 		#endregion
 
 		protected override void OnStateChange()
 		{
 			if (State == State.SetDefaults)
 			{
-				Description = @"Managed Exit Order Example";
-				Name = "ProfitChaseStopTrailExitOrdersExample";
+				Description = @"Reversal with profit chasing characteristic";
+				Name = "ProfitChasingCombined";
 				Calculate = Calculate.OnBarClose;
 				EntriesPerDirection = 1;
 				EntryHandling = EntryHandling.AllEntries;
@@ -56,8 +76,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				ChaseProfitTarget = true;
 				PrintDetails = false;
-				ProfitTargetDistance = 10;
-				StopLossDistance = 10;
+				ProfitTargetDistance = profitsTakingInc;
+				StopLossDistance = stopLossInc;
 				TrailStopLoss = true;
 				UseProfitTarget = true;
 				UseStopLoss = true;
@@ -81,6 +101,254 @@ namespace NinjaTrader.NinjaScript.Strategies
 				placeHolderOrder = new Order();
 				suppressOco = false;
 				tickSizeSecondary = BarsArray[1].Instrument.MasterInstrument.TickSize;
+			}
+		}
+
+		protected void InitializeTradeAccounting()
+		{
+			lastProfitableTrades = 0;
+			priorSessionTrades = SystemPerformance.AllTrades.Count;
+		}
+
+		protected void TradeAccounting()
+		{
+			/* Here, SystemPerformance.AllTrades.Count - priorSessionTrades checks to make sure there have been three trades today.
+            priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
+			if ((SystemPerformance.AllTrades.Count - priorSessionTrades) >= 3 && SystemPerformance.AllTrades.Count != priorNumberOfTrades)
+			{
+				// Reset the counter.
+				lastProfitableTrades = 0;
+
+				// Set the new number of completed trades.
+				priorNumberOfTrades = SystemPerformance.AllTrades.Count;
+				// Loop through the last three trades and check profit/loss on each.
+				for (int idx = 1; idx <= maxConsecutiveLosingTrades; idx++)
+				{
+					/* The SystemPerformance.AllTrades array stores the most recent trade at the highest index value. If there are a total of 10 trades,
+                       this loop will retrieve the 10th trade first (at index position 9), then the 9th trade (at 8), then the 8th trade. */
+					Trade trade = SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - idx];
+
+					/* If the trade's profit is greater than 0, add one to the counter. If the trade's profit is less than 0, subtract one.
+                        This logic means break-even trades have no effect on the counter. */
+					if (trade.ProfitCurrency > 0)
+					{
+						lastProfitableTrades++;
+					}
+
+					else if (trade.ProfitCurrency < 0)
+					{
+						lastProfitableTrades--;
+					}
+				}
+			}
+		}
+
+		protected bool NoConsecutiveLosingTrades()
+		{
+			return (lastProfitableTrades != -maxConsecutiveLosingTrades);
+		}
+
+		protected bool AchievedDailyProfitsGoal()
+		{
+			return (lastProfitableTrades >= TargetProfitsNumber);
+		}
+
+		protected bool NoActiveTrade()
+		{
+			//return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
+			return (entryOrder == null || entryOrder.OrderState == OrderState.Initialized);
+		}
+
+		protected bool IsUpTrend()
+		{
+			return (DM(14).DiPlus[0] > DM(14).DiMinus[0]);
+		}
+
+		protected bool PriceActionHasMomentum(double m)
+		{
+			return (ADX(14)[0] > m);
+		}
+
+		protected void CheckforRsiOpportunity()
+		{
+			if (CrossAbove(RSI(14, 3), rsiUpperBound, 1))
+			{
+				rsiShortOppornuity = true;
+				lastRSI = RSI(14, 3)[0];
+			}
+			else if (CrossBelow(RSI(14, 3), rsiLowerBound, 1))
+			{
+				rsiLongOppornuity = true;
+				lastRSI = RSI(14, 3)[0];
+			}
+		}
+
+		protected void ReversalTrade()
+		{
+			Print(string.Format("ProfitChasingCombined:: tradeCount {0}", tradeCount++));
+
+			TradeAccounting();
+
+			/* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+			if (NoConsecutiveLosingTrades())
+			{
+				// Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
+				if (NoActiveTrade())
+				{
+					//if (PrintDetails)
+					//    Print(string.Format("ReversalTrade:: {0} | Order state {1}", Times[1][0], entryOrder.OrderState));
+
+					CheckforRsiOpportunity();
+
+					if (rsiLongOppornuity)
+					{
+						if (RSI(14, 3)[0] <= lastRSI)
+						{
+							lastRSI = RSI(14, 3)[0];
+						}
+						else
+						{
+							if (PrintDetails)
+								Print(string.Format("ProfitChasingCombined:: Long | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+
+							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
+							if (PriceActionHasMomentum(40))
+							{
+								isLongTrade = true;
+								EnterLong(1, 1, "entry");
+							}
+							rsiLongOppornuity = false;
+						}
+					}
+					else if (rsiShortOppornuity)
+					{
+						if (RSI(14, 3)[0] >= lastRSI)
+						{
+							lastRSI = RSI(14, 3)[0];
+						}
+						else
+						{
+							if (PrintDetails)
+								Print(string.Format("ProfitChasingCombined:: Short | RSI {0} | ADX {1}", RSI(14, 3)[0], ADX(14)[0]));
+
+							//if (PriceActionHasMomentum(40) && (CrossBelow(SMA(9), SMA(20), 10) || CrossAbove(SMA(9), SMA(20), 10)))
+							if (PriceActionHasMomentum(40))
+							{
+								isLongTrade = false;
+								EnterShort(1, 1, "entry");
+							}
+							rsiShortOppornuity = false;
+						}
+					}
+				}
+			}
+		}
+
+		protected void AfterLunchBollingerTrade()
+		{
+			TradeAccounting();
+
+			/* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+			if (NoConsecutiveLosingTrades())
+			{
+				// Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
+				if (NoActiveTrade())
+				{   // between 1:00pm and 2:00pm EST
+					if ((ToTime(Time[0]) > 120000) && (ToTime(Time[0]) < 130000))
+					{
+						if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[1] < Close[2]) && (Close[0] < Close[1]))
+						{
+							profiltsTaking = 30;
+							stopLossVal = 6;
+							EnterShort(1, 1, "Short");
+						}
+						else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[1] > Close[2]) && (Close[0] > Close[1]))
+						{
+							profiltsTaking = 30;
+							stopLossVal = 6;
+							EnterLong(1, 1, "Long");
+						}
+					}
+				}
+			}
+		}
+
+		protected void PullbackTrade()
+		{
+			TradeAccounting();
+
+			/* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
+                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
+			if (NoConsecutiveLosingTrades())
+			{
+				// Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
+				if (NoActiveTrade())
+				{
+					if (CrossAbove(RSI(14, 3), 55, 1))
+					{
+						if (PriceActionHasMomentum(30))
+						{
+							//pullback on a down trend
+							if (!IsUpTrend())
+							{
+								profiltsTaking = 24;
+								stopLossVal = 6;
+								EnterShort(1, 1, "Short");
+							}
+						}
+					}
+					else if (CrossBelow(RSI(14, 3), 45, 1))
+					{
+						if (PriceActionHasMomentum(30))
+						// pullback on an up trend
+						{
+							if (IsUpTrend())
+							{
+								profiltsTaking = 24;
+								stopLossVal = 6;
+								EnterLong(1, 1, "Long");
+							}
+						}
+					}
+				}
+			}
+		}
+
+		protected void ExitToStartFlat()
+		{
+			suppressOco = true;
+			exitName = "exit to start flat";
+			exitFlat = placeHolderOrder;
+
+			if (isLongTrade)
+			{
+				ExitLong(1, entryOrder.Quantity, exitName, entryOrder.Name);
+
+			}
+			else
+			{
+				ExitShort(1, entryOrder.Quantity, exitName, entryOrder.Name);
+			}
+		}
+
+		protected void ExitForCancel()
+		{
+			message += "; exiting and resetting";
+			if (PrintDetails)
+				Print(message);
+
+			exitName = "exit for cancel";
+			exitFlat = placeHolderOrder;
+
+			if (isLongTrade)
+			{
+				ExitLong(exitName, entryOrder.Name);
+			}
+			else
+			{
+				ExitShort(exitName, entryOrder.Name);
 			}
 		}
 
@@ -136,26 +404,30 @@ namespace NinjaTrader.NinjaScript.Strategies
 			// the entry logic can be done when the primary series is processing
 			if (BarsInProgress == 0)
 			{
+				// Reset the trade profitability counter every day and get the number of trades taken in total.
+				if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
+				{
+					InitializeTradeAccounting();
+				}
+
 				// because this is a demonstration, this code will cause any historical position
 				// to be exited on the last historical bar so the strategy will always start flat in real-time
 				if (State == State.Historical && CurrentBar == BarsArray[0].Count - 2)
 				{
 					if (entryOrder != null)
 					{
-						suppressOco = true;
-						exitName = "exit to start flat";
-						exitFlat = placeHolderOrder;
-						ExitLong(1, 1, exitName, entryOrder.Name);
+						ExitToStartFlat();
 					}
 				}
 				// if this is not the last historical bar, and entryOrder is null, then place an entry order
-				else if (!exitOnCloseWait && entryOrder == null && profitTarget == null && stopLoss == null)
+				//else if (!exitOnCloseWait && entryOrder == null && profitTarget == null && stopLoss == null)
+				else if (!exitOnCloseWait)
 				{
-					Print(string.Format("ProfitChaseStopTrailExitOrdersExample:: tradeCount {0}", tradeCount++));
-
 					suppressOco = false;
 					entryOrder = placeHolderOrder;
-					EnterLong(1, 1, "entry");
+					ReversalTrade();
+					AfterLunchBollingerTrade();
+					PullbackTrade();
 				}
 			}
 
@@ -170,13 +442,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				// if the orders were cancelled due to the exit on close, do not submit an order to flatten
 				if (!exitOnCloseWait && entryOrder != null && entryOrder.OrderState == OrderState.Filled)
 				{
-					message += "; exiting and resetting";
-					if (PrintDetails)
-						Print(message);
-
-					exitName = "exit for cancel";
-					exitFlat = placeHolderOrder;
-					ExitLong(exitName, entryOrder.Name);
+					ExitForCancel();
 				}
 
 				if (entryOrder == null || entryOrder.OrderState != OrderState.Filled)
@@ -194,8 +460,17 @@ namespace NinjaTrader.NinjaScript.Strategies
 				profitTarget != null && (profitTarget.OrderState == OrderState.Accepted || profitTarget.OrderState == OrderState.Working) &&
 				Close[0] < currentPtPrice - ProfitTargetDistance * tickSizeSecondary)
 			{
-				currentPtPrice = Close[0] + ProfitTargetDistance * tickSizeSecondary;
-				ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", entryOrder.Name);
+				// setting chase profit target
+				if (isLongTrade)
+				{
+					currentPtPrice = Close[0] + ProfitTargetDistance * tickSizeSecondary;
+					ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", entryOrder.Name);
+				}
+				else
+				{
+					currentPtPrice = Close[0] - ProfitTargetDistance * tickSizeSecondary;
+					ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", entryOrder.Name);
+				}
 			}
 
 			// trigger the trail action when the current price is further than the set distance to the stop loss
@@ -203,8 +478,17 @@ namespace NinjaTrader.NinjaScript.Strategies
 				stopLoss != null && (stopLoss.OrderState == OrderState.Accepted || stopLoss.OrderState == OrderState.Working) &&
 				Close[0] > currentSlPrice + StopLossDistance * tickSizeSecondary)
 			{
-				currentSlPrice = Close[0] - StopLossDistance * tickSizeSecondary;
-				ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", entryOrder.Name);
+				// setting trailing stop loss
+				if (isLongTrade)
+				{
+					currentSlPrice = Close[0] - StopLossDistance * tickSizeSecondary;
+					ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", entryOrder.Name);
+				}
+				else
+				{
+					currentSlPrice = Close[0] + StopLossDistance * tickSizeSecondary;
+					ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", entryOrder.Name);
+				}
 			}
 		}
 
@@ -225,10 +509,23 @@ namespace NinjaTrader.NinjaScript.Strategies
 					if (PrintDetails)
 						Print(string.Format("{0} | OEU | placing profit target", execution.Time));
 
-					// calculate  a price for the profit target using the secondary series ticksize
-					currentPtPrice = execution.Order.AverageFillPrice + ProfitTargetDistance * tickSizeSecondary;
-					profitTarget = placeHolderOrder;
-					ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", "entry");
+					// setting initial profit target
+					if (isLongTrade)
+					{
+						// calculate  a price for the profit target using the secondary series ticksize
+						// currentPtPrice = execution.Order.AverageFillPrice + ProfitTargetDistance * tickSizeSecondary;
+						currentPtPrice = execution.Order.AverageFillPrice + profiltsTaking * tickSizeSecondary;
+						profitTarget = placeHolderOrder;
+						ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", "entry");
+					}
+					else
+					{
+						// calculate  a price for the profit target using the secondary series ticksize
+						// currentPtPrice = execution.Order.AverageFillPrice - ProfitTargetDistance * tickSizeSecondary;
+						currentPtPrice = execution.Order.AverageFillPrice - profiltsTaking * tickSizeSecondary;
+						profitTarget = placeHolderOrder;
+						ExitShortLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", "entry");
+					}
 				}
 
 				if (UseStopLoss)
@@ -236,9 +533,22 @@ namespace NinjaTrader.NinjaScript.Strategies
 					if (PrintDetails)
 						Print(string.Format("{0} | OEU | placing stop loss", execution.Time));
 
-					currentSlPrice = execution.Order.AverageFillPrice - StopLossDistance * tickSizeSecondary;
-					stopLoss = placeHolderOrder;
-					ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", "entry");
+					//setting initial stop loss
+					if (isLongTrade)
+					{
+
+						// currentSlPrice = execution.Order.AverageFillPrice - StopLossDistance * tickSizeSecondary;
+						currentSlPrice = execution.Order.AverageFillPrice - stopLossVal * tickSizeSecondary;
+						stopLoss = placeHolderOrder;
+						ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", "entry");
+					}
+					else
+					{
+						// currentSlPrice = execution.Order.AverageFillPrice + StopLossDistance * tickSizeSecondary;
+						currentSlPrice = execution.Order.AverageFillPrice + stopLossVal * tickSizeSecondary;
+						stopLoss = placeHolderOrder;
+						ExitShortStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", "entry");
+					}
 				}
 			}
 		}

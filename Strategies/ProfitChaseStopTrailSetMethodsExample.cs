@@ -31,6 +31,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private bool exitOnCloseWait;
 		private SessionIterator sessionIterator;
 
+		private int tradeCount = 0;
+
 		protected override void OnStateChange()
 		{
 			if (State == State.SetDefaults)
@@ -101,6 +103,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 					if (UseStopLoss)
 						SetStopLoss(CalculationMode.Price, currentSlPrice);
+
+					Print(string.Format("ProfitChaseStopTrailSetMethodsExample:: tradeCount {0}", tradeCount++));
 
 					EnterLong(1, 1, string.Empty);
 				}

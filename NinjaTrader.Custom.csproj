@@ -56,16 +56,16 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="WindowsBase">
-      <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\WPF\WindowsBase.dll</HintPath>
+      <HintPath>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF\WindowsBase.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore">
-      <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\WPF\PresentationCore.dll</HintPath>
+      <HintPath>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF\PresentationCore.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework">
-      <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\WPF\PresentationFramework.dll</HintPath>
+      <HintPath>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF\PresentationFramework.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationProvider">
-      <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\WPF\UIAutomationProvider.dll</HintPath>
+      <HintPath>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF\UIAutomationProvider.dll</HintPath>
     </Reference>
     <Reference Include="InfragisticsWPF4.DataPresenter.v15.1">
       <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\InfragisticsWPF4.DataPresenter.v15.1.dll</HintPath>
@@ -386,6 +386,8 @@
     <Compile Include="Strategies\ProfitChaseStopTrailSetMethodsExample.cs" />
     <Compile Include="Strategies\ProfitChaseStopTrailExitOrdersExample.cs" />
     <Compile Include="Strategies\ProfitChaseStopTrailUnmanagedExample.cs" />
+    <Compile Include="Strategies\ProfitChasingCombined.cs" />
+    <Compile Include="Strategies\AGG5.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

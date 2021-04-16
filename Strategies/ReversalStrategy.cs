@@ -30,6 +30,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int Fast;
         private int Slow;
 
+        private int tradeCount = 0;
+
         private double lastRSI = 0.0;
         private Order entryOrder = null; // This variable holds an object representing our entry order
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
@@ -190,6 +192,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         protected void ReversalTrade()
         {
+            Print(string.Format("ReversalStrategy:: tradeCount {0}", tradeCount++)); 
+
             TradeAccounting();
 
             /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.

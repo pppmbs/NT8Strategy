@@ -41,13 +41,15 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private readonly double rsiUpperBound = 80;
 		private readonly double rsiLowerBound = 20;
 
-
 		private bool rsiLongOppornuity = false;
 		private bool rsiShortOppornuity = false;
 		private bool isLongTrade = false;
 
 		private int profiltsTaking = 24; // number of ticks for profits taking
 		private int stopLossVal = 6; // number of ticks for stop loss
+		private int profitsTakingInc = 10; // the increment of profit chasing
+		private int stopLossInc = 10; // the increment of stop loss should be the same as profitsTakingInc
+
 		private readonly int maxConsecutiveLosingTrades = 3;
 		private readonly int TargetProfitsNumber = 2;
 
@@ -74,8 +76,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				ChaseProfitTarget = true;
 				PrintDetails = false;
-				ProfitTargetDistance = profiltsTaking;
-				StopLossDistance = stopLossVal;
+				ProfitTargetDistance = profitsTakingInc;
+				StopLossDistance = stopLossInc;
 				TrailStopLoss = true;
 				UseProfitTarget = true;
 				UseStopLoss = true;
@@ -183,8 +185,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 		protected void ReversalTrade()
 		{
-			if (PrintDetails)
-				Print(string.Format("ProfitChasingReversal:: tradeCount {0}",tradeCount++));
+			Print(string.Format("ProfitChasingReversal:: tradeCount {0}",tradeCount++));
 
 			TradeAccounting();
 
@@ -386,7 +387,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				profitTarget != null && (profitTarget.OrderState == OrderState.Accepted || profitTarget.OrderState == OrderState.Working) &&
 				Close[0] < currentPtPrice - ProfitTargetDistance * tickSizeSecondary)
 			{
-				// setting profit target
+				// setting chase profit target
 				if (isLongTrade)
                 {
 					currentPtPrice = Close[0] + ProfitTargetDistance * tickSizeSecondary;
@@ -404,7 +405,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				stopLoss != null && (stopLoss.OrderState == OrderState.Accepted || stopLoss.OrderState == OrderState.Working) &&
 				Close[0] > currentSlPrice + StopLossDistance * tickSizeSecondary)
 			{
-				// setting stop loss
+				// setting trailing stop loss
 				if (isLongTrade)
 				{
 					currentSlPrice = Close[0] - StopLossDistance * tickSizeSecondary;
@@ -435,18 +436,20 @@ namespace NinjaTrader.NinjaScript.Strategies
 					if (PrintDetails)
 						Print(string.Format("{0} | OEU | placing profit target", execution.Time));
 
-					// setting profit target
+					// setting initial profit target
 					if (isLongTrade)
                     {
 						// calculate  a price for the profit target using the secondary series ticksize
-						currentPtPrice = execution.Order.AverageFillPrice + ProfitTargetDistance * tickSizeSecondary;
+						// currentPtPrice = execution.Order.AverageFillPrice + ProfitTargetDistance * tickSizeSecondary;
+						currentPtPrice = execution.Order.AverageFillPrice + profiltsTaking * tickSizeSecondary;
 						profitTarget = placeHolderOrder;
 						ExitLongLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", "entry");
 					}
 					else
                     {
 						// calculate  a price for the profit target using the secondary series ticksize
-						currentPtPrice = execution.Order.AverageFillPrice - ProfitTargetDistance * tickSizeSecondary;
+						// currentPtPrice = execution.Order.AverageFillPrice - ProfitTargetDistance * tickSizeSecondary;
+						currentPtPrice = execution.Order.AverageFillPrice - profiltsTaking * tickSizeSecondary;
 						profitTarget = placeHolderOrder;
 						ExitShortLimit(1, true, entryOrder.Quantity, currentPtPrice, "profit target", "entry");
 					}
@@ -457,16 +460,19 @@ namespace NinjaTrader.NinjaScript.Strategies
 					if (PrintDetails)
 						Print(string.Format("{0} | OEU | placing stop loss", execution.Time));
 
-					//setting stop loss
+					//setting initial stop loss
 					if (isLongTrade)
 					{
-						currentSlPrice = execution.Order.AverageFillPrice - StopLossDistance * tickSizeSecondary;
+						
+						// currentSlPrice = execution.Order.AverageFillPrice - StopLossDistance * tickSizeSecondary;
+						currentSlPrice = execution.Order.AverageFillPrice - stopLossVal * tickSizeSecondary;
 						stopLoss = placeHolderOrder;
 						ExitLongStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", "entry");
 					}
 					else
 					{
-						currentSlPrice = execution.Order.AverageFillPrice + StopLossDistance * tickSizeSecondary;
+						// currentSlPrice = execution.Order.AverageFillPrice + StopLossDistance * tickSizeSecondary;
+						currentSlPrice = execution.Order.AverageFillPrice + stopLossVal * tickSizeSecondary;
 						stopLoss = placeHolderOrder;
 						ExitShortStopMarket(1, true, entryOrder.Quantity, currentSlPrice, "stop loss", "entry");
 					}
