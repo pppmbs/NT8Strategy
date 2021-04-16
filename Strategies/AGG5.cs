@@ -41,7 +41,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int stopLoss = 18; // number of ticks for stop loss
 
         private Socket sender = null; 
-        private byte[] bytes = new byte[2048];
+        private byte[] bytes = new byte[512];
         int lineNo = 0;
 
         protected override void OnStateChange()
@@ -250,6 +250,20 @@ namespace NinjaTrader.NinjaScript.Strategies
 			
 		}
 
+        private string ExtractResponse(string repStr)
+        {
+            int index = 1;
+            foreach (char ch in repStr)
+            {
+                if (ch != ',')
+                    index++;
+                else
+                    break;
+            }
+
+            return repStr.Substring(index, index);
+        }
+
         protected override void OnBarUpdate()
         {
             /* When working with multiple bar series objects it is important to understand the sequential order in which the
@@ -300,10 +314,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
                 {
                     lineNo = 0;
+                    Print("EOD Session");
                     return;
                 }
 
-                byte[] msg = Encoding.ASCII.GetBytes(bufString);
+                byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msg);
@@ -311,8 +326,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Receive the response from the remote device.  
                 int bytesRec = sender.Receive(bytes);
 
-                Print("Server response: " +
-                    Encoding.ASCII.GetString(bytes, bytesRec - 2, bytesRec).Substring(1));
+                Print("Server response UTF8: " +
+                    System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
+
+                string SRepStr = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                Print("Server response: " + ExtractResponse(SRepStr));
 
                 if (bytesRec == -1)
                     lineNo = 0;
