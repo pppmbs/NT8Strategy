@@ -271,11 +271,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                // Reset the trade profitability counter every day and get the number of trades taken in total.
-                if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
-                {
-                }
-
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
@@ -289,14 +284,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MACD(12, 26, 9).Diff[0].ToString() + ',' + RSI(14, 3)[0].ToString() + ',' +
                     Bollinger(2, 20).Lower[0].ToString() + ',' + Bollinger(2, 20).Upper[0].ToString() + ',' +
                     CCI(20)[0].ToString() + ',' +
-                    Bars.GetHigh(0).ToString() + ',' + Bars.GetLow(0).ToString() + ',' +
+                    Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
                     Momentum(20)[0].ToString() + ',' +
                     DM(14).DiPlus[0].ToString() + ',' + DM(14).DiMinus[0].ToString() + ',' +
                     VROC(25, 3)[0].ToString() + ',' +
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
 
-                Print("bufString = " + bufString);
+                //Print("Bars Visible: " + (ChartBars.ToIndex - ChartBars.FromIndex));
+                Print("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
+
+                // if the bar elapsed time span across 12 mid night
+                DateTime t1 = Bars.GetTime(CurrentBar - 1);
+                DateTime t2 = Bars.GetTime(CurrentBar);
+                if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
+                {
+                    lineNo = 0;
+                    return;
+                }
 
                 byte[] msg = Encoding.ASCII.GetBytes(bufString);
 
