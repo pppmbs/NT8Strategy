@@ -261,7 +261,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     break;
             }
 
-            return repStr.Substring(index, index);
+            return repStr.Substring(index, 1);
         }
 
         protected override void OnBarUpdate()
@@ -288,6 +288,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
+                // if the bar elapsed time span across 12 mid night
+                DateTime t1 = Bars.GetTime(CurrentBar - 1);
+                DateTime t2 = Bars.GetTime(CurrentBar);
+                if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
+                {
+                    lineNo = 0;
+                    Print("EOD Session");
+                    return;
+                }
+
                 // construct the string buffer to be sent to DLNN
                 string bufString = lineNo.ToString() + ',' + 
                     Bars.GetTime(CurrentBar-1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
@@ -305,18 +315,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
 
-                //Print("Bars Visible: " + (ChartBars.ToIndex - ChartBars.FromIndex));
                 Print("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
-
-                // if the bar elapsed time span across 12 mid night
-                DateTime t1 = Bars.GetTime(CurrentBar - 1);
-                DateTime t2 = Bars.GetTime(CurrentBar);
-                if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
-                {
-                    lineNo = 0;
-                    Print("EOD Session");
-                    return;
-                }
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
