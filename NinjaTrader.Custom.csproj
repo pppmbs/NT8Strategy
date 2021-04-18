@@ -388,6 +388,7 @@
     <Compile Include="Strategies\ProfitChaseStopTrailUnmanagedExample.cs" />
     <Compile Include="Strategies\ProfitChasingCombined.cs" />
     <Compile Include="Strategies\AGG5.cs" />
+    <Compile Include="Strategies\AGG5backup.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
