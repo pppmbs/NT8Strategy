@@ -47,6 +47,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int softDeck = 24; // number of ticks for soft stop loss
         private static readonly int hardDeck = 48; //hard deck for auto stop loss
         private double closedPrice = 0.0;
+        private double chasePrice = 0.0;
 
         // global flags
         private bool profitChasingFlag = false;
@@ -447,19 +448,23 @@ namespace NinjaTrader.NinjaScript.Strategies
             // if market trend go against profit positions, then flatten position and take profits
             if (PosLong())
             {
-                if (Close[0] < (closedPrice + profitChasing * TickSize))
+                if (Close[0] < chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString());
                     AiFlat();
                 }
+                else
+                    chasePrice = Close[0];
             }
             if (PosShort())
             {
-                if (Close[0] > (closedPrice - profitChasing * TickSize))
+                if (Close[0] > chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString());
                     AiFlat();
                 }
+                else
+                    chasePrice = Close[0];
             }
         }
 
@@ -473,6 +478,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     Print("TouchedProfitChasing");
                     profitChasingFlag = true;
+                    chasePrice = Close[0];
                     return profitChasingFlag;
                 }
             }
@@ -482,6 +488,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     Print("TouchedProfitChasing");
                     profitChasingFlag = true;
+                    chasePrice = Close[0];
                     return profitChasingFlag;
                 }
             }
