@@ -389,6 +389,7 @@
     <Compile Include="Strategies\ProfitChasingCombined.cs" />
     <Compile Include="Strategies\AGG5.cs" />
     <Compile Include="Strategies\AGG5backup.cs" />
+    <Compile Include="Strategies\AGGBar.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
