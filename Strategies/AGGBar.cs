@@ -42,10 +42,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 48; // 4 ticks below profitTarget
-        private static readonly int profitTarget = 48 * 2; // for automatic profits taking, profit chasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 24; // number of ticks for soft stop loss
-        private static readonly int hardDeck = 48; //hard deck for auto stop loss
+        private static readonly int profitChasing = 20*4; // the target where HandleProfitChasing kicks in, 16 stops Pticks
+        private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
+        private static readonly int softDeck = 10*4; // number of ticks for soft stop loss, 12 stops Lticks
+        private static readonly int hardDeck = 15*4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
 
         // global flags
@@ -67,7 +67,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"AGG5 strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
+                Description = @"AGG5 Bar strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
                 Name = "AGG5Bar";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
@@ -267,7 +267,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print("*********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + "*********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -405,7 +405,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss=" + (Close[0]-closedPrice).ToString());
+                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0]-closedPrice).ToString());
                     AiFlat();
                 }
                 return;
@@ -415,7 +415,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss=" + (closedPrice- Close[0]).ToString());
+                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice- Close[0]).ToString());
                     AiFlat();
                 }
                 return;
@@ -450,7 +450,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar-1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits=" + (Close[0]-closedPrice).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits= " + (Close[0]-closedPrice).ToString());
                     AiFlat();
                 }
             }
@@ -458,7 +458,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar-1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits=" + (closedPrice - Close[0]).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
             }
@@ -492,6 +492,25 @@ namespace NinjaTrader.NinjaScript.Strategies
             return profitChasingFlag;
         }
 
+        private void HandleEOD()
+        {
+            if (PosLong())
+            {
+                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
+
+                AiFlat();
+                return;
+            }
+
+            if (PosShort())
+            {
+                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
+
+                AiFlat();
+                return;
+            }
+        }
+
         protected override void OnBarUpdate()
         {
             /* When working with multiple bar series objects it is important to understand the sequential order in which the
@@ -522,7 +541,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
                 {
                     Print("EOD Session");
-                    AiFlat(); // flatten the current position before going over to the next day
+                    HandleEOD();
                     lineNo = 0;
                     return;
                 }

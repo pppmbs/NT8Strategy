@@ -390,6 +390,8 @@
     <Compile Include="Strategies\AGG5.cs" />
     <Compile Include="Strategies\AGG5backup.cs" />
     <Compile Include="Strategies\AGGBar.cs" />
+    <Compile Include="Strategies\AGGBarBackup.cs" />
+    <Compile Include="Strategies\AGG5Mixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
