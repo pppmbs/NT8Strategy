@@ -450,7 +450,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] < chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits=" + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 else
@@ -460,7 +460,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] > chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits=" + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 else
@@ -572,6 +572,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 else
                     lineNo++;
 
+                // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
                     ExecuteAITrade(svrSignal);
             }

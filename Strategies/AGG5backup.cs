@@ -47,7 +47,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int softDeck = 24; // number of ticks for soft stop loss
         private static readonly int hardDeck = 48; //hard deck for auto stop loss
         private double closedPrice = 0.0;
-        private double chasePrice = 0.0;
 
         // global flags
         private bool profitChasingFlag = false;
@@ -68,8 +67,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"AGG5 strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend";
-                Name = "AGG5";
+                Description = @"AGG5 strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
+                Name = "AGG5BarBackup";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -406,7 +405,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
+                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss=" + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 return;
@@ -416,7 +415,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
+                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss=" + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 return;
@@ -427,12 +426,13 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                return (Close[0] < (closedPrice - softDeck * TickSize));
+                //return (Bars.GetClose(CurrentBar) < (closedPrice - softDeck * TickSize));
+                return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
-                //Print("(closedPrice + softDeck)= " + ((closedPrice + softDeck)).ToString());
-                return (Close[0] > (closedPrice + softDeck * TickSize));
+                //return (Bars.GetClose(CurrentBar) > (closedPrice + softDeck * TickSize));
+                return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
             }
             return false;
         }
@@ -448,23 +448,19 @@ namespace NinjaTrader.NinjaScript.Strategies
             // if market trend go against profit positions, then flatten position and take profits
             if (PosLong())
             {
-                if (Close[0] < chasePrice)
+                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits=" + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
-                else
-                    chasePrice = Close[0];
             }
             if (PosShort())
             {
-                if (Close[0] > chasePrice)
+                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString());
+                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits=" + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
-                else
-                    chasePrice = Close[0];
             }
         }
 
@@ -474,21 +470,21 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosLong())
             {
-                if (Close[0] >= (closedPrice + profitChasing * TickSize))
+                //if (Close[0] >= (closedPrice + profitChasing * TickSize))
+                if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
                     Print("TouchedProfitChasing");
                     profitChasingFlag = true;
-                    chasePrice = Close[0];
                     return profitChasingFlag;
                 }
             }
             if (PosShort())
             {
-                if (Close[0] <= (closedPrice - profitChasing * TickSize))
+                //if (Close[0] <= (closedPrice - profitChasing * TickSize))
+                if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
                     Print("TouchedProfitChasing");
                     profitChasingFlag = true;
-                    chasePrice = Close[0];
                     return profitChasingFlag;
                 }
             }
@@ -572,31 +568,35 @@ namespace NinjaTrader.NinjaScript.Strategies
                 else
                     lineNo++;
 
+                // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
+                {
                     ExecuteAITrade(svrSignal);
+
+                    // if position is flat, no need to do anything
+                    if (currPos == Position.posFlat)
+                        return;
+
+                    // handle stop loss or proft chasing if there is existing position and order action is either SellShort or Buy
+                    if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
+                    {
+                        // if Close[0] violates soft deck, if YES handle stop loss accordingly
+                        if (ViolateSoftDeck())
+                        {
+                            HandleSoftDeck(svrSignal);
+                        }
+
+                        // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
+                        if ((profitChasingFlag || TouchedProfitChasing()))
+                        {
+                            HandleProfitChasing();
+                        }
+                    }
+                }
             }
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle stop loss and profit chasing accordingly
             else
             {
-                // if position is flat, no need to do anything
-                if (currPos == Position.posFlat)
-                    return;
-
-                // handle stop loss or proft chasing if there is existing position and order action is either SellShort or Buy
-                if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
-                {
-                    // if Close[0] violates soft deck, if YES handle stop loss accordingly
-                    if (ViolateSoftDeck())
-                    {
-                        HandleSoftDeck(svrSignal);
-                    }
-
-                    // if profitChasingFlag is TRUE or Close[0] TouchedProfitChasing then handle profit chasing
-                    if ((profitChasingFlag || TouchedProfitChasing()))
-                    {
-                        HandleProfitChasing();
-                    }
-                }
                 return;
             }
         }
