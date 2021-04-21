@@ -42,10 +42,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 48; // 4 ticks below profitTarget
-        private static readonly int profitTarget = 48 * 2; // for automatic profits taking, profit chasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 24; // number of ticks for soft stop loss
-        private static readonly int hardDeck = 48; //hard deck for auto stop loss
+        private static readonly int profitChasing = 12*4; // 4 ticks below profitTarget
+        private static readonly int profitTarget = profitChasing*10; // for automatic profits taking, profit chasing will take care of profit taking once profit > profitChasing
+        private static readonly int softDeck = 6*4; // number of ticks for soft stop loss
+        private static readonly int hardDeck = 12*4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
         private double chasePrice = 0.0;
 
@@ -431,7 +431,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             if (PosShort())
             {
-                //Print("(closedPrice + softDeck)= " + ((closedPrice + softDeck)).ToString());
                 return (Close[0] >= (closedPrice + softDeck* TickSize));
             }
             return false;
