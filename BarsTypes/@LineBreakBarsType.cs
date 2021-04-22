@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -138,7 +138,7 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					}
 				case BarsPeriodType.Minute:
 					{
-						if (bars.Count == 0 || SessionIterator.IsNewSession(time, !isBar) && bars.IsResetOnNewTradingDay)
+						if (bars.Count == 0 || SessionIterator.IsNewSession(time, isBar) && bars.IsResetOnNewTradingDay)
 						{
 							tmpTime		= TimeToBarTimeMinute(bars, time, isBar);
 							newSession	= true;
@@ -179,7 +179,7 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					}
 				case BarsPeriodType.Second:
 					{
-						if (SessionIterator.IsNewSession(time, !isBar))
+						if (SessionIterator.IsNewSession(time, isBar))
 						{
 							tmpTime = TimeToBarTimeSecond(bars, time, isBar);
 
@@ -201,9 +201,9 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					}
 				case BarsPeriodType.Tick:
 					{
-						if (SessionIterator.IsNewSession(time, !isBar))
+						if (SessionIterator.IsNewSession(time, isBar))
 						{
-							SessionIterator.GetNextSession(time, !isBar);
+							SessionIterator.GetNextSession(time, isBar);
 							newSession		= true;
 							tmpTime			= time;
 							tmpTickCount	= 1;
@@ -227,9 +227,9 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					}
 				case BarsPeriodType.Volume:
 					{
-						if (SessionIterator.IsNewSession(time, !isBar))
+						if (SessionIterator.IsNewSession(time, isBar))
 						{
-							SessionIterator.GetNextSession(time, !isBar);
+							SessionIterator.GetNextSession(time, isBar);
 							newSession = true;
 						}
 						else if (bars.Count == 0 && volume > 0)
@@ -307,8 +307,8 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 			{
 				double prevOpen		= bars.GetOpen(bars.Count - 1);
 				RemoveLastBar(bars);
-				if (SessionIterator.IsNewSession(tmpTime, !isBar))
-					SessionIterator.GetNextSession(tmpTime, !isBar);
+				if (SessionIterator.IsNewSession(tmpTime, true))
+					SessionIterator.GetNextSession(tmpTime, true);
 				AddBar(bars, prevOpen, close, close, close, tmpTime, tmpVolume);
 				upTrend				= prevOpen < close;
 				anchorPrice			= close;
@@ -371,8 +371,8 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 						{
 							RemoveLastBar(bars);
 							double tmpOpen = Math.Min(Math.Max(switchPrice, close), anchorPrice);
-							if (SessionIterator.IsNewSession(tmpTime, !isBar))
-								SessionIterator.GetNextSession(tmpTime, !isBar);
+							if (SessionIterator.IsNewSession(tmpTime, true))
+								SessionIterator.GetNextSession(tmpTime, true);
 							AddBar(bars, tmpOpen, close, close, close, tmpTime, tmpVolume);
 						}
 					}
@@ -380,8 +380,8 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					{
 						RemoveLastBar(bars);
 						double tmpOpen = Math.Min(Math.Max(switchPrice, close), anchorPrice);
-						if (SessionIterator.IsNewSession(tmpTime, !isBar))
-							SessionIterator.GetNextSession(tmpTime, !isBar);
+						if (SessionIterator.IsNewSession(tmpTime, true))
+							SessionIterator.GetNextSession(tmpTime, true);
 						AddBar(bars, tmpOpen, close, close, close, tmpTime, tmpVolume);
 					}
 				else
@@ -414,8 +414,8 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 						{
 							RemoveLastBar(bars);
 							double tmpOpen = Math.Max(Math.Min(switchPrice, close), anchorPrice);
-							if (SessionIterator.IsNewSession(tmpTime, !isBar))
-								SessionIterator.GetNextSession(tmpTime, !isBar);
+							if (SessionIterator.IsNewSession(tmpTime, true))
+								SessionIterator.GetNextSession(tmpTime, true);
 							AddBar(bars, tmpOpen, close, close, close, tmpTime, tmpVolume);
 						}
 					}
@@ -423,8 +423,8 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 					{
 						RemoveLastBar(bars);
 						double tmpOpen = Math.Max(Math.Min(switchPrice, close), anchorPrice);
-						if (SessionIterator.IsNewSession(tmpTime, !isBar))
-							SessionIterator.GetNextSession(tmpTime, !isBar);
+						if (SessionIterator.IsNewSession(tmpTime, true))
+							SessionIterator.GetNextSession(tmpTime, true);
 						AddBar(bars, tmpOpen, close, close, close, tmpTime, tmpVolume);
 					}
 			}

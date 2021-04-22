@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -100,6 +100,10 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			// bars can be null while chart is initializing
 			if (chartBars == null)
 				return;
+			
+			// NS can change ChartAnchor price via Draw method or directly meaning we needed to resync price before drawing
+			if (!IsUserDrawn)
+				price = AttachedTo.Instrument.MasterInstrument.RoundToTickSize(anchor.Price);
 
 			priceString = GetPriceString(price, chartBars);
 
@@ -562,8 +566,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			else if (State == State.Terminated)
 				Dispose();
 		}
-
-		private void SetReward()
+		
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public void SetReward()
 		{
 			if (Anchors == null || AttachedTo == null)
 				return;
@@ -580,7 +585,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			needsRatioUpdate		= false;
 		}
 		
-		private void SetRisk()
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public void SetRisk()
 		{
 			if (Anchors == null || AttachedTo == null)
 				return;
@@ -633,30 +639,24 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			ChartAnchor	stopAnchor;
 			ChartAnchor	targetAnchor;
 
-			double yDiff;
+			riskReward.Ratio = ratio;
 			
 			if (isStop)
 			{
-				stopAnchor		= DrawingTool.CreateChartAnchor(owner, stopBarsAgo, stopTime, stopY);
-				yDiff			= entryY - stopY;
-				targetAnchor	= new ChartAnchor();
-				// copy entry to target so x aligned, then adjust y by our ratio
-				entryAnchor.CopyDataValues(targetAnchor);
-				targetAnchor.Price = entryY + yDiff * ratio;
+				stopAnchor = DrawingTool.CreateChartAnchor(owner, stopBarsAgo, stopTime, stopY);
+				entryAnchor.CopyDataValues(riskReward.EntryAnchor);
+				entryAnchor.CopyDataValues(riskReward.RewardAnchor);
+				stopAnchor.CopyDataValues(riskReward.RiskAnchor);
+				riskReward.SetReward();
 			}
 			else 
 			{
-				targetAnchor	= DrawingTool.CreateChartAnchor(owner, targetBarsAgo, targetTime, targetY);
-				yDiff			= entryY - targetY;
-				stopAnchor		= new ChartAnchor();
-				// copy entry to stop so x aligned, then adjust y by our ratio
-				entryAnchor.CopyDataValues(stopAnchor);
-				stopAnchor.Price = entryY + yDiff / ratio;
+				targetAnchor = DrawingTool.CreateChartAnchor(owner, targetBarsAgo, targetTime, targetY);
+				entryAnchor.CopyDataValues(riskReward.EntryAnchor);
+				entryAnchor.CopyDataValues(riskReward.RiskAnchor);
+				targetAnchor.CopyDataValues(riskReward.RewardAnchor);
+				riskReward.SetRisk();
 			}
-
-			entryAnchor.CopyDataValues(riskReward.EntryAnchor);
-			stopAnchor.CopyDataValues(riskReward.RiskAnchor);
-			targetAnchor.CopyDataValues(riskReward.RewardAnchor);
 			
 			riskReward.SetState(State.Active);
 			return riskReward;

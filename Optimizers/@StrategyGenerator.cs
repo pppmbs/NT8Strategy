@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -2137,7 +2137,7 @@ namespace NinjaTrader.NinjaScript.StrategyGenerator
 			
 			s = new StringBuilder();
 			s.Append("//" + Environment.NewLine);
-			s.Append("// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>." + Environment.NewLine);
+			s.Append("// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>." + Environment.NewLine);
 			s.Append("// NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release." + Environment.NewLine);
 			s.Append("//" + Environment.NewLine);
 			s.Append("#region Using declarations" + Environment.NewLine);

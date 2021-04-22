@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -22,15 +22,15 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 {
 	public class Notes : SuperDomColumn
 	{
-		private double					currentEditingPrice	= -1.0;
-		private FontFamily				fontFamily;	
-		private double					gridHeight;
-		private int						gridIndex;
-		private Pen						gridPen;		
-		private double					halfPenWidth;
-		private double					columnWidth;
-		private TextBox					tbNotes;
-		private Typeface				typeFace;
+		private double		columnWidth;
+		private double		currentEditingPrice	= -1.0;
+		private FontFamily	fontFamily;	
+		private double		gridHeight;
+		private int			gridIndex;
+		private Pen			gridPen;		
+		private double		halfPenWidth;
+		private TextBox		tbNotes;
+		private Typeface	typeFace;
 
 		#region Mouse Input Handling
 		private CommandBinding			displayTextBoxCommandBinding;
@@ -126,6 +126,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 			columnWidth				= renderWidth;
 			gridHeight				= -gridPen.Thickness;
 			double verticalOffset	= -gridPen.Thickness;
+			double pixelsPerDip		= VisualTreeHelper.GetDpi(UiWrapper).PixelsPerDip;
 
 			// If SuperDom scrolls so that editing price goes off the grid, hide the textbox until the editing price is visible again
 			if (SuperDom.IsConnected)
@@ -177,7 +178,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 
 							if (renderWidth - 6 > 0)
 							{
-								FormattedText noteText = new FormattedText(note, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
+								FormattedText noteText = new FormattedText(note, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor, pixelsPerDip) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
 								dc.DrawText(noteText, new Point(0 + 4, verticalOffset + (SuperDom.ActualRowHeight - noteText.Height) / 2));
 							}
 						}

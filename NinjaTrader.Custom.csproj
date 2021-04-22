@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NinjaTrader.Custom</RootNamespace>
     <AssemblyName>NinjaTrader.Custom</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -27,6 +27,7 @@
     <DocumentationFile>bin\Debug\NinjaTrader.Custom.XML</DocumentationFile>
     <NoWarn>1591</NoWarn>
     <LangVersion>5</LangVersion>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -140,6 +141,7 @@
     <Compile Include="Indicators\%40CamarillaPivots.cs" />
     <Compile Include="Indicators\%40CandleStickPattern.cs" />
     <Compile Include="Indicators\%40ChoppinessIndex.cs" />
+    <Compile Include="Indicators\%40COT.cs" />
     <Compile Include="Indicators\%40Darvas.cs" />
     <Compile Include="Indicators\%40DisparityIndex.cs" />
     <Compile Include="Indicators\%40FibonacciPivots.cs" />
@@ -373,26 +375,27 @@
     <Compile Include="SuperDomColumns\%40ProfitLoss.cs" />
     <Compile Include="SuperDomColumns\%40Volume.cs" />
     <Compile Include="AddOns\AddOnFramework.cs" />
-    <Compile Include="Indicators\%40COT.cs" />
-    <Compile Include="Strategies\AiTradeStrategy.cs" />
-    <Compile Include="Strategies\ContinuationStrategy.cs" />
-    <Compile Include="Strategies\ReversalStrategy.cs" />
-    <Compile Include="Strategies\PullbackStrategy.cs" />
-    <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.cs" />
-    <Compile Include="Strategies\DoubleReversalStrategy.cs" />
     <Compile Include="Strategies\AfterLunchBollingerStrategy.cs" />
-    <Compile Include="Strategies\CombinedManualStrategy.cs" />
-    <Compile Include="Strategies\ProfitChasingReversal.cs" />
-    <Compile Include="Strategies\ProfitChaseStopTrailSetMethodsExample.cs" />
-    <Compile Include="Strategies\ProfitChaseStopTrailExitOrdersExample.cs" />
-    <Compile Include="Strategies\ProfitChaseStopTrailUnmanagedExample.cs" />
-    <Compile Include="Strategies\ProfitChasingCombined.cs" />
     <Compile Include="Strategies\AGG5.cs" />
     <Compile Include="Strategies\AGG5backup.cs" />
+    <Compile Include="Strategies\AGG5MixIndicator.cs" />
+    <Compile Include="Strategies\AGG5Mixture.cs" />
     <Compile Include="Strategies\AGGBar.cs" />
     <Compile Include="Strategies\AGGBarBackup.cs" />
-    <Compile Include="Strategies\AGG5Mixture.cs" />
-    <Compile Include="Strategies\AGG5MixIndicator.cs" />
+    <Compile Include="Strategies\AiTradeStrategy.cs" />
+    <Compile Include="Strategies\CombinedManualStrategy.cs" />
+    <Compile Include="Strategies\ContinuationStrategy.cs" />
+    <Compile Include="Strategies\DoubleReversalStrategy.cs" />
+    <Compile Include="Strategies\ProfitChaseStopTrailExitOrdersExample.cs" />
+    <Compile Include="Strategies\ProfitChaseStopTrailSetMethodsExample.cs" />
+    <Compile Include="Strategies\ProfitChaseStopTrailUnmanagedExample.cs" />
+    <Compile Include="Strategies\ProfitChasingCombined.cs" />
+    <Compile Include="Strategies\ProfitChasingReversal.cs" />
+    <Compile Include="Strategies\PullbackStrategy.cs" />
+    <Compile Include="Strategies\ReversalStrategy.cs" />
+    <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.cs" />
+    <Compile Include="Strategies\CombinedStrategy.cs" />
+    <Compile Include="Strategies\AGG5MixBackup.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

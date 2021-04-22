@@ -28,7 +28,7 @@ using System.Diagnostics;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG5Mixturer : Strategy
+    public class AGG5Mixture : Strategy
     {
         private int Fast;
         private int Slow;

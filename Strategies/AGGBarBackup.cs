@@ -28,7 +28,7 @@ using System.Diagnostics;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG5BarBackup : Strategy
+    public class AGG5BarKackup : Strategy
     {
         private int Fast;
         private int Slow;
@@ -42,10 +42,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in, 16 stops Pticks
+        private static readonly int profitChasing = 6 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 10 * 4; // number of ticks for soft stop loss, 12 stops Lticks
-        private static readonly int hardDeck = 15 * 4; //hard deck for auto stop loss
+        private static readonly int softDeck = 1 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 6; //hard deck for auto stop loss
         private double closedPrice = 0.0;
 
         // global flags
@@ -426,12 +426,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                //return (Bars.GetClose(CurrentBar) < (closedPrice - softDeck * TickSize));
                 return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
-                //return (Bars.GetClose(CurrentBar) > (closedPrice + softDeck * TickSize));
                 return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
             }
             return false;

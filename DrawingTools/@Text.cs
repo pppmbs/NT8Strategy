@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -195,7 +195,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				SolidColorBrush tmpOb		= areaBrushDevice.Brush as SolidColorBrush;
 				SolidColorBrush tmpNb 		= AreaBrush 			as SolidColorBrush;
 				// if brush not set, set brush. else if brush set and changed, change brush. if not SolidColorBrush always change brush
-				if (tmpNb == null || tmpOb == null || tmpOb.Color != tmpNb.Color || Math.Abs(tmpOb.Opacity - tmpNb.Opacity) > 0.1)
+				if (tmpNb == null || tmpOb == null || tmpOb.Color != tmpNb.Color || Math.Abs(tmpOb.Opacity - (areaOpacity / 100d)) > 0.1)
 				{
 					Brush brushCopy			= AreaBrush.Clone();
 					brushCopy.Opacity		= areaOpacity / 100d;

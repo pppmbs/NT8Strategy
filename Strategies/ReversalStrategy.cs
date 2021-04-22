@@ -44,7 +44,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool rsiLongOppornuity = false;
         private bool rsiShortOppornuity = false;
 
-        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int profiltsTaking = 24; // number of ticks for profits taking
         private int stopLoss = 6; // number of ticks for stop loss
         private readonly int maxConsecutiveLosingTrades = 3;
         private readonly int TargetProfitsNumber = 2;

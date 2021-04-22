@@ -3199,10 +3199,10 @@
     <value>From name</value>
   </data>
   <data name="NinjaScriptIndicatorDescriptionCOT" xml:space="preserve">
-    <value>Commitment of traders</value>
+    <value>The COT indicator plots weekly data from the Commitment Of Traders report, indicating holdings of different participants in the U.S. futures market.</value>
   </data>
   <data name="NinjaScriptIndicatorNameCOT" xml:space="preserve">
-    <value>Commitment of traders</value>
+    <value>COT</value>
   </data>
   <data name="COT1" xml:space="preserve">
     <value>COT 1</value>
@@ -3226,9 +3226,12 @@
     <value>COT data is not supported for this instrument</value>
   </data>
   <data name="CotDataWarning" xml:space="preserve">
-    <value>ou must enable "Download COT data at startup" to receive the most recent COT data</value>
+    <value>"Download COT data at startup" must be enabled in Options to receive the latest data</value>
   </data>
   <data name="CotDataStillDownloading" xml:space="preserve">
     <value>COT data is still being downloaded. Please refresh the indicator in few moments.</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack" xml:space="preserve">
+    <value>Extend lines back</value>
   </data>
 </root>

@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <ninjatrader@ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <ninjatrader@ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -39,6 +39,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (!subscribedToSize && ChartPanel != null)
 			{
 				subscribedToSize = true;
+
 				ChartPanel.SizeChanged += (o, e) =>
 				{
 					if (grid == null || ChartPanel == null)
@@ -68,7 +69,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 				IsSuspendedWhileInactive		= true;
 				SelectedTypes					= new XElement("SelectedTypes");
 
-				//foreach (Type type in Core.Globals.AssemblyRegistry.GetDerivedTypes(typeof(DrawingTools.DrawingTool)))
 				foreach (Type type in new[]
 				{
 					typeof(DrawingTools.Ellipse), typeof(DrawingTools.ExtendedLine),
@@ -78,7 +78,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 				})
 				{
 					XElement	el				= new XElement(type.FullName);
-					//string		assemblyName	= Core.Globals.AssemblyRegistry.IsNinjaTraderCustomAssembly(type) ? "NinjaTrader.Custom" : type.Assembly.GetName().Name;
 					el.Add(new XAttribute("Assembly", "NinjaTrader.Custom"));
 					SelectedTypes.Add(el);
 				}
@@ -86,13 +85,17 @@ namespace NinjaTrader.NinjaScript.Indicators
 				Top				= -1;
 				NumberOfRows	= 5;
 			}
-			else if (State == State.Configure)
+			else if (State == State.Historical)
 			{
 				if (IsVisible)
 				{
-					if (ChartControl != null && Top < 0)
-						Top = 5 + ChartControl.HeaderHeight;
-					UserControlCollection.Add(CreateControl());
+					if (ChartControl != null)
+					{
+						if (Top < 0)
+							Top = 25;
+
+						ChartControl.Dispatcher.InvokeAsync(() => { UserControlCollection.Add(CreateControl()); });
+					}
 				}
 			}
 		}
@@ -182,8 +185,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 			int				count			= 0;
 			FontFamily		fontFamily		= Application.Current.Resources["IconsFamily"] as FontFamily;
 			Style			style			= Application.Current.Resources["LinkButtonStyle"] as Style;
-
-			//ToolBar tb = new ToolBar();
 
 			while (count < elements.Count)
 			{
