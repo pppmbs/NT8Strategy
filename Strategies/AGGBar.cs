@@ -42,10 +42,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 12 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 6 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 6 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 12 * 4; //hard deck for auto stop loss
+        private static readonly int softDeck = 1 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 6; //hard deck for auto stop loss
         private double closedPrice = 0.0;
 
         // global flags

@@ -48,7 +48,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double reversalRSI = 0.0;
         private readonly int MaxBarCount = 8;
 
-        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int profiltsTaking = 24; // number of ticks for profits taking
         private int stopLoss = 6; // number of ticks for stop loss
         private readonly int maxConsecutiveLosingTrades = 2;
         private int targetIncrement = 0;

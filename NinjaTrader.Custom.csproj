@@ -392,6 +392,7 @@
     <Compile Include="Strategies\AGGBar.cs" />
     <Compile Include="Strategies\AGGBarBackup.cs" />
     <Compile Include="Strategies\AGG5Mixture.cs" />
+    <Compile Include="Strategies\AGG5MixIndicator.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
