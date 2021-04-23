@@ -45,9 +45,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 25 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 5 * 4; // number of stops for soft stop loss
+        private static readonly int softDeck = 4 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 4 * 4; //hard deck for auto stop loss
 
 
@@ -72,7 +72,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"AGG5 mixture of Bar and Tick strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
+                Description = @"AGG5 mixture of Bar and Tick strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend,  and use repeat DLNN signal to decide when to enter new position";
                 Name = "AGG5Mixture";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;

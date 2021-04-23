@@ -396,6 +396,8 @@
     <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.cs" />
     <Compile Include="Strategies\CombinedStrategy.cs" />
     <Compile Include="Strategies\AGG5MixBackup.cs" />
+    <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
+    <Compile Include="Strategies\AGG5BarRepeat.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
