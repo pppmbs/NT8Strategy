@@ -445,13 +445,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                //return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
-                // For Long position, check violation on tick by tick basis
-                return (Close[0] <= (closedPrice - softDeck * TickSize));
+                return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
-                // For short position, check violation on bar by bar basis
                 return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
             }
             return false;
