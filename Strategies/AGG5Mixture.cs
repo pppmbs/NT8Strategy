@@ -39,13 +39,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
         private string svrSignal = "1";
+        private int signalCount = 0;
+        private int aggregateSignal = 0;
+        private static readonly int repeatConfirmSignal = 3; // number of times a DLNN signal needs to repeat before taking a new position
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 18 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 6 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 8 * 4; //hard deck for auto stop loss
+        private static readonly int softDeck = 5 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 4 * 4; //hard deck for auto stop loss
+
+
         private double closedPrice = 0.0;
 
         // global flags
@@ -359,18 +364,32 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void StartTradePosition(string signal)
         {
             //Print("StartTradePosition");
+            Print("Server Signal=" + signal);
             switch (signal)
             {
                 case "0":
-                    // sell
-                    AiShort();
+                    aggregateSignal = aggregateSignal + 0;
+                    if (++signalCount == repeatConfirmSignal)
+                    {
+                        if (aggregateSignal == 0)
+                            AiShort();
+                        signalCount = 0;
+                        aggregateSignal = 0;
+                    }
                     break;
                 case "2":
-                    // buy
-                    AiLong();
+                    aggregateSignal = aggregateSignal + 2;
+                    if (++signalCount == repeatConfirmSignal)
+                    {
+                        if (aggregateSignal == 2 * repeatConfirmSignal)
+                            AiLong();
+                        signalCount = 0;
+                        aggregateSignal = 0;
+                    }
                     break;
                 default:
-                    // do nothing if signal is 1 for flat position
+                    signalCount = 0;
+                    aggregateSignal = 0;
                     break;
             }
         }
