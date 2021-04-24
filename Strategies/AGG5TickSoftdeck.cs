@@ -28,7 +28,7 @@ using System.Diagnostics;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG5Mixture : Strategy
+    public class AGG5TickSoftdeck : Strategy
     {
         private int Fast;
         private int Slow;
@@ -47,7 +47,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int profitChasing = 25 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 5 * 4; // number of stops for soft stop loss
+        private static readonly int softDeck = 4 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 4 * 4; //hard deck for auto stop loss
 
 
@@ -72,8 +72,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"AGG5 mixture of Bar and Tick strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend,  and use repeat DLNN signal to decide when to enter new position";
-                Name = "AGG5Mixture";
+                Description = @"AGG5 - managed soft deck with Tick strategy, using DLNN to manage start new position, managed profit chasing depends on Bar market trend";
+                Name = "AGG5TickSoftdeck";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -395,14 +395,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                //return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
-                // For Long position, check violation on tick by tick basis
                 return (Close[0] <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
-                // For short position, check violation on bar by bar basis
-                return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
+                return (Close[0] >= (closedPrice + softDeck * TickSize));
             }
             return false;
         }
@@ -569,12 +566,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // handle stop loss or proft chasing if there is existing position and order action is either SellShort or Buy
                     if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                     {
-                        //if Close[0] violates soft deck, if YES handle stop loss accordingly
-                        if (ViolateSoftDeck())
-                        {
-                            HandleSoftDeck(svrSignal);
-                        }
-
                         // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
                         if ((profitChasingFlag || TouchedProfitChasing()))
                         {
