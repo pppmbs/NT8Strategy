@@ -47,7 +47,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int profitChasing = 25 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 4 * 4; // number of stops for soft stop loss
+        private static readonly int softDeck = 5 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 4 * 4; //hard deck for auto stop loss
 
 
@@ -191,69 +191,18 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         }
 
-        //protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
-        //{
-        //    /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
-        //    which ensures your strategy has received the execution which is used for internal signal tracking. */
-        //    if (entryOrder != null && entryOrder == execution.Order)
-        //    {
-        //        if (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled || (execution.Order.OrderState == OrderState.Cancelled && execution.Order.Filled > 0))
-        //        {
-        //            // We sum the quantities of each execution making up the entry order
-        //            sumFilled += execution.Quantity;
-
-        //            if (execution.Order.Name == "Long")
-        //            {
-        //                // Submit exit orders for partial fills
-        //                if (execution.Order.OrderState == OrderState.PartFilled)
-        //                {
-        //                    stopOrder = ExitLongStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - hardDeck * TickSize, "MyStop", "Long");
-        //                    targetOrder = ExitLongLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + profitTarget * TickSize, "MyTarget", "Long");
-        //                }
-        //                // Update our exit order quantities once orderstate turns to filled and we have seen execution quantities match order quantities
-        //                else if (execution.Order.OrderState == OrderState.Filled && sumFilled == execution.Order.Filled)
-        //                {
-        //                    // Stop-Loss order for OrderState.Filled
-        //                    stopOrder = ExitLongStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - hardDeck * TickSize, "MyStop", "Long");
-        //                    targetOrder = ExitLongLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + profitTarget * TickSize, "MyTarget", "Long");
-        //                }
-        //            }
-        //            else if (execution.Order.Name == "Short")
-        //            {
-        //                // Submit exit orders for partial fills
-        //                if (execution.Order.OrderState == OrderState.PartFilled)
-        //                {
-        //                    stopOrder = ExitShortStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + hardDeck * TickSize, "MyStop", "Short");
-        //                    targetOrder = ExitShortLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - profitTarget * TickSize, "MyTarget", "Short");
-        //                }
-        //                // Update our exit order quantities once orderstate turns to filled and we have seen execution quantities match order quantities
-        //                else if (execution.Order.OrderState == OrderState.Filled && sumFilled == execution.Order.Filled)
-        //                {
-        //                    // Stop-Loss order for OrderState.Filled
-        //                    stopOrder = ExitShortStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + hardDeck * TickSize, "MyStop", "Short");
-        //                    targetOrder = ExitShortLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - profitTarget * TickSize, "MyTarget", "Short");
-        //                }
-        //            }
-
-        //            // Resets the entryOrder object and the sumFilled counter to null / 0 after the order has been filled
-        //            if (execution.Order.OrderState != OrderState.PartFilled && sumFilled == execution.Order.Filled)
-        //            {
-        //                entryOrder = null;
-        //                sumFilled = 0;
-        //            }
-        //        }
-        //    }
-
-        //    // Reset our stop order and target orders' Order objects after our position is closed. (1st Entry)
-        //    if ((stopOrder != null && stopOrder == execution.Order) || (targetOrder != null && targetOrder == execution.Order))
-        //    {
-        //        if (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled)
-        //        {
-        //            stopOrder = null;
-        //            targetOrder = null;
-        //        }
-        //    }
-        //}
+        protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
+        {
+            /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
+            which ensures your strategy has received the execution which is used for internal signal tracking. */
+            if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
+            {
+                if (execution.Order.Name == "Stop loss")
+                {
+                    Print(execution.Time.ToString("HH:mm:ss") + " OnExecutionUpdate::Stop loss");
+                }
+            }
+        }
 
         protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
         {
@@ -272,7 +221,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + "*********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " *********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -331,13 +280,13 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void AiShort()
         {
             EnterShort(lotSize, "Short");
-            Print("Server Signal=" + svrSignal + " Short");
+            Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " Server Signal=" + svrSignal + " Short");
         }
 
         private void AiLong()
         {
             EnterLong(lotSize, "Long");
-            Print("Server Signal=" + svrSignal + " Long");
+            Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " Server Signal=" + svrSignal + " Long");
         }
 
         private void AiFlat()
@@ -346,13 +295,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 ExitLong("ExitLong", "Long");
-                Print("AiFlat::ExitLong");
+                Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " AiFlat::ExitLong");
                 Print("---------------------------------------------------------------------------------");
             }
             if (PosShort())
             {
                 ExitShort("ExitShort", "Short");
-                Print("AiFlat::ExitShort");
+                Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " AiFlat::ExitShort");
                 Print("---------------------------------------------------------------------------------");
             }
 
@@ -424,7 +373,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 return;
@@ -434,7 +383,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 return;
@@ -470,7 +419,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
             }
@@ -478,7 +427,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
             }
@@ -493,7 +442,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] >= (closedPrice + profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -503,7 +452,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -516,7 +465,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
 
                 AiFlat();
                 return;
@@ -524,7 +473,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
 
                 AiFlat();
                 return;
@@ -619,7 +568,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // handle stop loss or proft chasing if there is existing position and order action is either SellShort or Buy
                     if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                     {
-                        // if Close[0] violates soft deck, if YES handle stop loss accordingly
+                        //if Close[0] violates soft deck, if YES handle stop loss accordingly
                         if (ViolateSoftDeck())
                         {
                             HandleSoftDeck(svrSignal);
@@ -636,7 +585,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle stop loss and profit chasing accordingly
             else
             {
-                // if Close[0] violates soft deck, if YES handle stop loss accordingly
+                //if Close[0] violates soft deck, if YES handle stop loss accordingly
                 if (ViolateSoftDeck())
                 {
                     HandleSoftDeck(svrSignal);
