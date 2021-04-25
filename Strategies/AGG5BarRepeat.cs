@@ -272,7 +272,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print(Bars.GetTime(CurrentBar).ToString("HH:mm:ss") + "*********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " *********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -346,13 +346,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 ExitLong("ExitLong", "Long");
-                Print("AiFlat::ExitLong");
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
                 Print("---------------------------------------------------------------------------------");
             }
             if (PosShort())
             {
                 ExitShort("ExitShort", "Short");
-                Print("AiFlat::ExitShort");
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
                 Print("---------------------------------------------------------------------------------");
             }
 
@@ -424,7 +424,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 return;
@@ -434,7 +434,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 return;
@@ -467,7 +467,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits= " + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
             }
@@ -475,7 +475,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
             }
@@ -490,7 +490,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] >= (closedPrice + profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -500,7 +500,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -513,7 +513,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
 
                 AiFlat();
                 return;
@@ -521,7 +521,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                Print("HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
 
                 AiFlat();
                 return;

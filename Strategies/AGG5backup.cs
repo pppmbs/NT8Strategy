@@ -268,7 +268,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print("*********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " *********Order filed, order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -342,13 +342,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 ExitLong("ExitLong", "Long");
-                Print("AiFlat::ExitLong");
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
                 Print("---------------------------------------------------------------------------------");
             }
             if (PosShort())
             {
                 ExitShort("ExitShort", "Short");
-                Print("AiFlat::ExitShort");
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
                 Print("---------------------------------------------------------------------------------");
             }
 
@@ -406,7 +406,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
                     AiFlat();
                 }
                 return;
@@ -416,7 +416,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print("HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString());
                     AiFlat();
                 }
                 return;
@@ -449,7 +449,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] < chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits=" + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " Profits=" + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 else
@@ -459,7 +459,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] > chasePrice)
                 {
-                    Print("HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits=" + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " chasePrice=" + chasePrice.ToString() + " closedPrice - profitChasing=" + (closedPrice - profitChasing * TickSize).ToString() + " Profits=" + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 else
@@ -475,7 +475,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] >= (closedPrice + profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     chasePrice = Close[0];
                     return profitChasingFlag;
@@ -485,7 +485,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 {
-                    Print("TouchedProfitChasing");
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     chasePrice = Close[0];
                     return profitChasingFlag;
@@ -524,7 +524,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 DateTime t2 = Bars.GetTime(CurrentBar);
                 if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
                 {
-                    Print("EOD Session");
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " EOD Session");
                     AiFlat(); // flatten the current position before going over to the next day
                     lineNo = 0;
                     return;
