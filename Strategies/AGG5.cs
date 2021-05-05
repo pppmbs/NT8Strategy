@@ -187,69 +187,22 @@ namespace NinjaTrader.NinjaScript.Strategies
 			
 		}
 
-        //protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
-        //{
-        //    /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
-        //    which ensures your strategy has received the execution which is used for internal signal tracking. */
-        //    if (entryOrder != null && entryOrder == execution.Order)
-        //    {
-        //        if (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled || (execution.Order.OrderState == OrderState.Cancelled && execution.Order.Filled > 0))
-        //        {
-        //            // We sum the quantities of each execution making up the entry order
-        //            sumFilled += execution.Quantity;
+        protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
+        {
+            /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
+            which ensures your strategy has received the execution which is used for internal signal tracking. */
+            if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
+            {
+                if (execution.Order.Name == "Stop loss")
+                {
+                    Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " AverageFillPrice =" + execution.Order.AverageFillPrice.ToString());
 
-        //            if (execution.Order.Name == "Long")
-        //            {
-        //                // Submit exit orders for partial fills
-        //                if (execution.Order.OrderState == OrderState.PartFilled)
-        //                {
-        //                    stopOrder = ExitLongStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - hardDeck * TickSize, "MyStop", "Long");
-        //                    targetOrder = ExitLongLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + profitTarget * TickSize, "MyTarget", "Long");
-        //                }
-        //                // Update our exit order quantities once orderstate turns to filled and we have seen execution quantities match order quantities
-        //                else if (execution.Order.OrderState == OrderState.Filled && sumFilled == execution.Order.Filled)
-        //                {
-        //                    // Stop-Loss order for OrderState.Filled
-        //                    stopOrder = ExitLongStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - hardDeck * TickSize, "MyStop", "Long");
-        //                    targetOrder = ExitLongLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + profitTarget * TickSize, "MyTarget", "Long");
-        //                }
-        //            }
-        //            else if (execution.Order.Name == "Short")
-        //            {
-        //                // Submit exit orders for partial fills
-        //                if (execution.Order.OrderState == OrderState.PartFilled)
-        //                {
-        //                    stopOrder = ExitShortStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + hardDeck * TickSize, "MyStop", "Short");
-        //                    targetOrder = ExitShortLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - profitTarget * TickSize, "MyTarget", "Short");
-        //                }
-        //                // Update our exit order quantities once orderstate turns to filled and we have seen execution quantities match order quantities
-        //                else if (execution.Order.OrderState == OrderState.Filled && sumFilled == execution.Order.Filled)
-        //                {
-        //                    // Stop-Loss order for OrderState.Filled
-        //                    stopOrder = ExitShortStopMarket(0, true, execution.Order.Filled, execution.Order.AverageFillPrice + hardDeck * TickSize, "MyStop", "Short");
-        //                    targetOrder = ExitShortLimit(0, true, execution.Order.Filled, execution.Order.AverageFillPrice - profitTarget * TickSize, "MyTarget", "Short");
-        //                }
-        //            }
-
-        //            // Resets the entryOrder object and the sumFilled counter to null / 0 after the order has been filled
-        //            if (execution.Order.OrderState != OrderState.PartFilled && sumFilled == execution.Order.Filled)
-        //            {
-        //                entryOrder = null;
-        //                sumFilled = 0;
-        //            }
-        //        }
-        //    }
-
-        //    // Reset our stop order and target orders' Order objects after our position is closed. (1st Entry)
-        //    if ((stopOrder != null && stopOrder == execution.Order) || (targetOrder != null && targetOrder == execution.Order))
-        //    {
-        //        if (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled)
-        //        {
-        //            stopOrder = null;
-        //            targetOrder = null;
-        //        }
-        //    }
-        //}
+                    //reset global flags
+                    currPos = Position.posFlat;
+                    profitChasingFlag = false;
+                }
+            }
+        }
 
         protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
         {

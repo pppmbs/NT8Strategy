@@ -195,14 +195,17 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
             which ensures your strategy has received the execution which is used for internal signal tracking. */
-            // WARNING:: Stop loss did not get reported ONLY when stop loss was triggered, it also was ALSO reported when a position is favorable too - this event is NOT dependable
-            //if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
-            //{
-            //    if (execution.Order.Name == "Stop loss")
-            //    {
-            //        Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " OnExecutionUpdate::Stop loss");
-            //    }
-            //}
+            if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
+            {
+                if (execution.Order.Name == "Stop loss")
+                {
+                    Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " AverageFillPrice =" + execution.Order.AverageFillPrice.ToString());
+
+                    //reset global flags
+                    currPos = Position.posFlat;
+                    profitChasingFlag = false;
+                }
+            }
         }
 
         protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
