@@ -200,7 +200,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (execution.Order.Name == "Stop loss")
                 {
                     Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " AverageFillPrice =" + execution.Order.AverageFillPrice.ToString());
- 
+                    Print("---------------------------------------------------------------------------------");
+
                     //reset global flags
                     currPos = Position.posFlat;
                     profitChasingFlag = false;
@@ -225,7 +226,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " *********Order filed, order name=" + order.Name + " AverageFillPrice=" + order.AverageFillPrice.ToString() + " currPos =" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filed, closedPrice=" + closedPrice + " order name=" + order.Name + " AverageFillPrice=" + order.AverageFillPrice.ToString() + " currPos =" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -254,16 +255,18 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private string ExtractResponse(string repStr)
         {
-            int index = 1;
-            foreach (char ch in repStr)
-            {
-                if (ch != ',')
-                    index++;
-                else
-                    break;
-            }
+            //int index = 1;
+            //foreach (char ch in repStr)
+            //{
+            //    if (ch != ',')
+            //        index++;
+            //    else
+            //        break;
+            //}
 
-            return repStr.Substring(index, 1);
+            //return repStr.Substring(index, 1);
+
+            return repStr.Split(',')[1];
         }
 
         private bool PosFlat()
@@ -377,7 +380,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "2")
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0] - closedPrice).ToString());
                     AiFlat();
                 }
                 return;
@@ -387,7 +390,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (signal != "0")
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " loss= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
                 }
                 return;
@@ -543,10 +546,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Receive the response from the remote device.  
                 int bytesRec = sender.Receive(bytes);
 
-                svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
+                //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
+                svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
 
 
-                //Print("Server response= " + svrSignal);
+                Print("Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+
 
                 // Return signal from DLNN is not we expected, close outstanding position and restart
                 if (bytesRec == -1)
