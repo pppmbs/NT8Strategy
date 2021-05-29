@@ -399,6 +399,9 @@
     <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
     <Compile Include="Strategies\AGG5BarRepeat.cs" />
     <Compile Include="Strategies\AGG5TickSoftdeck.cs" />
+    <Compile Include="Indicators\SampleOverlayPlot.cs" />
+    <Compile Include="Indicators\SamplePanelPlot.cs" />
+    <Compile Include="Strategies\SampleStrategyPlot.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

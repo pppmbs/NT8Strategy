@@ -44,8 +44,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 5 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 10 * 5; //hard deck for auto stop loss
+        private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 20 * 5; //hard deck for auto stop loss
         private double closedPrice = 0.0;
 
         // global flags
@@ -495,6 +495,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     Print("EOD Session");
                     HandleEOD();
+
+                    string resetString = "-1";
+                    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
+
+                    // Send reset string of "-1" to the server  
+                    int resetSent = sender.Send(resetMsg);
                     lineNo = 0;
                     return;
                 }
