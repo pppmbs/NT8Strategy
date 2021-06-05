@@ -334,13 +334,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void ExecuteAITrade(string signal)
         {
-            // STOP-LOSS was observed in most recent trade, hence ignore next signal returned from Server - this trade signal already handled by Stop-loss in OnExecutionUpdate
-            if (stopLossEncountered)
-            {
-                stopLossEncountered = false;
-                return;
-            }
-
             //Print("ExecuteAITrade");
             if (PosFlat())
             {
@@ -509,7 +502,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Send reset string of "-1" to the server  
                     int resetSent = sender.Send(resetMsg);
                     lineNo = 0;
+
+                    //reset global flags
+                    currPos = Position.posFlat;
+                    profitChasingFlag = false;
+                    stopLossEncountered = false;
                     return;
+                }
+
+                // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
+                if (stopLossEncountered)
+                {
+                    lineNo += 10000;
                 }
 
                 // construct the string buffer to be sent to DLNN
@@ -539,6 +543,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Receive the response from the remote device.  
                 int bytesRec = sender.Receive(bytes);
 
+                // prior Stop-Loss observed, hence ignore the returned signal from server and move on to the next bar, reset lineNo to next counter and reset stopLossEncountered flag
+                if (stopLossEncountered)
+                {
+                    lineNo -= 10000;
+                    lineNo++;
+                    stopLossEncountered = false;
+
+                    //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
+                    svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Ignore Post STOP-LOSS Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+
+                    return;
+                }
+
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
@@ -548,7 +566,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (bytesRec == -1)
                 {
                     lineNo = 0;
-                    // TODO: close current position
+                    // TODO: close current position?
                 }
                 else
                     lineNo++;
@@ -562,7 +580,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (currPos == Position.posFlat)
                         return;
 
-                    // handle stop loss or proft chasing if there is existing position and order action is either SellShort or Buy
+                    // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
                     if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                     {
                         // if Close[0] violates soft deck, if YES handle stop loss accordingly
