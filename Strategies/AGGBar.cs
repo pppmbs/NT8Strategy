@@ -45,8 +45,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 20 * 5; //hard deck for auto stop loss
+        private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
+        // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus 10 minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
+        private DateTime endSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59-10), 00);
+        private bool endSession = false;
 
         // global flags
         private bool profitChasingFlag = false;
@@ -70,6 +73,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 Description = @"AGG5 Bar strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
                 Name = "AGG5Bar";
+                //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -101,8 +105,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Establish the remote endpoint for the socket.  
                     // connecting server on port 3333  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                    IPAddress ipAddress = ipHostInfo.AddressList[1];
+                    // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly 
+                    IPAddress ipAddress = ipHostInfo.AddressList[4]; 
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, 3333);
+
+                    Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
 
                     // Create a TCP/IP  socket.  
                     sender = new Socket(ipAddress.AddressFamily,
@@ -445,6 +452,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleEOD()
         {
+         
             if (PosLong())
             {
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
@@ -459,6 +467,35 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 AiFlat();
                 return;
+            }
+        }
+
+        private void HandleEndOfSession()
+        {
+            // if lineNo == 0, then new bar has not been established, end of session has been handled prior
+            if (!endSession && Time[0].Hour>=endSessionTime.Hour)
+            {
+                if (Time[0].Minute>endSessionTime.Minute)
+                {
+                    Print("Current Time[0]= " + Time[0].Hour.ToString() + ":" + Time[0].Minute.ToString());
+                    Print("End of Session Time= " + endSessionTime.Hour.ToString() + ":" + endSessionTime.Minute.ToString());
+                    HandleEOD();
+
+                    string resetString = "-1";
+                    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
+
+                    // Send reset string of "-1" to the server  
+                    int resetSent = sender.Send(resetMsg);
+
+                    //reset global flags
+                    // lineNo set to -1 because first bar of the new day can not be used for the construct of bar info to the server, the STARTTIME will refer to previous bar, which violates 
+                    // server ENDTIME > STARTTIME requirement
+                    lineNo = -1;    
+                    currPos = Position.posFlat;
+                    profitChasingFlag = false;
+                    stopLossEncountered = false;
+                    endSession = true;
+                }
             }
         }
 
@@ -487,26 +524,46 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
 
                 //Print("Current Bar time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
-
                 // if the bar elapsed time span across 12 mid night
-                DateTime t1 = Bars.GetTime(CurrentBar - 1);
-                DateTime t2 = Bars.GetTime(CurrentBar);
-                if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
+                //DateTime t1 = Bars.GetTime(CurrentBar - 1);
+                //DateTime t2 = Bars.GetTime(CurrentBar);
+                //if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
+                //{
+                //    Print("EOD Session");
+                //    HandleEOD();
+
+                //    string resetString = "-1";
+                //    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
+
+                //    // Send reset string of "-1" to the server  
+                //    int resetSent = sender.Send(resetMsg);
+                //    lineNo = 0;
+
+                //    //reset global flags
+                //    currPos = Position.posFlat;
+                //    profitChasingFlag = false;
+                //    stopLossEncountered = false;
+                //    return;
+                //}
+
+                // ignore all bars that come after end of session, until next day
+                if (endSession)
                 {
-                    Print("EOD Session");
-                    HandleEOD();
+                    // if new day, then reset endSession and proceed with new Bar, otherwise ignore Bar
+                    if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
+                    {
+                        endSession = false;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
 
-                    string resetString = "-1";
-                    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
-
-                    // Send reset string of "-1" to the server  
-                    int resetSent = sender.Send(resetMsg);
+                // skip the first bar of the new day, because otherwise the start time and end time of the bar construction to server will violate server reqd ENDTIME > STARTTIME
+                if (lineNo == -1)
+                {
                     lineNo = 0;
-
-                    //reset global flags
-                    currPos = Position.posFlat;
-                    profitChasingFlag = false;
-                    stopLossEncountered = false;
                     return;
                 }
 
@@ -515,7 +572,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     lineNo += 10000;
                 }
-
+                
                 // construct the string buffer to be sent to DLNN
                 string bufString = lineNo.ToString() + ',' +
                     Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
@@ -597,9 +654,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     }
                 }
             }
-            // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle stop loss and profit chasing accordingly
+            // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else
             {
+                HandleEndOfSession();
                 return;
             }
         }
