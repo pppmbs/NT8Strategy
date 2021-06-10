@@ -25,7 +25,7 @@ using NinjaTrader.NinjaScript.DrawingTools;
 using System.Diagnostics;
 #endregion
 
-//This namespace holds Strategies in this folder and is required. Do not change it. 
+//This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
     public class AGG5Bar : Strategy
@@ -48,7 +48,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus 10 minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
-        private DateTime endSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59-10), 00);
+        private static int bufferUntilEOD = 10;
+        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
+        private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private bool endSession = false;
 
         // global flags
@@ -105,8 +107,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Establish the remote endpoint for the socket.  
                     // connecting server on port 3333  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                    // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly 
-                    IPAddress ipAddress = ipHostInfo.AddressList[4]; 
+                    // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly
+                    IPAddress ipAddress = ipHostInfo.AddressList[4];
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, 3333);
 
                     Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -149,11 +151,11 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.Configure)
             {
-                /* Add a secondary bar series. 
-				Very Important: This secondary bar series needs to be smaller than the primary bar series.
-				
-				Note: The primary bar series is whatever you choose for the strategy at startup. 
-				In our case it is a 2000 ticks bar. */
+                /* Add a secondary bar series.
+Very Important: This secondary bar series needs to be smaller than the primary bar series.
+
+Note: The primary bar series is whatever you choose for the strategy at startup.
+In our case it is a 2000 ticks bar. */
                 AddDataSeries(Data.BarsPeriodType.Tick, 1);
 
                 //            // Add two EMA indicators to be plotted on the primary bar series
@@ -452,7 +454,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleEOD()
         {
-         
+
             if (PosLong())
             {
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
@@ -472,10 +474,22 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleEndOfSession()
         {
-            // if lineNo == 0, then new bar has not been established, end of session has been handled prior
-            if (!endSession && Time[0].Hour>=endSessionTime.Hour)
+            DateTime endSessionTime;
+
+            // pick the correct End session time
+            if (Time[0].DayOfWeek == DayOfWeek.Friday)
             {
-                if (Time[0].Minute>endSessionTime.Minute)
+                endSessionTime = fridayEndSessionTime;
+            }
+            else
+            {
+                endSessionTime = regularEndSessionTime;
+            }
+
+            // if lineNo == 0, then new bar has not been established, end of session has been handled prior
+            if (!endSession && Time[0].Hour == endSessionTime.Hour)
+            {
+                if (Time[0].Minute > endSessionTime.Minute)
                 {
                     Print("Current Time[0]= " + Time[0].Hour.ToString() + ":" + Time[0].Minute.ToString());
                     Print("End of Session Time= " + endSessionTime.Hour.ToString() + ":" + endSessionTime.Minute.ToString());
@@ -488,9 +502,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     int resetSent = sender.Send(resetMsg);
 
                     //reset global flags
-                    // lineNo set to -1 because first bar of the new day can not be used for the construct of bar info to the server, the STARTTIME will refer to previous bar, which violates 
+                    // lineNo set to -1 because first bar of the new day can not be used for the construct of bar info to the server, the STARTTIME will refer to previous bar, which violates
                     // server ENDTIME > STARTTIME requirement
-                    lineNo = -1;    
+                    lineNo = -1;
                     currPos = Position.posFlat;
                     profitChasingFlag = false;
                     stopLossEncountered = false;
@@ -515,7 +529,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 12:03PM 1min
                 12:04PM 1min
                 12:05PM 5min
-                12:05PM 1min 
+                12:05PM 1min
 
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
@@ -572,7 +586,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     lineNo += 10000;
                 }
-                
+                else 
+                { 
+                    // Handles missing data cases where End of Session is not 23:59
+                    if (Bars.GetTime(CurrentBar - 1) > Bars.GetTime(CurrentBar))
+                    {
+                        lineNo = 0;
+                        return;
+                    }
+                }
+
                 // construct the string buffer to be sent to DLNN
                 string bufString = lineNo.ToString() + ',' +
                     Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
