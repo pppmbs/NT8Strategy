@@ -504,7 +504,7 @@ In our case it is a 2000 ticks bar. */
                     //reset global flags
                     // lineNo set to -1 because first bar of the new day can not be used for the construct of bar info to the server, the STARTTIME will refer to previous bar, which violates
                     // server ENDTIME > STARTTIME requirement
-                    lineNo = -1;
+                    //lineNo = -1;
                     currPos = Position.posFlat;
                     profitChasingFlag = false;
                     stopLossEncountered = false;
@@ -563,10 +563,12 @@ In our case it is a 2000 ticks bar. */
                 // ignore all bars that come after end of session, until next day
                 if (endSession)
                 {
-                    // if new day, then reset endSession and proceed with new Bar, otherwise ignore Bar
+                    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
                     if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
                     {
                         endSession = false;
+                        lineNo = 0;
+                        return;
                     }
                     else
                     {
@@ -575,11 +577,11 @@ In our case it is a 2000 ticks bar. */
                 }
 
                 // skip the first bar of the new day, because otherwise the start time and end time of the bar construction to server will violate server reqd ENDTIME > STARTTIME
-                if (lineNo == -1)
-                {
-                    lineNo = 0;
-                    return;
-                }
+                //if (lineNo == -1)
+                //{
+                //    lineNo = 0;
+                //    return;
+                //}
 
                 // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
                 if (stopLossEncountered)
