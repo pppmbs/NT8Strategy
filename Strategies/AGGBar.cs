@@ -48,10 +48,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus 10 minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
-        private static int bufferUntilEOD = 10;
-        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
-        private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
-        private bool endSession = false;
+        //private static int bufferUntilEOD = 10;
+        //private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
+        //private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
+        //private bool endSession = false;
 
         // global flags
         private bool profitChasingFlag = false;
@@ -472,46 +472,48 @@ In our case it is a 2000 ticks bar. */
             }
         }
 
-        private void HandleEndOfSession()
+        private void ResetServer()
         {
-            DateTime endSessionTime;
+            HandleEOD();
 
-            // pick the correct End session time
-            if (Time[0].DayOfWeek == DayOfWeek.Friday)
-            {
-                endSessionTime = fridayEndSessionTime;
-            }
-            else
-            {
-                endSessionTime = regularEndSessionTime;
-            }
+            string resetString = "-1";
+            byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
 
-            // if lineNo == 0, then new bar has not been established, end of session has been handled prior
-            if (!endSession && Time[0].Hour == endSessionTime.Hour)
-            {
-                if (Time[0].Minute > endSessionTime.Minute)
-                {
-                    Print("Current Time[0]= " + Time[0].Hour.ToString() + ":" + Time[0].Minute.ToString());
-                    Print("End of Session Time= " + endSessionTime.Hour.ToString() + ":" + endSessionTime.Minute.ToString());
-                    HandleEOD();
+            // Send reset string of "-1" to the server  
+            int resetSent = sender.Send(resetMsg);
 
-                    string resetString = "-1";
-                    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
-
-                    // Send reset string of "-1" to the server  
-                    int resetSent = sender.Send(resetMsg);
-
-                    //reset global flags
-                    // lineNo set to -1 because first bar of the new day can not be used for the construct of bar info to the server, the STARTTIME will refer to previous bar, which violates
-                    // server ENDTIME > STARTTIME requirement
-                    //lineNo = -1;
-                    currPos = Position.posFlat;
-                    profitChasingFlag = false;
-                    stopLossEncountered = false;
-                    endSession = true;
-                }
-            }
+            //reset global flags
+            currPos = Position.posFlat;
+            profitChasingFlag = false;
+            stopLossEncountered = false;
+            lineNo = 0;
         }
+
+        //private void HandleEndOfSession()
+        //{
+        //    DateTime endSessionTime;
+
+        //    // pick the correct End session time
+        //    if (Time[0].DayOfWeek == DayOfWeek.Friday)
+        //    {
+        //        endSessionTime = fridayEndSessionTime;
+        //    }
+        //    else
+        //    {
+        //        endSessionTime = regularEndSessionTime;
+        //    }
+
+        //    if (!endSession && Time[0].Hour == endSessionTime.Hour)
+        //    {
+        //        if (Time[0].Minute > endSessionTime.Minute)
+        //        {
+        //            Print("Current Time[0]= " + Time[0].Hour.ToString() + ":" + Time[0].Minute.ToString());
+        //            Print("End of Session Time= " + endSessionTime.Hour.ToString() + ":" + endSessionTime.Minute.ToString());
+        //            ResetServer();
+        //            endSession = true;
+        //        }
+        //    }
+        //}
 
         protected override void OnBarUpdate()
         {
@@ -537,50 +539,20 @@ In our case it is a 2000 ticks bar. */
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                //Print("Current Bar time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
-                // if the bar elapsed time span across 12 mid night
-                //DateTime t1 = Bars.GetTime(CurrentBar - 1);
-                //DateTime t2 = Bars.GetTime(CurrentBar);
-                //if (TimeSpan.Compare(t1.TimeOfDay, t2.TimeOfDay) > 0)
-                //{
-                //    Print("EOD Session");
-                //    HandleEOD();
-
-                //    string resetString = "-1";
-                //    byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
-
-                //    // Send reset string of "-1" to the server  
-                //    int resetSent = sender.Send(resetMsg);
-                //    lineNo = 0;
-
-                //    //reset global flags
-                //    currPos = Position.posFlat;
-                //    profitChasingFlag = false;
-                //    stopLossEncountered = false;
-                //    return;
-                //}
-
                 // ignore all bars that come after end of session, until next day
-                if (endSession)
-                {
-                    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
-                    if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
-                    {
-                        endSession = false;
-                        lineNo = 0;
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-
-                // skip the first bar of the new day, because otherwise the start time and end time of the bar construction to server will violate server reqd ENDTIME > STARTTIME
-                //if (lineNo == -1)
+                //if (endSession)
                 //{
-                //    lineNo = 0;
-                //    return;
+                //    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
+                //    if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
+                //    {
+                //        endSession = false;
+                //        lineNo = 0;
+                //        return;
+                //    }
+                //    else
+                //    {
+                //        return;
+                //    }
                 //}
 
                 // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
@@ -588,15 +560,17 @@ In our case it is a 2000 ticks bar. */
                 {
                     lineNo += 10000;
                 }
-                else 
-                { 
-                    // Handles missing data cases where End of Session is not 23:59
-                    if (Bars.GetTime(CurrentBar - 1) > Bars.GetTime(CurrentBar))
-                    {
-                        lineNo = 0;
-                        return;
-                    }
+
+                // Handles End of day (2359pm), End of session (1515pm) and occasional missing historical data cases 
+                if (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay)
+                {
+                    Print("EOD, end of session or missing data:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK"));
+
+                    // reset the server and skip to next bar
+                    ResetServer();
+                    return;
                 }
+
 
                 // construct the string buffer to be sent to DLNN
                 string bufString = lineNo.ToString() + ',' +
@@ -682,8 +656,8 @@ In our case it is a 2000 ticks bar. */
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else
             {
-                HandleEndOfSession();
-                return;
+                //HandleEndOfSession();
+                //return;
             }
         }
     }
