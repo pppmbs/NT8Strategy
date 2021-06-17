@@ -47,11 +47,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private double closedPrice = 0.0;
-        // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus 10 minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
-        //private static int bufferUntilEOD = 10;
-        //private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
-        //private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
-        //private bool endSession = false;
+        // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
+        private static int bufferUntilEOD = 10;  // number of minutes before end of session
+        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
+        private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
+        private bool endSession = false;
 
         // global flags
         private bool profitChasingFlag = false;
@@ -232,7 +232,7 @@ In our case it is a 2000 ticks bar. */
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filed, closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled, closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -452,7 +452,7 @@ In our case it is a 2000 ticks bar. */
             return profitChasingFlag;
         }
 
-        private void HandleEOD()
+        private void CloseCurrentPositions()
         {
 
             if (PosLong())
@@ -474,7 +474,7 @@ In our case it is a 2000 ticks bar. */
 
         private void ResetServer()
         {
-            HandleEOD();
+            CloseCurrentPositions();
 
             string resetString = "-1";
             byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
@@ -489,31 +489,33 @@ In our case it is a 2000 ticks bar. */
             lineNo = 0;
         }
 
-        //private void HandleEndOfSession()
-        //{
-        //    DateTime endSessionTime;
+        // Need to Handle end of session on tick because to avoid closing position past current day
+        private void HandleEndOfSession()
+        {
+            DateTime endSessionTime;
 
-        //    // pick the correct End session time
-        //    if (Time[0].DayOfWeek == DayOfWeek.Friday)
-        //    {
-        //        endSessionTime = fridayEndSessionTime;
-        //    }
-        //    else
-        //    {
-        //        endSessionTime = regularEndSessionTime;
-        //    }
+            // pick the correct End session time
+            if (Time[0].DayOfWeek == DayOfWeek.Friday)
+            {
+                endSessionTime = fridayEndSessionTime;
+            }
+            else
+            {
+                endSessionTime = regularEndSessionTime;
+            }
 
-        //    if (!endSession && Time[0].Hour == endSessionTime.Hour)
-        //    {
-        //        if (Time[0].Minute > endSessionTime.Minute)
-        //        {
-        //            Print("Current Time[0]= " + Time[0].Hour.ToString() + ":" + Time[0].Minute.ToString());
-        //            Print("End of Session Time= " + endSessionTime.Hour.ToString() + ":" + endSessionTime.Minute.ToString());
-        //            ResetServer();
-        //            endSession = true;
-        //        }
-        //    }
-        //}
+            if (!endSession && Time[0].Hour == endSessionTime.Hour)
+            {
+                if (Time[0].Minute > endSessionTime.Minute)
+                {
+                    Print("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
+                    Print("Current Time[0]= " + Time[0].ToString("HH:mm"));
+                    CloseCurrentPositions();
+                    ResetServer();
+                    endSession = true;
+                }
+            }
+        }
 
         protected override void OnBarUpdate()
         {
@@ -539,21 +541,21 @@ In our case it is a 2000 ticks bar. */
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                // ignore all bars that come after end of session, until next day
-                //if (endSession)
-                //{
-                //    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
-                //    if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
-                //    {
-                //        endSession = false;
-                //        lineNo = 0;
-                //        return;
-                //    }
-                //    else
-                //    {
-                //        return;
-                //    }
-                //}
+                //ignore all bars that come after end of session, until next day
+                if (endSession)
+                {
+                    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
+                    if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
+                    {
+                        endSession = false;
+                        lineNo = 0;
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
 
                 // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
                 if (stopLossEncountered)
@@ -561,12 +563,13 @@ In our case it is a 2000 ticks bar. */
                     lineNo += 10000;
                 }
 
-                // Handles End of day (2359pm), End of session (1515pm) and occasional missing historical data cases 
+                // HandleEndOfSession() will handle End of day (e.g. 2359pm), End of session (e.g. 1515pm) and this will handle occasional missing historical data cases 
                 if (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay)
                 {
-                    Print("EOD, end of session or missing data:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK"));
+                    Print("!!!!!!!!!!! Missing data detected !!!!!!!!!!!:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss"));
 
-                    // reset the server and skip to next bar
+                    // close current positions, reset the server and skip to next bar
+                    CloseCurrentPositions();
                     ResetServer();
                     return;
                 }
@@ -656,8 +659,9 @@ In our case it is a 2000 ticks bar. */
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else
             {
-                //HandleEndOfSession();
-                //return;
+                // Need to Handle end of session on tick because to avoid closing position past current day
+                HandleEndOfSession();
+                return;
             }
         }
     }
