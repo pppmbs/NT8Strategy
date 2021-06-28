@@ -380,7 +380,7 @@
     <Compile Include="Strategies\AGG5backup.cs" />
     <Compile Include="Strategies\AGG5MixIndicator.cs" />
     <Compile Include="Strategies\AGG5Mixture.cs" />
-    <Compile Include="Strategies\AGGBar.cs" />
+    <Compile Include="Strategies\AGG5Bar.cs" />
     <Compile Include="Strategies\AGGBarBackup.cs" />
     <Compile Include="Strategies\AiTradeStrategy.cs" />
     <Compile Include="Strategies\CombinedManualStrategy.cs" />
@@ -402,6 +402,7 @@
     <Compile Include="Indicators\SampleOverlayPlot.cs" />
     <Compile Include="Indicators\SamplePanelPlot.cs" />
     <Compile Include="Strategies\SampleStrategyPlot.cs" />
+    <Compile Include="Strategies\AGG6Bar.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
