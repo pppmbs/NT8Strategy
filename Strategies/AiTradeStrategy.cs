@@ -30,25 +30,13 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int Fast;
         private int Slow;
 
-        private double lastRSI = 0.0;
         private Order entryOrder = null; // This variable holds an object representing our entry order
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-        private readonly double rsiUpperBound = 80;
-        private readonly double rsiLowerBound = 20;
-
-        private bool rsiLongOppornuity = false;
-        private bool rsiShortOppornuity = false;
-
         private int profiltsTaking = 18; // number of ticks for profits taking
-        private int stopLoss = 6; // number of ticks for stop loss
-        private readonly int maxConsecutiveLosingTrades = 3;
-
-        private int lastProfitableTrades = 0;    // This variable holds our value for how profitable the last three trades were.
-        private int priorNumberOfTrades = 0;    // This variable holds the number of trades taken. It will be checked every OnBarUpdate() to determine when a trade has closed.
-        private int priorSessionTrades = 0;	// This variable holds the number of trades taken prior to each session break.
+        private int stopLoss = 18; // number of ticks for stop loss
 
         protected override void OnStateChange()
         {
@@ -79,8 +67,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 /* Add a secondary bar series. 
 				Very Important: This secondary bar series needs to be smaller than the primary bar series.
 				
-				Note: The primary bar series is whatever you choose for the strategy at startup. In this example I will
-				reference the primary as a 5min bars series. */
+				Note: The primary bar series is whatever you choose for the strategy at startup. 
+				In our case it is a 2000 ticks bar. */
                 AddDataSeries(Data.BarsPeriodType.Tick, 1);
 
                 // Add two EMA indicators to be plotted on the primary bar series
@@ -106,239 +94,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        protected void InitializeTradeAccounting()
-        {
-            lastProfitableTrades = 0;
-            priorSessionTrades = SystemPerformance.AllTrades.Count;
-        }
-
-        protected void TradeAccounting()
-        {
-            /* Here, SystemPerformance.AllTrades.Count - priorSessionTrades checks to make sure there have been three trades today.
-    priorNumberOfTrades makes sure this code block only executes when a new trade has finished. */
-            if ((SystemPerformance.AllTrades.Count - priorSessionTrades) >= 3 && SystemPerformance.AllTrades.Count != priorNumberOfTrades)
-            {
-                // Reset the counter.
-                lastProfitableTrades = 0;
-
-                // Set the new number of completed trades.
-                priorNumberOfTrades = SystemPerformance.AllTrades.Count;
-                // Loop through the last three trades and check profit/loss on each.
-                for (int idx = 1; idx <= maxConsecutiveLosingTrades; idx++)
-                {
-                    /* The SystemPerformance.AllTrades array stores the most recent trade at the highest index value. If there are a total of 10 trades,
-                       this loop will retrieve the 10th trade first (at index position 9), then the 9th trade (at 8), then the 8th trade. */
-                    Trade trade = SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - idx];
-
-                    /* If the trade's profit is greater than 0, add one to the counter. If the trade's profit is less than 0, subtract one.
-                        This logic means break-even trades have no effect on the counter. */
-                    if (trade.ProfitCurrency > 0)
-                    {
-                        lastProfitableTrades++;
-                    }
-
-                    else if (trade.ProfitCurrency < 0)
-                    {
-                        lastProfitableTrades--;
-                    }
-                }
-            }
-        }
-
-        protected bool NoConsecutiveLosingTrades()
-        {
-            return (lastProfitableTrades != -maxConsecutiveLosingTrades);
-        }
-
-        protected bool NoActiveTrade()
-        {
-            //return (entryOrder == null && Position.MarketPosition == MarketPosition.Flat);
-            return (entryOrder == null);
-        }
-
-        protected bool IsUpTrend()
-        {
-            return (DM(14).DiPlus[0] > DM(14).DiMinus[0]);
-        }
-
-        protected bool PriceActionHasMomentum(double m)
-        {
-            return (ADX(14)[0] > m);
-        }
-
-        protected void PullbackTrade()
-        {
-            TradeAccounting();
-
-            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-            if (NoConsecutiveLosingTrades())
-            {
-                // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
-                if (NoActiveTrade())
-                {
-                    if (CrossAbove(RSI(14, 3), 55, 1))
-                    {
-                        if (PriceActionHasMomentum(30))
-                        {
-                            //pullback on a down trend
-                            if (!IsUpTrend())
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterShort(1, 1, "Short");
-                            }
-                        }
-                    }
-                    else if (CrossBelow(RSI(14, 3), 45, 1))
-                    {
-                        if (PriceActionHasMomentum(30))
-                        // pullback on an up trend
-                        {
-                            if (IsUpTrend())
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterLong(1, 1, "Long");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        protected void ContinuationTrade()
-        {
-            TradeAccounting();
-
-            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-            if (NoConsecutiveLosingTrades())
-            {
-                // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
-                if (NoActiveTrade())
-                {
-                    if (CrossAbove(RSI(14, 3), 55, 1))
-                    {
-                        if (IsUpTrend() && PriceActionHasMomentum(45))
-                        {
-                            profiltsTaking = 30;
-                            stopLoss = 6;
-                            EnterLong(1, 1, "Long");
-                        }
-                    }
-                    else if (CrossBelow(RSI(14, 3), 45, 1))
-                    {
-                        if (!IsUpTrend() && PriceActionHasMomentum(45))
-                        {
-                            profiltsTaking = 30;
-                            stopLoss = 6;
-                            EnterShort(1, 1, "Short");
-                        }
-                    }
-                }
-            }
-        }
-
-        protected void AfterLunchBollingerTrade()
-        {
-            TradeAccounting();
-
-            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-            if (NoConsecutiveLosingTrades())
-            {
-                // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
-                if (NoActiveTrade())
-                {   // between 1:00pm and 2:00pm EST
-                    if ((ToTime(Time[0]) > 120000) && (ToTime(Time[0]) < 130000))
-                    {
-                        if ((Close[3] > Bollinger(2, 20).Upper[3]) && PriceActionHasMomentum(30) && (Close[1] < Close[2]) && (Close[0] < Close[1]))
-                        {
-                            profiltsTaking = 30;
-                            stopLoss = 6;
-                            EnterShort(1, 1, "Short");
-                        }
-                        else if ((Close[3] < Bollinger(2, 20).Lower[3]) && PriceActionHasMomentum(30) && (Close[1] > Close[2]) && (Close[0] > Close[1]))
-                        {
-                            profiltsTaking = 30;
-                            stopLoss = 6;
-                            EnterLong(1, 1, "Long");
-                        }
-                    }
-                }
-            }
-        }
-
-
-        protected void CheckforRsiOpportunity()
-        {
-            if (CrossAbove(RSI(14, 3), rsiUpperBound, 1))
-            {
-                rsiShortOppornuity = true;
-                lastRSI = RSI(14, 3)[0];
-            }
-            else if (CrossBelow(RSI(14, 3), rsiLowerBound, 1))
-            {
-                rsiLongOppornuity = true;
-                lastRSI = RSI(14, 3)[0];
-            }
-        }
-
-        protected void ReversalTrade()
-        {
-            TradeAccounting();
-
-            /* If lastProfitableTrades = -consecutiveLosingTrades, that means the last consecutive trades were all losing trades.
-                Don't take anymore trades if this is the case. This counter resets every new session, so it only stops trading for the current day. */
-            if (NoConsecutiveLosingTrades())
-            {
-                // Submit an entry market order if we currently don't have an entry order open and are past the BarsRequiredToTrade bars amount
-                if (NoActiveTrade())
-                {
-
-                    CheckforRsiOpportunity();
-
-                    if (rsiLongOppornuity)
-                    {
-                        if (RSI(14, 3)[0] <= lastRSI)
-                        {
-                            lastRSI = RSI(14, 3)[0];
-                        }
-                        else
-                        {
-                            if (PriceActionHasMomentum(40))
-                            {
-                                profiltsTaking = 24;
-                                stopLoss = 6;
-                                EnterLong(1, 1, "Long");
-                            }
-                            rsiLongOppornuity = false;
-                        }
-                    }
-                }
-                else if (rsiShortOppornuity)
-                {
-                    if (RSI(14, 3)[0] >= lastRSI)
-                    {
-                        lastRSI = RSI(14, 3)[0];
-                    }
-                    else
-                    {
-                        if (PriceActionHasMomentum(40))
-                        {
-                            profiltsTaking = 24;
-                            stopLoss = 6;
-                            EnterShort(1, 1, "Short");
-                        }
-                        rsiShortOppornuity = false;
-                    }
-                }
-            }
-        }
-
-
-        protected override void OnBarUpdate()
+         protected override void OnBarUpdate()
         {
             /* When working with multiple bar series objects it is important to understand the sequential order in which the
             OnBarUpdate() method is triggered. The bars will always run with the primary first followed by the secondary and
@@ -362,16 +118,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Reset the trade profitability counter every day and get the number of trades taken in total.
                 if (Bars.IsFirstBarOfSession && IsFirstTickOfBar)
                 {
-                    InitializeTradeAccounting();
                 }
 
                 if (CurrentBar < BarsRequiredToTrade)
                     return;
 
-                ReversalTrade();
-                AfterLunchBollingerTrade();
-                PullbackTrade();
-                //ContinuationTrade();
 
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.

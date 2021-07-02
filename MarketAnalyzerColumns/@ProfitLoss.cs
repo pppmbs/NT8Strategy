@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -43,6 +43,23 @@ namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 				IsDataSeriesRequired	= false;
 				ShowInTotalRow			= true;
 			}
+		}
+
+		protected override void OnAccountItemUpdate(Cbi.AccountItemEventArgs accountItemUpdate)
+		{
+			if (AccountName != Account.SimulationAccountName || accountItemUpdate.Account.Name != AccountName || accountItemUpdate.AccountItem != AccountItem.UnrealizedProfitLoss)
+				return;
+
+			lock (accountItemUpdate.Account.Positions)
+				position = accountItemUpdate.Account.Positions.FirstOrDefault(o => o.Instrument.FullName == Instrument.FullName);
+
+			executions.Clear();
+			foreach (Cbi.Execution execution in accountItemUpdate.Account.Executions)
+				if (execution.Instrument == Instrument)
+					executions.Add(execution);
+			realizedPL = Cbi.SystemPerformance.Calculate(executions).AllTrades.TradesPerformance.Currency.CumProfit;
+
+			CurrentValue = realizedPL + (position == null ? 0 : position.GetUnrealizedProfitLoss(Cbi.PerformanceUnit.Currency));
 		}
 
 		protected override void OnConnectionStatusUpdate(Cbi.ConnectionStatusEventArgs connectionStatusUpdate)

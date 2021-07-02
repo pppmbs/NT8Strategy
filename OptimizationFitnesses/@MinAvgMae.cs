@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -19,7 +19,7 @@ namespace NinjaTrader.NinjaScript.OptimizationFitnesses
 	{
 		protected override void OnCalculatePerformanceValue(StrategyBase strategy)
 		{
-			Value = strategy.SystemPerformance.AllTrades.TradesPerformance.Percent.AverageMae;
+			Value = 1.0 - strategy.SystemPerformance.AllTrades.TradesPerformance.Percent.AverageMae;
 		}
 
 		protected override void OnStateChange()

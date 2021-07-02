@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -66,7 +66,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 
 		protected override void OnBarUpdate()
 		{
-			if (CotData.GetCotReportName(Instrument.MasterInstrument.Name) == string.Empty)
+			if (CotData.GetCotReportNames(Instrument.MasterInstrument.Name).Count == 0)
 			{
 				Draw.TextFixed(this, "Error", Custom.Resource.CotDataError, TextPosition.BottomRight);
 				return;

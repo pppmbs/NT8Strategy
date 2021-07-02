@@ -48,7 +48,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double reversalRSI = 0.0;
         private readonly int MaxBarCount = 8;
 
-        private int profiltsTaking = 18; // number of ticks for profits taking
+        private int profiltsTaking = 24; // number of ticks for profits taking
         private int stopLoss = 6; // number of ticks for stop loss
         private readonly int maxConsecutiveLosingTrades = 2;
         private int targetIncrement = 0;
@@ -69,7 +69,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (State == State.SetDefaults)
             {
                 Description = @"Sample Using OnOrderUpdate() and OnExecution() methods to submit protective orders";
-                Name = "CombinedManualStrategy";
+                Name = "CombinedManualStrategy"; //AiTradeStrategy
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -544,11 +544,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
 
                 ReversalTrade();
-                //doubleReversalTrade();
                 AfterLunchBollingerTrade();
                 PullbackTrade();
                 //ContinuationTrade();
-                AutoStrategy1();
+
+
+                //AutoStrategy1();
+                //ReversalTrade();
+                //PullbackTrade();
+                //AfterLunchBollingerTrade();
+                //doubleReversalTrade();
+                //ContinuationTrade();
+
             }
             // When the OnBarUpdate() is called from the secondary bar series, do nothing.
             else

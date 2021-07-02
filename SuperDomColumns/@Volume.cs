@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -146,7 +146,8 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 				heightUpdateNeeded = true;
 			}
 
-			double	verticalOffset	= -gridPen.Thickness;
+			double verticalOffset	= -gridPen.Thickness;
+			double pixelsPerDip		= VisualTreeHelper.GetDpi(UiWrapper).PixelsPerDip;
 
 			lock (SuperDom.Rows)
 				foreach (PriceRow row in SuperDom.Rows)
@@ -241,7 +242,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 								{
 									if (DisplayText || rect.Contains(Mouse.GetPosition(UiWrapper)))
 									{
-										FormattedText volumeText = new FormattedText(volumeString, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
+										FormattedText volumeText = new FormattedText(volumeString, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor, pixelsPerDip) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
 
 										// Getting the text height is expensive, so only update it if something's changed
 										if (heightUpdateNeeded)

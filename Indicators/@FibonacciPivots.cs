@@ -1,5 +1,5 @@
 ﻿//
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -278,15 +278,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 		private DateTime RoundUpTimeToPeriodTime(DateTime time, PivotRange pivotRange)
 		{
 			if (pivotRange == PivotRange.Weekly)
-			{
-				DateTime periodStart = time.AddDays((6 - (((int) time.DayOfWeek) + 1) % 7));
-				return periodStart.Date.AddDays(Math.Ceiling(Math.Ceiling(time.Date.Subtract(periodStart.Date).TotalDays)/7)*7).Date;
-			}
+				return Gui.Tools.Extensions.GetEndOfWeekTime(time);
 			if (pivotRange == PivotRange.Monthly)
-			{
-				var result = new DateTime(time.Year, time.Month, 1);
-				return result.AddMonths(1).AddDays(-1);
-			}
+				return Gui.Tools.Extensions.GetEndOfMonthTime(time);
 			return time;
 		}
 

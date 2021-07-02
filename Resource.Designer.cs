@@ -727,7 +727,7 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ou must enable &quot;Download COT data at startup&quot; to receive the most recent COT data.
+        ///   Looks up a localized string similar to &quot;Download COT data at startup&quot; must be enabled in Options to receive the latest data.
         /// </summary>
         public static string CotDataWarning {
             get {
@@ -2491,6 +2491,15 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Extend lines back.
+        /// </summary>
+        public static string NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack {
+            get {
+                return ResourceManager.GetString("NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extension Line Stroke.
         /// </summary>
         public static string NinjaScriptDrawingToolAndrewsPitchforkExtensionStroke {
@@ -3868,7 +3877,7 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commitment of traders.
+        ///   Looks up a localized string similar to The COT indicator plots weekly data from the Commitment Of Traders report, indicating holdings of different participants in the U.S. futures market..
         /// </summary>
         public static string NinjaScriptIndicatorDescriptionCOT {
             get {
@@ -4930,7 +4939,7 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commitment of traders.
+        ///   Looks up a localized string similar to COT.
         /// </summary>
         public static string NinjaScriptIndicatorNameCOT {
             get {

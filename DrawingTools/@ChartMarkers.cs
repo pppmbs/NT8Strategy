@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -603,13 +603,12 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			DrawingTool.SetDrawingToolCommonValues(chartMarkerT, tag, isAutoScale, owner, isGlobal);
 			
 			// dont nuke existing anchor refs 
-			ChartAnchor anchor;
 
 			//int				currentBar		= DrawingTool.GetCurrentBar(owner);
 			//ChartControl	chartControl	= DrawingTool.GetOwnerChartControl(owner);
 			//ChartBars		chartBars		= (owner as Gui.NinjaScript.IChartBars).ChartBars;
 
-			anchor = DrawingTool.CreateChartAnchor(owner, barsAgo, time, yVal);
+			ChartAnchor anchor = DrawingTool.CreateChartAnchor(owner, barsAgo, time, yVal);
 			anchor.CopyDataValues(chartMarkerT.Anchor);
 
 			// dont forget to set anchor as not editing or else it wont be drawn

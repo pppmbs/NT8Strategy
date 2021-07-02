@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -17,11 +17,11 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 {
 	public class ProfitLoss : SuperDomColumn
 	{
-		private FontFamily		fontFamily;	
-		private CultureInfo		forexCulture		= null;
-		private Pen				gridPen;		
-		private double			halfPenWidth;
-		private Typeface		typeFace;
+		private FontFamily	fontFamily;	
+		private CultureInfo	forexCulture	= null;
+		private Pen			gridPen;		
+		private double		halfPenWidth;
+		private Typeface	typeFace;
 
 		[XmlIgnore]
 		[Display(ResourceType = typeof(Resource), Name = "NinjaScriptColumnBaseBackground", GroupName = "PropertyCategoryVisual", Order = 105)]
@@ -100,7 +100,8 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 				}
 			}
 
-			double verticalOffset = -gridPen.Thickness;
+			double verticalOffset	= -gridPen.Thickness;
+			double pixelsPerDip		= VisualTreeHelper.GetDpi(UiWrapper).PixelsPerDip;
 
 			lock (SuperDom.Rows)
 				foreach (PriceRow row in SuperDom.Rows)
@@ -142,7 +143,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 							
 							if (renderWidth - 6 > 0)
 							{
-								FormattedText pnlText = new FormattedText(pnlString, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, SuperDom.Position.Instrument.MasterInstrument.RoundToTickSize(pnL) > 0 ? PositiveForeColor : NegativeForeColor) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
+								FormattedText pnlText = new FormattedText(pnlString, Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, SuperDom.Position.Instrument.MasterInstrument.RoundToTickSize(pnL) > 0 ? PositiveForeColor : NegativeForeColor, pixelsPerDip) { MaxLineCount = 1, MaxTextWidth = renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
 								dc.DrawText(pnlText, new Point(4, verticalOffset + (SuperDom.ActualRowHeight - pnlText.Height) / 2));
 							}
 						}

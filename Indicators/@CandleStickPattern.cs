@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -309,7 +309,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (ninjaScript.CurrentBar < trendStrength || ninjaScript.CurrentBar < 2)
 				return false;
 
-			if (max == null && trendStrength > 0 && (pattern == ChartPattern.HangingMan || pattern == ChartPattern.InvertedHammer))
+			if (max == null && trendStrength > 0 && pattern == ChartPattern.HangingMan)
 			{
 				max = new Indicators.MAX();
 				max.Period = trendStrength;
@@ -341,7 +341,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				}
 			}
 
-			if (min == null && trendStrength > 0 && pattern == ChartPattern.Hammer)
+			if (min == null && trendStrength > 0 && (pattern == ChartPattern.Hammer || pattern == ChartPattern.InvertedHammer))
 			{
 				min = new MIN();
 				min.Period = trendStrength;
@@ -456,18 +456,18 @@ namespace NinjaTrader.NinjaScript.Indicators
 
                     if (upTrendStartBarsAgo > 0 && upTrendEndBarsAgo > 0 && upTrendStartBarsAgo < downTrendStartBarsAgo)
                     {
-                        isInDownTrend = false;
-                        isInUpTrend = true;
+                        isInDownTrend 	= false;
+                        isInUpTrend 	= true;
                     }
                     else if (downTrendStartBarsAgo > 0 && downTrendEndBarsAgo > 0 && upTrendStartBarsAgo > downTrendStartBarsAgo)
                     {
-                        isInDownTrend = true;
-                        isInUpTrend = false;
+                        isInDownTrend 	= true;
+                        isInUpTrend 	= false;
                     }
                     else
                     {
-                        isInDownTrend = false;
-                        isInUpTrend = false;
+                        isInDownTrend 	= false;
+                        isInUpTrend 	= false;
                     }
                 }
             }
@@ -498,7 +498,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.High[0] - n.Close[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
 					case ChartPattern.HangingMan:			found = isInUpTrend && (max == null ? true : max[0] == n.High[0]) && n.Low[0] < n.Open[0] - 5 * n.TickSize 
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.High[0] - n.Close[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
-					case ChartPattern.InvertedHammer:		found = isInUpTrend && (max == null ? true : max[0] == n.High[0]) && n.High[0] > n.Open[0] + 5 * n.TickSize 
+					case ChartPattern.InvertedHammer:		found = isInDownTrend && (min == null ? true : min[0] == n.Low[0]) && n.High[0] > n.Open[0] + 5 * n.TickSize 
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.Close[0] - n.Low[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
 					case ChartPattern.MorningStar:			found = n.Close[2] < n.Open[2] && n.Close[1] < n.Close[2] && n.Open[0] > (Math.Abs((n.Close[1] - n.Open[1]) / 2) + n.Open[1]) && n.Close[0] > n.Open[0]; break;
 					case ChartPattern.PiercingLine:			found = isInDownTrend && n.Open[0] < n.Low[1] && n.Close[1] < n.Open[1] && n.Close[0] > n.Open[0] && n.Close[0] >= n.Close[1] + (n.Open[1] - n.Close[1]) / 2 && n.Close[0] <= n.Open[1]; break;

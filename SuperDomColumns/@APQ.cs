@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -195,18 +195,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 							long oldDepth;
 							priceApqValues.TryRemove(mu.Price, out oldDepth);
 						}
-					}
-				}
-			}
-			
-			if (priceApqValues.TryGetValue(mu.Price, out currentApqValue))
-			{
-				// If the current volume has dropped below the previous value, update APQ value 
-				lock (SuperDom.Rows)
-				{
-					PriceRow row = SuperDom.Rows.FirstOrDefault(r => r.Price == mu.Price);
-					if (row != null)  
-					{
+
 						if (row.SellOrders.Count > 0)
 						{
 							long newVal = currentApqValue - mu.Volume;
@@ -354,6 +343,7 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 
 			this.renderWidth		= renderWidth;
 			double verticalOffset	= -gridPen.Thickness;
+			double pixelsPerDip		= VisualTreeHelper.GetDpi(UiWrapper).PixelsPerDip;
 
 			lock (SuperDom.Rows)
 				foreach (PriceRow row in SuperDom.Rows)
@@ -376,14 +366,14 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 						dc.DrawLine(gridPen, new Point(rect.Right, verticalOffset), new Point(rect.Right, rect.Bottom));
 						// Print APQ value - remember to set MaxTextWidth so text doesn't spill into another column
 						long apq;
-						if (priceApqValues.TryGetValue(row.Price, out apq) && apq > 0 && !string.IsNullOrEmpty(priceApqValues[row.Price].ToString(Core.Globals.GeneralOptions.CurrentCulture)))
+						if (priceApqValues.TryGetValue(row.Price, out apq) && apq > 0)
 						{
 							fontFamily				= SuperDom.Font.Family;
 							typeFace				= new Typeface(fontFamily, SuperDom.Font.Italic ? FontStyles.Italic : FontStyles.Normal, SuperDom.Font.Bold ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal);
 
 							if (this.renderWidth - 6 > 0)
 							{
-								FormattedText noteText = new FormattedText(apq != long.MinValue ? apq.ToString(Core.Globals.GeneralOptions.CurrentCulture) : "N/A", Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor) { MaxLineCount = 1, MaxTextWidth = this.renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
+								FormattedText noteText = new FormattedText(apq != long.MinValue ? apq.ToString(Core.Globals.GeneralOptions.CurrentCulture) : "N/A", Core.Globals.GeneralOptions.CurrentCulture, FlowDirection.LeftToRight, typeFace, SuperDom.Font.Size, ForeColor, pixelsPerDip) { MaxLineCount = 1, MaxTextWidth = this.renderWidth - 6, Trimming = TextTrimming.CharacterEllipsis };
 								dc.DrawText(noteText, new Point(0 + 4, verticalOffset + (SuperDom.ActualRowHeight - noteText.Height) / 2));
 							}
 						}

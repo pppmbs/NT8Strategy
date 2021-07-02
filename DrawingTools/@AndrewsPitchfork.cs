@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -50,6 +50,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 		[Display(ResourceType = typeof(Custom.Resource), Name = "NinjaScriptDrawingToolAndrewsPitchforkRetracement", GroupName = "NinjaScriptLines", Order = 2)]
 		public Stroke RetracementLineStroke	{ get; set; }
+		
+		[Display(ResourceType = typeof(Custom.Resource), Name = "NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack", GroupName = "NinjaScriptLines")]
+		public bool IsExtendedLinesBack { get; set; }
 
 		[Display(ResourceType=typeof(Custom.Resource), Name="NinjaScriptDrawingToolFibonacciTimeExtensionsShowText", GroupName="NinjaScriptGeneral")]
 		public bool IsTextDisplayed			{ get; set; }
@@ -233,6 +236,13 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			double firstBarX		= values[0].ValueType == ChartAlertValueType.StaticValue ? pixelX : chartControl.GetXByTime(values[0].Time);
 			double firstBarY		= chartScale.GetYByValue(values[0].Value);
 			Point barPoint			= new Point(firstBarX, firstBarY);
+			
+			if (IsExtendedLinesBack)
+			{
+				Point minPoint = GetExtendedPoint(alertEndPoint, alertStartPoint);
+				if (minPoint.X > -1 || minPoint.Y > -1)
+					alertStartPoint = minPoint;
+			}
 
 			// Check bars are not yet to our drawing tool
 			if (firstBarX < alertStartPoint.X || firstBarX > alertEndPoint.X)
@@ -487,9 +497,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				Point endPoint		= new Point(startPoint.X + (midPointExtension.X - anchorStartPoint.X), startPoint.Y + (midPointExtension.Y - anchorStartPoint.Y));
 				Point maxLevelPoint	= GetExtendedPoint(startPoint, endPoint);
 				if (priceLevel.Value == 50)
-					RenderTarget.DrawLine(startVec, maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+					RenderTarget.DrawLine(IsExtendedLinesBack ? GetExtendedPoint(endPoint, startPoint).ToVector2() : startVec, maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
 				else
-					RenderTarget.DrawLine(startPoint.ToVector2(), maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+					RenderTarget.DrawLine(IsExtendedLinesBack ? GetExtendedPoint(endPoint, startPoint).ToVector2() : startPoint.ToVector2(), maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
 
 				if (lastStroke == null)
 					lastStroke = new Stroke();

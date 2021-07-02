@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -190,13 +190,14 @@ namespace NinjaTrader.NinjaScript.ShareServices
 								}
 							}
 							authWin.DialogResult	= true;
+							authWin.Close();
 						}
 						else if (e.Uri.Fragment.StartsWith("#error"))
 						{
 							//User denied authorization :'(
 							authWin.DialogResult = false;
+							authWin.Close();
 						}
-						authWin.Close();
 					}
 				};
 			authWin.Closing += (o, e) => webHost.Close();
@@ -382,7 +383,7 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		{			
 			if (State == State.SetDefaults)
 			{
-				CharacterLimit				= 140;
+				CharacterLimit				= 1000;
 				IsConfigured				= false;
 				IsDefault					= false;
 				IsImageAttachmentSupported	= true;

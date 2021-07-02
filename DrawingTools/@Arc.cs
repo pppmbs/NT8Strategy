@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2020, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -265,9 +265,12 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			
 			startAnchor.CopyDataValues(newArc.StartAnchor);
 			endAnchor.CopyDataValues(newArc.EndAnchor);
-
-			newArc.Stroke		= new Stroke(brush, dashStyle, width, 50) { RenderTarget = newArc.Stroke.RenderTarget };
-			newArc.ArcStroke	= new Stroke(brush, dashStyle, width) { RenderTarget = newArc.ArcStroke.RenderTarget };
+			
+			if (brush != null)
+			{
+				newArc.Stroke		= new Stroke(brush, dashStyle, width, 50) { RenderTarget = newArc.Stroke.RenderTarget };
+				newArc.ArcStroke	= new Stroke(brush, dashStyle, width) { RenderTarget = newArc.ArcStroke.RenderTarget };
+			}
 			newArc.SetState(State.Active);
 			return newArc;
 		}
