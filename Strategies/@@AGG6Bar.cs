@@ -325,13 +325,13 @@ In our case it is a 2000 ticks bar. */
         private void StartTradePosition(string signal)
         {
             //Print("StartTradePosition");
-            switch (signal)
+            switch (signal[0])
             {
-                case "0":
+                case '0':
                     // sell
                     AiShort();
                     break;
-                case "2":
+                case '2':
                     // buy
                     AiLong();
                     break;
@@ -362,7 +362,7 @@ In our case it is a 2000 ticks bar. */
 
             if (PosLong())
             {
-                if (signal != "2")
+                if (signal[0] != '2')
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
                     Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0] - closedPrice).ToString());
@@ -373,7 +373,7 @@ In our case it is a 2000 ticks bar. */
 
             if (PosShort())
             {
-                if (signal != "0")
+                if (signal[0] != '0')
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
                     Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice - Close[0]).ToString());
@@ -407,7 +407,7 @@ In our case it is a 2000 ticks bar. */
             // if market trend go against profit positions and server signal against current position, then flatten position and take profits
             if (PosLong())
             {
-                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal == "0")
+                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
@@ -416,7 +416,7 @@ In our case it is a 2000 ticks bar. */
             }
             if (PosShort())
             {
-                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal == "2")
+                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
                 {
                     Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (closedPrice - Close[0]).ToString());
                     AiFlat();
