@@ -396,7 +396,9 @@
     <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
     <Compile Include="Strategies\AGG5BarLiveTrading.cs" />
     <Compile Include="Strategies\%40%40AGG5Bar.cs" />
-    <Compile Include="Strategies\%40%40AGG6Bar.cs" />
+    <Compile Include="Strategies\AGG6Bar.cs" />
+    <Compile Include="Strategies\AGG6BarLiveTrading.cs" />
+    <Compile Include="Strategies\AGG6BarPlus.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
