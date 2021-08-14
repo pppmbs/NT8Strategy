@@ -91,7 +91,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 TraceOrders = false;
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
-                BarsRequiredToTrade = 5;
+                BarsRequiredToTrade = 1;
                 Fast = 10;
                 Slow = 25;
 

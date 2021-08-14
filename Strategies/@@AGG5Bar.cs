@@ -46,6 +46,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
+        private static readonly int portNumber = 3333;
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
@@ -73,7 +74,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"AGG5 Bar strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
+                Description = @"AGG5 Bar strategy, using DLNN to manage start new position and stop loss, profit chasing depends on market trend";
                 Name = "AGG5Bar";
                 //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
                 Calculate = Calculate.OnBarClose;
@@ -90,13 +91,102 @@ namespace NinjaTrader.NinjaScript.Strategies
                 TraceOrders = false;
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
-                BarsRequiredToTrade = 5;
+                BarsRequiredToTrade = 1;
                 Fast = 10;
                 Slow = 25;
 
-                //Set this scripts Print() calls to the first output tab
+                //Set this scripts Print() calls to the second output tab
                 PrintTo = PrintTo.OutputTab1;
 
+                //// Connect to DLNN Server  
+                //try
+                //{
+                //    // Do not attempt connection if already connected
+                //    if (sender != null)
+                //        return;
+
+                //    // Establish the remote endpoint for the socket.  
+                //    // connecting server on port 3333  
+                //    IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                //    // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly
+                //    IPAddress ipAddress = ipHostInfo.AddressList[4];
+                //    IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
+
+                //    Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
+
+                //    // Create a TCP/IP  socket.  
+                //    sender = new Socket(ipAddress.AddressFamily,
+                //        SocketType.Stream, ProtocolType.Tcp);
+
+                //    // Connect the socket to the remote endpoint. Catch any errors.  
+                //    try
+                //    {
+                //        sender.Connect(remoteEP);
+
+                //        Print(" ************ Socket connected to : " +
+                //            sender.RemoteEndPoint.ToString() + "*************");
+
+                //        // TODO: Release the socket.  
+                //        //sender.Shutdown(SocketShutdown.Both);
+                //        //sender.Close();
+
+                //    }
+                //    catch (ArgumentNullException ane)
+                //    {
+                //        Print("ArgumentNullException : " + ane.ToString());
+                //    }
+                //    catch (SocketException se)
+                //    {
+                //        Print("SocketException : " + se.ToString());
+                //    }
+                //    catch (Exception e)
+                //    {
+                //        Print("Unexpected exception : " + e.ToString());
+                //    }
+
+                //}
+                //catch (Exception e)
+                //{
+                //    Print(e.ToString());
+                //}
+            }
+            else if (State == State.Configure)
+            {
+                /* Add a secondary bar series.
+Very Important: This secondary bar series needs to be smaller than the primary bar series.
+
+Note: The primary bar series is whatever you choose for the strategy at startup.
+In our case it is a 2000 ticks bar. */
+                AddDataSeries(Data.BarsPeriodType.Tick, 1);
+
+                //            // Add two EMA indicators to be plotted on the primary bar series
+                //            AddChartIndicator(EMA(Fast));
+                //            AddChartIndicator(EMA(Slow));
+
+                //            /* Adjust the color of the EMA plots.
+                //For more information on this please see this tip: http://www.ninjatrader-support.com/vb/showthread.php?t=3228 */
+                //            EMA(Fast).Plots[0].Brush = Brushes.Blue;
+                //            EMA(Slow).Plots[0].Brush = Brushes.Green;
+
+
+                // set static profit target and stop loss
+                //SetProfitTarget(CalculationMode.Ticks, profitTarget);
+                SetStopLoss(CalculationMode.Ticks, hardDeck);
+            }
+            else if (State == State.Realtime)
+            {
+                // one time only, as we transition from historical
+                // convert any old historical order object references
+                // to the new live order submitted to the real-time account
+                if (entryOrder != null)
+                    entryOrder = GetRealtimeOrder(entryOrder);
+                if (stopOrder != null)
+                    stopOrder = GetRealtimeOrder(stopOrder);
+                if (targetOrder != null)
+                    targetOrder = GetRealtimeOrder(targetOrder);
+            }
+            else if (State == State.DataLoaded)
+            {
                 // Connect to DLNN Server  
                 try
                 {
@@ -105,11 +195,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return;
 
                     // Establish the remote endpoint for the socket.  
-                    // connecting server on port 3333  
+                    // connecting server on portNumber  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
                     // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly
                     IPAddress ipAddress = ipHostInfo.AddressList[4];
-                    IPEndPoint remoteEP = new IPEndPoint(ipAddress, 3333);
+                    IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
                     Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
 
@@ -142,47 +232,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         Print("Unexpected exception : " + e.ToString());
                     }
-
                 }
                 catch (Exception e)
                 {
                     Print(e.ToString());
                 }
-            }
-            else if (State == State.Configure)
-            {
-                /* Add a secondary bar series.
-Very Important: This secondary bar series needs to be smaller than the primary bar series.
-
-Note: The primary bar series is whatever you choose for the strategy at startup.
-In our case it is a 2000 ticks bar. */
-                AddDataSeries(Data.BarsPeriodType.Tick, 1);
-
-                //            // Add two EMA indicators to be plotted on the primary bar series
-                //            AddChartIndicator(EMA(Fast));
-                //            AddChartIndicator(EMA(Slow));
-
-                //            /* Adjust the color of the EMA plots.
-                //For more information on this please see this tip: http://www.ninjatrader-support.com/vb/showthread.php?t=3228 */
-                //            EMA(Fast).Plots[0].Brush = Brushes.Blue;
-                //            EMA(Slow).Plots[0].Brush = Brushes.Green;
-
-
-                // set static profit target and stop loss
-                SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                SetStopLoss(CalculationMode.Ticks, hardDeck);
-            }
-            else if (State == State.Realtime)
-            {
-                // one time only, as we transition from historical
-                // convert any old historical order object references
-                // to the new live order submitted to the real-time account
-                if (entryOrder != null)
-                    entryOrder = GetRealtimeOrder(entryOrder);
-                if (stopOrder != null)
-                    stopOrder = GetRealtimeOrder(stopOrder);
-                if (targetOrder != null)
-                    targetOrder = GetRealtimeOrder(targetOrder);
             }
         }
 
