@@ -544,7 +544,7 @@ In our case it is a 2000 ticks bar. */
 
         private void CloseCurrentPositions()
         {
-            // EOD close current position with Limit order based on closed price of current bar
+            // EOD close current position(s)
             if (PosLong())
             {
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice)*50 - 5.08).ToString());
