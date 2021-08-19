@@ -42,15 +42,15 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 2 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
-        private static readonly int portNumber = 3333;
+        private static readonly int softDeck = 1 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 2 * 4; //hard deck for auto stop loss
+        private static readonly int portNumber = 4444;
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
-        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
+        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private bool endSession = false;
 
@@ -91,12 +91,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 TraceOrders = false;
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
-                BarsRequiredToTrade = 1;
+                BarsRequiredToTrade = 0;
                 Fast = 10;
                 Slow = 25;
 
                 //Set this scripts Print() calls to the second output tab
-                PrintTo = PrintTo.OutputTab1;
+                PrintTo = PrintTo.OutputTab2;
 
                 //// Connect to DLNN Server  
                 //try
@@ -171,7 +171,7 @@ In our case it is a 2000 ticks bar. */
 
                 // set static profit target and stop loss
                 //SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                SetStopLoss(CalculationMode.Ticks, hardDeck);
+                //SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
             else if (State == State.Realtime)
             {
@@ -254,19 +254,19 @@ In our case it is a 2000 ticks bar. */
         {
             /* We advise monitoring OnExecution to trigger submission of stop/target orders instead of OnOrderUpdate() since OnExecution() is called after OnOrderUpdate()
             which ensures your strategy has received the execution which is used for internal signal tracking. */
-            if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
-            {
-                if (execution.Order.Name == "Stop loss")
-                {
-                    Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + execution.Order.AverageFillPrice.ToString());
-                    Print("---------------------------------------------------------------------------------");
+            //if (execution.Order != null && (execution.Order.OrderState == OrderState.Filled || execution.Order.OrderState == OrderState.PartFilled))
+            //{
+            //    if (execution.Order.Name == "Stop loss")
+            //    {
+            //        Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + execution.Order.AverageFillPrice.ToString());
+            //        Print("---------------------------------------------------------------------------------");
 
-                    //reset global flags
-                    currPos = Position.posFlat;
-                    profitChasingFlag = false;
-                    stopLossEncountered = true;
-                }
-            }
+            //        //reset global flags
+            //        currPos = Position.posFlat;
+            //        profitChasingFlag = false;
+            //        stopLossEncountered = true;
+            //    }
+            //}
         }
 
         protected override void OnOrderUpdate(Order order, double limitPrice, double stopPrice, int quantity, int filled, double averageFillPrice, OrderState orderState, DateTime time, ErrorCode error, string nativeError)
@@ -357,6 +357,7 @@ In our case it is a 2000 ticks bar. */
         private void AiFlat()
         {
             Print("AiFlat: currPos = " + currPos.ToString());
+
             if (PosLong())
             {
                 ExitLong("ExitLong", "Long");
@@ -378,29 +379,26 @@ In our case it is a 2000 ticks bar. */
 
         private void StartTradePosition(string signal)
         {
-            //Print("StartTradePosition, signal=" + signal);
+            //Print("StartTradePosition");
             switch (signal[0])
             {
                 case '0':
                     // sell
-                    Print("AiShort");
                     AiShort();
                     break;
                 case '2':
                     // buy
-                    Print("AiLong");
                     AiLong();
                     break;
                 default:
                     // do nothing if signal is 1 for flat position
-                    Print("Do nothing");
                     break;
             }
         }
 
         private void ExecuteAITrade(string signal)
         {
-            //Print("ExecuteAITrade, signal=" + signal);
+            //Print("ExecuteAITrade");
             if (PosFlat())
             {
                 StartTradePosition(signal);
@@ -422,7 +420,7 @@ In our case it is a 2000 ticks bar. */
                 if (signal[0] != '2')
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - 5.08).ToString());
                     AiFlat();
                 }
                 return;
@@ -433,7 +431,7 @@ In our case it is a 2000 ticks bar. */
                 if (signal[0] != '0')
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - 5.08).ToString());
                     AiFlat();
                 }
                 return;
@@ -453,7 +451,42 @@ In our case it is a 2000 ticks bar. */
             return false;
         }
 
-        private void HandleProfitChasing()
+        private void HandleHardDeck()
+        {
+            if (PosFlat())
+            {
+                // this is not possible
+                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleSoftDeck");
+                return;
+            }
+
+            if (PosLong())
+            {
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - 5.08).ToString());
+                AiFlat();
+            }
+
+            if (PosShort())
+            {
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - 5.08).ToString());
+                AiFlat();
+            }
+        }
+
+        private bool ViolateHardDeck()
+        {
+            if (PosLong())
+            {
+                return (Close[0] <= (closedPrice - hardDeck * TickSize));
+            }
+            if (PosShort())
+            {
+                return (Close[0] >= (closedPrice + hardDeck * TickSize));
+            }
+            return false;
+        }
+
+        private void HandleProfitChasing(string signal)
         {
             if (PosFlat())
             {
@@ -461,13 +494,13 @@ In our case it is a 2000 ticks bar. */
                 Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleProfitChasing");
                 return;
             }
-            // if market trend go against profit positions, then flatten position and take profits
+            // if market trend go against profit positions and server signal against current position, then flatten position and take profits
             if (PosLong())
             {
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
                 {
                     //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - 5.08).ToString());
                     AiFlat();
                 }
             }
@@ -475,7 +508,7 @@ In our case it is a 2000 ticks bar. */
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (closedPrice - Close[0]).ToString());
+                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - 5.08).ToString());
                     AiFlat();
                 }
             }
@@ -511,10 +544,10 @@ In our case it is a 2000 ticks bar. */
 
         private void CloseCurrentPositions()
         {
-
+            // EOD close current position with Limit order based on closed price of current bar
             if (PosLong())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (Close[0] - closedPrice).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - 5.08).ToString());
 
                 AiFlat();
                 return;
@@ -522,7 +555,7 @@ In our case it is a 2000 ticks bar. */
 
             if (PosShort())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + (closedPrice - Close[0]).ToString());
+                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((closedPrice - Close[0]) * 50 - 5.08).ToString());
 
                 AiFlat();
                 return;
@@ -531,7 +564,7 @@ In our case it is a 2000 ticks bar. */
 
         private void ResetServer()
         {
-            CloseCurrentPositions();
+            //CloseCurrentPositions();
 
             string resetString = "-1";
             byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
@@ -601,12 +634,11 @@ In our case it is a 2000 ticks bar. */
                 //ignore all bars that come after end of session, until next day
                 if (endSession)
                 {
-                    // if new day, then reset endSession and skip to NEXT new Bar, otherwise ignore Bar
+                    // if new day, then reset endSession 
                     if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
                     {
                         endSession = false;
                         lineNo = 0;
-                        return;
                     }
                     else
                     {
@@ -621,33 +653,57 @@ In our case it is a 2000 ticks bar. */
                 }
 
                 // HandleEndOfSession() will handle End of day (e.g. 2359pm), End of session (e.g. 1515pm) and this will handle occasional missing historical data cases 
-                if (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay)
-                {
-                    Print("!!!!!!!!!!! Missing data detected !!!!!!!!!!!:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss"));
+                //if (CurrentBar != 0 && (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay))
+                //{
+                //    Print("!!!!!!!!!!! Missing data detected !!!!!!!!!!!:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss"));
 
-                    // close current positions, reset the server and skip to next bar
-                    CloseCurrentPositions();
-                    ResetServer();
-                    return;
+                //    // close current positions, reset the server and skip to next bar
+                //    CloseCurrentPositions();
+                //    ResetServer();
+                //    return;
+                //}
+
+                string bufString;
+
+                if (Bars.IsFirstBarOfSession)
+                {
+                    // construct the string buffer to be sent to DLNN
+                    bufString = lineNo.ToString() + ',' +
+                        "000000" + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
+                        Bars.GetOpen(CurrentBar).ToString() + ',' + Bars.GetClose(CurrentBar).ToString() + ',' +
+                        Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
+                        Bars.GetVolume(CurrentBar).ToString() + ',' +
+                        SMA(9)[0].ToString() + ',' + SMA(20)[0].ToString() + ',' + SMA(50)[0].ToString() + ',' +
+                        MACD(12, 26, 9).Diff[0].ToString() + ',' + RSI(14, 3)[0].ToString() + ',' +
+                        Bollinger(2, 20).Lower[0].ToString() + ',' + Bollinger(2, 20).Upper[0].ToString() + ',' +
+                        CCI(20)[0].ToString() + ',' +
+                        Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
+                        Momentum(20)[0].ToString() + ',' +
+                        DM(14).DiPlus[0].ToString() + ',' + DM(14).DiMinus[0].ToString() + ',' +
+                        VROC(25, 3)[0].ToString() + ',' +
+                        '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
+                        '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
+                }
+                else
+                {
+                    // construct the string buffer to be sent to DLNN
+                    bufString = lineNo.ToString() + ',' +
+                        Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
+                        Bars.GetOpen(CurrentBar).ToString() + ',' + Bars.GetClose(CurrentBar).ToString() + ',' +
+                        Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
+                        Bars.GetVolume(CurrentBar).ToString() + ',' +
+                        SMA(9)[0].ToString() + ',' + SMA(20)[0].ToString() + ',' + SMA(50)[0].ToString() + ',' +
+                        MACD(12, 26, 9).Diff[0].ToString() + ',' + RSI(14, 3)[0].ToString() + ',' +
+                        Bollinger(2, 20).Lower[0].ToString() + ',' + Bollinger(2, 20).Upper[0].ToString() + ',' +
+                        CCI(20)[0].ToString() + ',' +
+                        Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
+                        Momentum(20)[0].ToString() + ',' +
+                        DM(14).DiPlus[0].ToString() + ',' + DM(14).DiMinus[0].ToString() + ',' +
+                        VROC(25, 3)[0].ToString() + ',' +
+                        '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
+                        '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
 
-
-                // construct the string buffer to be sent to DLNN
-                string bufString = lineNo.ToString() + ',' +
-                    Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + ',' + Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' +
-                    Bars.GetOpen(CurrentBar).ToString() + ',' + Bars.GetClose(CurrentBar).ToString() + ',' +
-                    Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
-                    Bars.GetVolume(CurrentBar).ToString() + ',' +
-                    SMA(9)[0].ToString() + ',' + SMA(20)[0].ToString() + ',' + SMA(50)[0].ToString() + ',' +
-                    MACD(12, 26, 9).Diff[0].ToString() + ',' + RSI(14, 3)[0].ToString() + ',' +
-                    Bollinger(2, 20).Lower[0].ToString() + ',' + Bollinger(2, 20).Upper[0].ToString() + ',' +
-                    CCI(20)[0].ToString() + ',' +
-                    Bars.GetHigh(CurrentBar).ToString() + ',' + Bars.GetLow(CurrentBar).ToString() + ',' +
-                    Momentum(20)[0].ToString() + ',' +
-                    DM(14).DiPlus[0].ToString() + ',' + DM(14).DiMinus[0].ToString() + ',' +
-                    VROC(25, 3)[0].ToString() + ',' +
-                    '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
-                    '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
 
                 //Print("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
 
@@ -678,8 +734,6 @@ In our case it is a 2000 ticks bar. */
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
                 //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
-                //Print("bytesRec=" + bytesRec.ToString());
-
                 // Return signal from DLNN is not we expected, close outstanding position and restart
                 if (bytesRec == -1)
                 {
@@ -688,8 +742,6 @@ In our case it is a 2000 ticks bar. */
                 }
                 else
                     lineNo++;
-
-                //Print("lineNo=" + lineNo.ToString());
 
                 // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
@@ -712,7 +764,7 @@ In our case it is a 2000 ticks bar. */
                         // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
                         if ((profitChasingFlag || TouchedProfitChasing()))
                         {
-                            HandleProfitChasing();
+                            HandleProfitChasing(svrSignal);
                         }
                     }
                 }
@@ -722,6 +774,17 @@ In our case it is a 2000 ticks bar. */
             {
                 // Need to Handle end of session on tick because to avoid closing position past current day
                 HandleEndOfSession();
+
+                // HandleEndOfSession would close all positions
+                if (!endSession && ViolateHardDeck())
+                {
+                    HandleHardDeck();
+
+                    //reset global flags
+                    currPos = Position.posFlat;
+                    profitChasingFlag = false;
+                    stopLossEncountered = true;
+                }
                 return;
             }
         }

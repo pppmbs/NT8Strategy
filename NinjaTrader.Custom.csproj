@@ -398,7 +398,7 @@
     <Compile Include="Strategies\AGG6Bar.cs" />
     <Compile Include="Strategies\AGG6BarLiveTrading.cs" />
     <Compile Include="Strategies\AGG6BarPlus.cs" />
-    <Compile Include="Strategies\%40%40AGG5Bar.cs" />
+    <Compile Include="Strategies\AGG5Bar.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
