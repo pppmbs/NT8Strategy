@@ -42,14 +42,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 16 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
+        private static readonly int softDeck = 8 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 16 * 4; //hard deck for auto stop loss
         private static readonly int portNumber = 3333;
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
-        private static int bufferUntilEOD = 5;  // number of minutes before end of session
+        private static int bufferUntilEOD = 10;  // number of minutes before end of session
         //private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 23, (59 - bufferUntilEOD), 00);
         private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
@@ -78,8 +78,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 Description = @"AGG6BarLiveTrading strategy (for live trading), using DLNN to manage start new position and stop loss, profit chasing depends on market trend AND Server signal";
                 Name = "AGG6BarLiveTrading";
-                Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
-                //Calculate = Calculate.OnBarClose;
+                //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
+                Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
                 IsExitOnSessionCloseStrategy = true;

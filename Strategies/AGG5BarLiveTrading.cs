@@ -78,8 +78,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 Description = @"AGG5BarLiveTrading strategy (for live trading), using DLNN to manage start new position and stop loss, profit chasing depends on market trend - however use Bars.GetClose(CurrentBar) to determine market trend";
                 Name = "AGG5BarLiveTrading";
-                Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
-                //Calculate = Calculate.OnBarClose;
+                //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
+                Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
                 IsExitOnSessionCloseStrategy = true;

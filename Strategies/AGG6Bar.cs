@@ -42,10 +42,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static readonly int lotSize = 1;
 
-        private static readonly int profitChasing = 2 * 4; // the target where HandleProfitChasing kicks in
+        private static readonly int profitChasing = 16 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
-        private static readonly int softDeck = 1 * 4; // number of stops for soft stop loss
-        private static readonly int hardDeck = 2 * 4; //hard deck for auto stop loss
+        private static readonly int softDeck = 8 * 4; // number of stops for soft stop loss
+        private static readonly int hardDeck = 16 * 4; //hard deck for auto stop loss
         private static readonly int portNumber = 4444;
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
@@ -703,8 +703,6 @@ In our case it is a 2000 ticks bar. */
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
-
-
                 //Print("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
