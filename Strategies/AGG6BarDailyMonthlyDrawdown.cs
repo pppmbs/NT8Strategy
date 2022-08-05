@@ -437,6 +437,25 @@ In our case it is a 2000 ticks bar. */
                 return;
             }
 
+            // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
+            if (monthlyProfitChasingFlag)
+            {
+                // trading halt if suffers more than  ProfitChasingAllowableDrawdown  losses
+                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown))) 
+                {
+                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
+                    return;
+                }
+            }
+            else
+            {
+                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
+                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
+                {
+                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
+                    return;
+                }
+            }
 
             //Print("StartTradePosition");
             switch (signal[0])
@@ -457,25 +476,11 @@ In our case it is a 2000 ticks bar. */
 
         private void ExecuteAITrade(string signal)
         {
-            // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             // Once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
                 if (currentCapital > (startingCapital * (1 + ProfitChasingTarget)))
                     monthlyProfitChasingFlag = true;
-            }
-
-            if (monthlyProfitChasingFlag)
-            {
-                // trading halt if suffers more than  ProfitChasingAllowableDrawdown  losses
-                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown)))
-                    return;
-            }
-            else
-            {
-                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
-                    return;
             }
 
             //Print("ExecuteAITrade");
