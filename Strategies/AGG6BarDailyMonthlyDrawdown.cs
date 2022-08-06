@@ -45,10 +45,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static double CommissionRate = 5.48;
 
-        //below are constants that could be experimented
-        private static double MaxPercentAllowableDrawdown = 0.7; // allow maximum 70% drawdown before trading halt for the month
+        //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
+		private static double ProfitChasingTarget = 0.75; // 75% monthly gain profit target
+        private static double MaxPercentAllowableDrawdown = 0.7; // allow maximum 70% monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allow max 10% drawdown if profit chasing target is achieved before trading halt for the month
-        private static double ProfitChasingTarget = 0.75; // 75% monthly gain profit target
+
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         //below are variables accounting for each trading day for the month
@@ -431,32 +432,6 @@ In our case it is a 2000 ticks bar. */
 
         private void StartTradePosition(string signal)
         {
-            if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
-            {
-                Print("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartTradePosition");
-                return;
-            }
-
-            // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
-            if (monthlyProfitChasingFlag)
-            {
-                // trading halt if suffers more than  ProfitChasingAllowableDrawdown  losses
-                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown))) 
-                {
-                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
-                    return;
-                }
-            }
-            else
-            {
-                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
-                {
-                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
-                    return;
-                }
-            }
-
             //Print("StartTradePosition");
             switch (signal[0])
             {
@@ -476,11 +451,38 @@ In our case it is a 2000 ticks bar. */
 
         private void ExecuteAITrade(string signal)
         {
-            // Once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
+            // don't execute trade if consecutive losses greater than allowable limits
+            if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
+            {
+                Print("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartTradePosition");
+                return;
+            }
+
+            // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
                 if (currentCapital > (startingCapital * (1 + ProfitChasingTarget)))
                     monthlyProfitChasingFlag = true;
+            }
+
+            // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
+            if (monthlyProfitChasingFlag)
+            {
+                // trading halt if suffers more than  ProfitChasingAllowableDrawdown  losses
+                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown)))
+                {
+                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
+                    return;
+                }
+            }
+            else
+            {
+                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
+                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
+                {
+                    Print("Monthly stop loss enforced, Skipping StartTradePosition");
+                    return;
+                }
             }
 
             //Print("ExecuteAITrade");
