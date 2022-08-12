@@ -28,7 +28,7 @@ using System.Diagnostics;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyDrawdown : Strategy
+    public class AGG6BarDailyMonthlyVarPeak : Strategy
     {
         private int Fast;
         private int Slow;
@@ -47,14 +47,15 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
         private static double ProfitChasingTarget = 0.75; // 75% monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.7; // allow maximum 70% monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double ProfitChasingAllowableDrawdown = 0.1; // allow max 10% drawdown if profit chasing target is achieved before trading halt for the month
+        private static double MaxPercentAllowableDrawdown1 = 0.7; // 1st half of the month, allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double MaxPercentAllowableDrawdown2 = 0.15; // 2nd half of the month, allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double ProfitChasingAllowableDrawdown = 0.1; // allow max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
-        private double yesterdayCapital = InitStartingCapital; // set to  startingCapital before the month
+        private double peakCapital = InitStartingCapital; // set to  startingCapital before the month
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
 
@@ -98,8 +99,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"Implements the daily drawdown control and monthly profit chasing/stop loss strategy";
-                Name = "AGG6BarDailyMonthlyDrawdown";
+                Description = @"Implements the daily drawdown control and monthly profit chasing/stop loss strategy with different stop loss settings for first half and second half of the month";
+                Name = "AGG6BarDailyMonthlyVarPeak";
                 //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
@@ -471,8 +472,8 @@ In our case it is a 2000 ticks bar. */
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
-                // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from yesterdayCapital of the month
-                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown)))
+                // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from peakCapital of the month
+                if (currentCapital < (peakCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
                     Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     return;
@@ -480,11 +481,24 @@ In our case it is a 2000 ticks bar. */
             }
             else
             {
-                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
+                // treat MaxPercentAllowableDrawdown policy differently for 1st half and second half of the month
+                if (Time[0].Day < 15)
                 {
-                    Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
-                    return;
+                    // trading halt if suffers more than MaxPercentAllowableDrawdown losses
+                    if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown1)))
+                    {
+                        Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                        return;
+                    }
+                }
+                else
+                {                    
+                    // trading halt if suffers more than MaxPercentAllowableDrawdown losses
+                    if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2)))
+                    {
+                        Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                        return;
+                    }
                 }
             }
 
@@ -711,7 +725,8 @@ In our case it is a 2000 ticks bar. */
             DateTime endSessionTime;
 
             // Trading ends for the day
-            yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
+            if (currentCapital > peakCapital)
+                peakCapital = currentCapital;  // set peakCapital to currentCapital if currentCapital climbs to higher peak
 
             // pick the correct End session time
             if (Time[0].DayOfWeek == DayOfWeek.Friday)
