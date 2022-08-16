@@ -46,9 +46,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double CommissionRate = 5.48;
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
+        private static int StrategySettingInflectionPoint = 15;
         private static double ProfitChasingTarget = 0.75; // 75% monthly gain profit target
         private static double MaxPercentAllowableDrawdown1 = 0.7; // 1st half of the month, allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double MaxPercentAllowableDrawdown2 = 0.15; // 2nd half of the month, allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double MaxPercentAllowableDrawdown2 = 0.1; // 2nd half of the month, allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allow max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
@@ -475,19 +476,19 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from peakCapital of the month
                 if (currentCapital < (peakCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
-                    Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                     return;
                 }
             }
             else
             {
                 // treat MaxPercentAllowableDrawdown policy differently for 1st half and second half of the month
-                if (Time[0].Day < 15)
+                if (Time[0].Day < StrategySettingInflectionPoint)
                 {
                     // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                    if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown1)))
+                    if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown1)))
                     {
-                        Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                        Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
                     }
                 }
@@ -496,7 +497,7 @@ In our case it is a 2000 ticks bar. */
                     // trading halt if suffers more than MaxPercentAllowableDrawdown losses
                     if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2)))
                     {
-                        Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                        Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
                     }
                 }

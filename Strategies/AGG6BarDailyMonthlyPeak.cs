@@ -464,7 +464,7 @@ In our case it is a 2000 ticks bar. */
                 if (currentCapital > (startingCapital * (1 + ProfitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
-                    Print("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
+                    Print("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$" + " currentCapital=" + currentCapital.ToString() + " startingCapital=" + startingCapital.ToString());
                 }
             }
 
@@ -474,16 +474,16 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from peakCapital of the month
                 if (currentCapital < (peakCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
-                    Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                     return;
                 }
             }
             else
             {
                 // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
+                if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown)))
                 {
-                    Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                    Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                     return;
                 }
             }
