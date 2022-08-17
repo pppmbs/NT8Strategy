@@ -39,8 +39,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
         // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
-        private static int MaxConsecutiveLossesUpper = 6;
-        private static int MaxConsecutiveLosses = 4;
+        private static int MaxConsecutiveLossesUpper = 7;
+        private static int MaxConsecutiveLosses = 5;
         private static int MinConsecutiveWins = 2;
 
         private static double CommissionRate = 5.48;
@@ -457,7 +457,7 @@ In our case it is a 2000 ticks bar. */
 
             // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
 
-            if (currentCapital >= ProfitThresholdTarget)
+            if (currentCapital >= (startingCapital + ProfitThresholdTarget))
             {
                 Print("$$$$$$$$$$$$$ Monthly profit threshold target met, stop trading for the month! $$$$$$$$$$$$$");
                 return;
