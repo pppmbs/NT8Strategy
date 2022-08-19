@@ -710,9 +710,6 @@ In our case it is a 2000 ticks bar. */
         {
             DateTime endSessionTime;
 
-            // Trading ends for the day
-            yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
-
             // pick the correct End session time
             if (Time[0].DayOfWeek == DayOfWeek.Friday)
             {
@@ -735,6 +732,9 @@ In our case it is a 2000 ticks bar. */
                     endSession = true;
 
                     ResetWinLossState();
+
+                    // Trading ends for the day
+                    yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
                 }
             }
         }

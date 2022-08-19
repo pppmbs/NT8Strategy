@@ -51,9 +51,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
-        private double yesterdayCapital = InitStartingCapital; // set to  startingCapital before the month
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
-        private bool monthlyProfitChasingFlag = false; // set to false before the month
 
         private int maxConsecutiveDailyLosses = MaxConsecutiveLosses;
         private int consecutiveDailyLosses = 0;
@@ -684,9 +682,6 @@ In our case it is a 2000 ticks bar. */
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;
-
-            // Trading ends for the day
-            yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
 
             // pick the correct End session time
             if (Time[0].DayOfWeek == DayOfWeek.Friday)

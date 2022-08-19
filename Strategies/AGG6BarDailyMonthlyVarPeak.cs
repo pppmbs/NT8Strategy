@@ -483,6 +483,8 @@ In our case it is a 2000 ticks bar. */
             }
             else
             {
+                Print("Day:" + Time[0].Day.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+
                 // treat MaxPercentAllowableDrawdown policy differently for 1st half and second half of the month
                 // Before inflection point
                 if (Time[0].Day < StrategySettingInflectionPoint)
@@ -727,8 +729,6 @@ In our case it is a 2000 ticks bar. */
         {
             DateTime endSessionTime;
 
-            // Trading ends for the day
-            yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
             if (currentCapital > peakCapital)
                 peakCapital = currentCapital;  // set peakCapital to currentCapital if currentCapital climbs to higher peak
 
@@ -754,6 +754,9 @@ In our case it is a 2000 ticks bar. */
                     endSession = true;
 
                     ResetWinLossState();
+
+                    // Trading ends for the day
+                    yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
                 }
             }
         }
