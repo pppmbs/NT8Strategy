@@ -56,6 +56,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
+        private double yesterdayCapital = InitStartingCapital; // set to  startingCapital before the month
         private double peakCapital = InitStartingCapital; // set to  startingCapital before the month
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
@@ -483,19 +484,20 @@ In our case it is a 2000 ticks bar. */
             else
             {
                 // treat MaxPercentAllowableDrawdown policy differently for 1st half and second half of the month
+                // Before inflection point
                 if (Time[0].Day < StrategySettingInflectionPoint)
                 {
-                    // trading halt if suffers more than MaxPercentAllowableDrawdown losses
+                    // trading halt if suffers more than MaxPercentAllowableDrawdown1 losses
                     if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown1)))
                     {
                         Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
                     }
                 }
-                else
-                {                    
-                    // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                    if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2)))
+                else // After inflection point
+                {      
+                    // trading halt if suffers more than MaxPercentAllowableDrawdown2 losses OR currentCapital < yesterdayCapital
+                    if ((currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) || (currentCapital < yesterdayCapital))
                     {
                         Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
@@ -726,6 +728,7 @@ In our case it is a 2000 ticks bar. */
             DateTime endSessionTime;
 
             // Trading ends for the day
+            yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
             if (currentCapital > peakCapital)
                 peakCapital = currentCapital;  // set peakCapital to currentCapital if currentCapital climbs to higher peak
 
