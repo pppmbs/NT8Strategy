@@ -56,7 +56,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
-        private double yesterdayCapital = InitStartingCapital; // set to  startingCapital before the month
         private double peakCapital = InitStartingCapital; // set to  startingCapital before the month
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
@@ -483,7 +482,7 @@ In our case it is a 2000 ticks bar. */
             }
             else
             {
-                Print("Day:" + Time[0].Day.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                Print("Day:" + Time[0].Day.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
 
                 // treat MaxPercentAllowableDrawdown policy differently for 1st half and second half of the month
                 // Before inflection point
@@ -499,7 +498,7 @@ In our case it is a 2000 ticks bar. */
                 else // After inflection point
                 {      
                     // trading halt if suffers more than MaxPercentAllowableDrawdown2 losses AND currentCapital < yesterdayCapital
-                    if ((currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < yesterdayCapital))
+                    if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2)))
                     {
                         Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
@@ -754,9 +753,6 @@ In our case it is a 2000 ticks bar. */
                     endSession = true;
 
                     ResetWinLossState();
-
-                    // Trading ends for the day
-                    yesterdayCapital = currentCapital;  // set yesterdayCapital to currentCapital 
                 }
             }
         }
