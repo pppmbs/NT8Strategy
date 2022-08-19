@@ -496,8 +496,8 @@ In our case it is a 2000 ticks bar. */
                 }
                 else // After inflection point
                 {      
-                    // trading halt if suffers more than MaxPercentAllowableDrawdown2 losses OR currentCapital < yesterdayCapital
-                    if ((currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) || (currentCapital < yesterdayCapital))
+                    // trading halt if suffers more than MaxPercentAllowableDrawdown2 losses AND currentCapital < yesterdayCapital
+                    if ((currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < yesterdayCapital))
                     {
                         Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
                         return;
