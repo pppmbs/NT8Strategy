@@ -46,9 +46,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double CommissionRate = 5.48;
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
-        private static double ProfitChasingTarget = 0.75; // 75% monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.7; // allow maximum 70% monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double ProfitChasingAllowableDrawdown = 0.1; // allow max 10% drawdown if profit chasing target is achieved before trading halt for the month
+        private static double ProfitChasingTarget = 0.75; // % monthly gain profit target
+        private static double MaxPercentAllowableDrawdown = 0.7; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
@@ -476,7 +476,7 @@ In our case it is a 2000 ticks bar. */
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
-                // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from yesterdayCapital of the month
+                // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from prevCapital
                 if (currentCapital < (prevCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
                     Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
@@ -526,8 +526,11 @@ In our case it is a 2000 ticks bar. */
                     currentCapital += ((Close[0] - closedPrice) * 50 - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                    if (monthlyProfitChasingFlag && (currentCapital < prevCapital)) 
+                    {
+                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                    }
                 }
                 return;
             }
@@ -547,7 +550,10 @@ In our case it is a 2000 ticks bar. */
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                    {
+                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                    }
                 }
                 return;
             }
@@ -587,7 +593,10 @@ In our case it is a 2000 ticks bar. */
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                {
+                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+                }
             }
 
             if (PosShort())
@@ -602,7 +611,10 @@ In our case it is a 2000 ticks bar. */
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                {
+                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+                }
             }
         }
 
@@ -643,7 +655,10 @@ In our case it is a 2000 ticks bar. */
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                    {
+                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                    }
                 }
             }
             if (PosShort())
@@ -660,7 +675,10 @@ In our case it is a 2000 ticks bar. */
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                    {
+                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                    }
                 }
             }
         }
@@ -707,7 +725,10 @@ In our case it is a 2000 ticks bar. */
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                {
+                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+                }
                 return;
             }
 
@@ -722,7 +743,10 @@ In our case it is a 2000 ticks bar. */
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
+                {
+                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+                }
                 return;
             }
         }

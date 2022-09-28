@@ -54,8 +54,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
+        private bool haltTrading = false;
+        private bool inflectionPoint = false;
+
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
+        private double prevCapital = InitStartingCapital; // set to  startingCapital before the month
         private double peakCapital = InitStartingCapital; // set to  startingCapital before the month
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
@@ -453,6 +457,9 @@ In our case it is a 2000 ticks bar. */
 
         private void ExecuteAITrade(string signal)
         {
+            if (haltTrading)
+                return;
+
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
@@ -477,6 +484,7 @@ In our case it is a 2000 ticks bar. */
                 if (currentCapital < (peakCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
                     Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                    haltTrading = true;
                     return;
                 }
             }
@@ -492,17 +500,13 @@ In our case it is a 2000 ticks bar. */
                     if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown1)))
                     {
                         Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                        haltTrading = true;
                         return;
                     }
                 }
                 else // After inflection point
-                {      
-                    // trading halt if suffers more than MaxPercentAllowableDrawdown2 losses AND currentCapital < yesterdayCapital
-                    if (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2)))
-                    {
-                        Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
-                        return;
-                    }
+                {
+                    inflectionPoint = true;
                 }
             }
 
@@ -535,6 +539,13 @@ In our case it is a 2000 ticks bar. */
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     currentCapital += ((Close[0] - closedPrice) * 50 - CommissionRate);
+
+                    // trading halt if conditions are met 
+                    if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                    {
+                        Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                        haltTrading = true;
+                    }
                 }
                 return;
             }
@@ -551,6 +562,13 @@ In our case it is a 2000 ticks bar. */
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     currentCapital += ((closedPrice - Close[0]) * 50 - CommissionRate);
+
+                    // trading halt if conditions are met 
+                    if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                    {
+                        Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                        haltTrading = true;
+                    }
                 }
                 return;
             }
@@ -587,6 +605,13 @@ In our case it is a 2000 ticks bar. */
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 currentCapital += ((Close[0] - closedPrice) * 50 - CommissionRate);
+
+                // trading halt if conditions are met 
+                if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                {
+                    Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                    haltTrading = true;
+                }
             }
 
             if (PosShort())
@@ -598,6 +623,13 @@ In our case it is a 2000 ticks bar. */
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 currentCapital += ((closedPrice - Close[0]) * 50 - CommissionRate);
+
+                // trading halt if conditions are met 
+                if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                {
+                    Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                    haltTrading = true;
+                }
             }
         }
 
@@ -691,6 +723,13 @@ In our case it is a 2000 ticks bar. */
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 currentCapital += ((Close[0] - closedPrice) * 50 - CommissionRate);
+
+                // trading halt if conditions are met 
+                if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                {
+                    Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                    haltTrading = true;
+                }
                 return;
             }
 
@@ -702,6 +741,13 @@ In our case it is a 2000 ticks bar. */
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 currentCapital += ((closedPrice - Close[0]) * 50 - CommissionRate);
+
+                // trading halt if conditions are met 
+                if (inflectionPoint && (currentCapital < (peakCapital * (1 - MaxPercentAllowableDrawdown2))) && (currentCapital < prevCapital))
+                {
+                    Print("Day:" + Time[0].Day.ToString() + "!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!" + " prevCapital=" + prevCapital.ToString() + " currentCapital=" + currentCapital.ToString() + " peakCapital=" + peakCapital.ToString());
+                    haltTrading = true;
+                }
                 return;
             }
         }
@@ -727,6 +773,8 @@ In our case it is a 2000 ticks bar. */
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;
+
+            prevCapital = currentCapital;
 
             if (currentCapital > peakCapital)
                 peakCapital = currentCapital;  // set peakCapital to currentCapital if currentCapital climbs to higher peak

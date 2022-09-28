@@ -407,6 +407,7 @@
     <Compile Include="Strategies\AGG6BarDailyMonthlyVarPeak.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyPeak.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyThreshold.cs" />
+    <Compile Include="Strategies\AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
