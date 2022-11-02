@@ -50,7 +50,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double MaxPercentAllowableDrawdown = 0.7; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-        private static double InitStartingCapital = 10000; // assume starting capital is $10,000
+        private static readonly int lotSize = 1;
+        private static double InitStartingCapital = 10000 * lotSize; // assume starting capital is $10,000
 
         private bool haltTrading = false;
 
@@ -65,8 +66,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int consecutiveDailyWins = 0;
 
         private string svrSignal = "1";
-
-        private static readonly int lotSize = 1;
 
         private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing

@@ -28,7 +28,7 @@ using System.Diagnostics;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyVolatilityDrawdown : Strategy
+    public class AGG6BarDailyMonthlyDrawdownLive3001 : Strategy
     {
         private int Fast;
         private int Slow;
@@ -47,10 +47,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
         private static double ProfitChasingTarget = 0.75; // % monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.7; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double MaxPercentAllowableDrawdown = 0.5; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-        private static double InitStartingCapital = 10000; // assume starting capital is $10,000
+        private static readonly int lotSize = 2;
+        private static double InitStartingCapital = 10000 * lotSize; // assume starting capital is $10,000
 
         private bool haltTrading = false;
 
@@ -66,13 +67,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private string svrSignal = "1";
 
-        private static readonly int lotSize = 1;
-
         private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
-        private static readonly int portNumber = 3333;
+        private static readonly int portNumber = 3001;
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
@@ -82,7 +81,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // global flags
         private bool profitChasingFlag = false;
-        private bool stopLossEncountered = false;
+        //private bool stopLossEncountered = false;
 
         private Socket sender = null;
         private byte[] bytes = new byte[1024];
@@ -100,8 +99,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"Identical as AGG6BarDailyMonthlyDrawdown with dynamic adjustment of drawdown settings based on Volatility from the day before";
-                Name = "AGG6BarDailyMonthlyVolatilityDrawdown";
+                Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy";
+                Name = "AGG6BarDailyMonthlyDrawdownLive3001";
                 //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
@@ -184,9 +183,6 @@ Very Important: This secondary bar series needs to be smaller than the primary b
 Note: The primary bar series is whatever you choose for the strategy at startup.
 In our case it is a 2000 ticks bar. */
                 AddDataSeries(Data.BarsPeriodType.Tick, 1);
-
-                // Add a third bar series VIX index
-                AddDataSeries("^VIX", new BarsPeriod { BarsPeriodType = BarsPeriodType.Day });
 
                 //            // Add two EMA indicators to be plotted on the primary bar series
                 //            AddChartIndicator(EMA(Fast));
@@ -432,7 +428,7 @@ In our case it is a 2000 ticks bar. */
             //reset global flags
             currPos = Position.posFlat;
             profitChasingFlag = false;
-            stopLossEncountered = false;
+            //stopLossEncountered = false;
         }
 
         private void StartTradePosition(string signal)
@@ -767,8 +763,13 @@ In our case it is a 2000 ticks bar. */
             //reset global flags
             currPos = Position.posFlat;
             profitChasingFlag = false;
-            stopLossEncountered = false;
+            //stopLossEncountered = false;
             lineNo = 0;
+        }
+
+        private void PrintDailyProfitAndLoss()
+        {   // Print out the net profit of all trades
+            Print("Daily Net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
         }
 
         // Need to Handle end of session on tick because to avoid closing position past current day
@@ -794,12 +795,14 @@ In our case it is a 2000 ticks bar. */
                 {
                     Print("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
                     Print("Current Time[0]= " + Time[0].ToString("HH:mm"));
-                    CloseCurrentPositions();
-                    ResetServer();
 
+                    CloseCurrentPositions();
+
+                    ResetServer();
                     endSession = true;
 
                     ResetWinLossState();
+                    PrintDailyProfitAndLoss();
                 }
             }
         }
@@ -843,11 +846,12 @@ In our case it is a 2000 ticks bar. */
                     }
                 }
 
+                // For live trading, don't modify lineNo
                 // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
-                if (stopLossEncountered)
-                {
-                    lineNo += 10000;
-                }
+                //if (stopLossEncountered)
+                //{
+                //    lineNo += 10000;
+                //}
 
                 // HandleEndOfSession() will handle End of day (e.g. 2359pm), End of session (e.g. 1515pm) and this will handle occasional missing historical data cases
                 //if (CurrentBar != 0 && (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay))
@@ -910,19 +914,20 @@ In our case it is a 2000 ticks bar. */
                 // Receive the response from the remote device.  
                 int bytesRec = sender.Receive(bytes);
 
+                // for Live Trading, don't reset server and change lineNo
                 // prior Stop-Loss observed, hence ignore the returned signal from server and move on to the next bar, reset lineNo to next counter and reset stopLossEncountered flag
-                if (stopLossEncountered)
-                {
-                    lineNo -= 10000;
-                    lineNo++;
-                    stopLossEncountered = false;
+                //if (stopLossEncountered)
+                //{
+                //    lineNo -= 10000;
+                //    lineNo++;
+                //    stopLossEncountered = false;
 
-                    //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
-                    svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Ignore Post STOP-LOSS Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                //    //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
+                //    svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
+                //    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Ignore Post STOP-LOSS Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
 
-                    return;
-                }
+                //    return;
+                //}
 
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
@@ -965,7 +970,7 @@ In our case it is a 2000 ticks bar. */
                 }
             }
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
-            else if (BarsInProgress == 1)
+            else
             {
 
                 // Need to Handle end of session on tick because to avoid closing position past current day
@@ -979,14 +984,9 @@ In our case it is a 2000 ticks bar. */
                     //reset global flags
                     currPos = Position.posFlat;
                     profitChasingFlag = false;
-                    stopLossEncountered = true;
+                    //stopLossEncountered = true;
                 }
                 return;
-            }
-            else
-            {
-                // Handle 3rd data series VIX index
-                Print("VIX Index CurrentBar = " + Bars.GetClose(CurrentBar - 1));
             }
         }
     }
