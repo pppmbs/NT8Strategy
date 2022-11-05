@@ -23,6 +23,7 @@ using NinjaTrader.Core.FloatingPoint;
 using NinjaTrader.NinjaScript.Indicators;
 using NinjaTrader.NinjaScript.DrawingTools;
 using System.Diagnostics;
+using System.IO;
 #endregion
 
 //This namespace holds Strategies in this folder and is required. Do not change it.
@@ -30,6 +31,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
     public class AGG6BarDailyMonthlyDrawdownLive3001 : Strategy
     {
+        private string path;
+        private string pathErr;
+        private StreamWriter sw; // a variable for the StreamWriter that will be used 
+        private StreamWriter swErr = null;
+
         private int Fast;
         private int Slow;
 
@@ -51,9 +57,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static readonly int lotSize = 2;
-        private static double InitStartingCapital = 10000 * lotSize; // assume starting capital is $10,000
+        private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         private bool haltTrading = false;
+        private bool realTimeMode = false;  //indicate that the system is now in real time mode - live trading
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
@@ -81,7 +88,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // global flags
         private bool profitChasingFlag = false;
-        //private bool stopLossEncountered = false;
+        private bool stopLossEncountered = false;
 
         private Socket sender = null;
         private byte[] bytes = new byte[1024];
@@ -120,8 +127,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Fast = 10;
                 Slow = 25;
 
-                //Set this scripts Print() calls to the second output tab
-                PrintTo = PrintTo.OutputTab2;
+                //Set this scripts MyPrint() calls to the second output tab
+                PrintTo = PrintTo.OutputTab1;
 
                 //// Connect to DLNN Server  
                 //try
@@ -137,7 +144,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //    IPAddress ipAddress = ipHostInfo.AddressList[4];
                 //    IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
-                //    Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
+                //    MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
 
                 //    // Create a TCP/IP  socket.  
                 //    sender = new Socket(ipAddress.AddressFamily,
@@ -148,7 +155,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //    {
                 //        sender.Connect(remoteEP);
 
-                //        Print(" ************ Socket connected to : " +
+                //        MyPrint(" ************ Socket connected to : " +
                 //            sender.RemoteEndPoint.ToString() + "*************");
 
                 //        // TODO: Release the socket.  
@@ -158,21 +165,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //    }
                 //    catch (ArgumentNullException ane)
                 //    {
-                //        Print("ArgumentNullException : " + ane.ToString());
+                //        MyPrint("ArgumentNullException : " + ane.ToString());
                 //    }
                 //    catch (SocketException se)
                 //    {
-                //        Print("SocketException : " + se.ToString());
+                //        MyPrint("SocketException : " + se.ToString());
                 //    }
                 //    catch (Exception e)
                 //    {
-                //        Print("Unexpected exception : " + e.ToString());
+                //        MyPrint("Unexpected exception : " + e.ToString());
                 //    }
 
                 //}
                 //catch (Exception e)
                 //{
-                //    Print(e.ToString());
+                //    MyPrint(e.ToString());
                 //}
             }
             else if (State == State.Configure)
@@ -195,8 +202,8 @@ In our case it is a 2000 ticks bar. */
 
 
                 // set static profit target and stop loss
-                //SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                //SetStopLoss(CalculationMode.Ticks, hardDeck);
+                SetProfitTarget(CalculationMode.Ticks, profitTarget);
+                SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
             else if (State == State.Realtime)
             {
@@ -209,9 +216,16 @@ In our case it is a 2000 ticks bar. */
                     stopOrder = GetRealtimeOrder(stopOrder);
                 if (targetOrder != null)
                     targetOrder = GetRealtimeOrder(targetOrder);
+
+                realTimeMode = true;
             }
             else if (State == State.DataLoaded)
             {
+
+                //Create log file in the portNumber-yyyyMMdd.log format
+                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
+                sw = File.AppendText(path);  // Open the path for log file writing
+
                 // Connect to DLNN Server  
                 try
                 {
@@ -226,7 +240,7 @@ In our case it is a 2000 ticks bar. */
                     // IPAddress ipAddress = ipHostInfo.AddressList[4];
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
-                    Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
+                    MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
 
                     // Create a TCP/IP  socket.  
                     sender = new Socket(ipAddress.AddressFamily,
@@ -237,7 +251,7 @@ In our case it is a 2000 ticks bar. */
                     {
                         sender.Connect(remoteEP);
 
-                        Print(" ************ Socket connected to : " +
+                        MyPrint(" ************ Socket connected to : " +
                             sender.RemoteEndPoint.ToString() + "*************");
 
                         // TODO: Release the socket.  
@@ -247,20 +261,33 @@ In our case it is a 2000 ticks bar. */
                     }
                     catch (ArgumentNullException ane)
                     {
-                        Print("ArgumentNullException : " + ane.ToString());
+                        MyErrPrint("Socket Connect Error: ArgumentNullException : " + ane.ToString());
                     }
                     catch (SocketException se)
                     {
-                        Print("SocketException : " + se.ToString());
+                        MyErrPrint("Socket Connect Error: SocketException : " + se.ToString());
                     }
                     catch (Exception e)
                     {
-                        Print("Unexpected exception : " + e.ToString());
+                        MyErrPrint("Socket Connect Error: Unexpected exception : " + e.ToString());
                     }
                 }
                 catch (Exception e)
                 {
-                    Print(e.ToString());
+                    MyErrPrint(e.ToString());
+                }
+            }
+            // Necessary to call in order to clean up resources used by the StreamWriter object
+            else if (State == State.Terminated)
+            {
+                if (sw != null)
+                {
+                    sw.Close();
+                    sw.Dispose();
+                    sw = null;
+                    swErr.Close();
+                    swErr.Dispose();
+                    swErr = null;
                 }
             }
         }
@@ -283,8 +310,8 @@ In our case it is a 2000 ticks bar. */
             //{
             //    if (execution.Order.Name == "Stop loss")
             //    {
-            //        Print(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + execution.Order.AverageFillPrice.ToString());
-            //        Print("---------------------------------------------------------------------------------");
+            //        MyPrint(execution.Time.ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " @@@@@ L O S E R @@@@@@ OnExecutionUpdate::Stop loss" + " OrderState=" + execution.Order.OrderState.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + execution.Order.AverageFillPrice.ToString());
+            //        MyPrint("---------------------------------------------------------------------------------");
 
             //        //reset global flags
             //        currPos = Position.posFlat;
@@ -311,7 +338,7 @@ In our case it is a 2000 ticks bar. */
                     if (order.Name == "Short")
                         currPos = Position.posShort;
 
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled, closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled, closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -321,6 +348,25 @@ In our case it is a 2000 ticks bar. */
                     sumFilled = 0;
                 }
             }
+        }
+
+
+        private void MyErrPrint(string buf)
+        {
+            if (swErr == null)
+            {
+                pathErr = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err"; // Define the Path to our err file
+                swErr = File.AppendText(pathErr);  // Open the path for err file writing
+            }
+
+            swErr.WriteLine(buf); // Append a new line to the err file
+            Print(buf);
+        }
+
+        private void MyPrint(string buf)
+        {
+            sw.WriteLine(buf); // Append a new line to the log file
+            Print(buf);
         }
 
         private void ResetWinLossState()
@@ -358,6 +404,8 @@ In our case it is a 2000 ticks bar. */
         {
             if (position.MarketPosition == MarketPosition.Flat)
             {
+                PrintDailyProfitAndLoss();
+                ResetGlobalFlags(false);
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
@@ -399,41 +447,48 @@ In our case it is a 2000 ticks bar. */
         private void AiShort()
         {
             EnterShort(lotSize, "Short");
-            Print("Server Signal=" + svrSignal + " Short");
+            MyPrint("Server Signal=" + svrSignal + " Short");
         }
 
         private void AiLong()
         {
             EnterLong(lotSize, "Long");
-            Print("Server Signal=" + svrSignal + " Long");
+            MyPrint("Server Signal=" + svrSignal + " Long");
         }
+
+        private void ResetGlobalFlags(bool stopLoss)
+        {
+            currPos = Position.posFlat;
+            profitChasingFlag = false;
+            stopLossEncountered = stopLoss;
+        }
+
 
         private void AiFlat()
         {
-            Print("AiFlat: currPos = " + currPos.ToString());
+            MyPrint("AiFlat: currPos = " + currPos.ToString());
 
             if (PosLong())
             {
                 ExitLong("ExitLong", "Long");
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
-                Print("---------------------------------------------------------------------------------");
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
+                MyPrint("---------------------------------------------------------------------------------");
             }
             if (PosShort())
             {
                 ExitShort("ExitShort", "Short");
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
-                Print("---------------------------------------------------------------------------------");
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
+                MyPrint("---------------------------------------------------------------------------------");
             }
+            //PrintDailyProfitAndLoss();
 
             //reset global flags
-            currPos = Position.posFlat;
-            profitChasingFlag = false;
-            //stopLossEncountered = false;
+            ResetGlobalFlags(false);
         }
 
         private void StartTradePosition(string signal)
         {
-            //Print("StartTradePosition");
+            //MyPrint("StartTradePosition");
             switch (signal[0])
             {
                 case '0':
@@ -458,7 +513,7 @@ In our case it is a 2000 ticks bar. */
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
-                Print("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartTradePosition");
+                MyPrint("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartTradePosition");
                 return;
             }
 
@@ -468,7 +523,7 @@ In our case it is a 2000 ticks bar. */
                 if (currentCapital > (startingCapital * (1 + ProfitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
-                    Print("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
+                    MyPrint("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
                 }
             }
 
@@ -478,7 +533,7 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from prevCapital
                 if (currentCapital < (prevCapital * (1 - ProfitChasingAllowableDrawdown)))
                 {
-                    Print("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                     return;
                 }
@@ -488,13 +543,13 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than MaxPercentAllowableDrawdown losses
                 if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
                 {
-                    Print("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                    MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
                     haltTrading = true;
                     return;
                 }
             }
 
-            //Print("ExecuteAITrade");
+            //MyPrint("ExecuteAITrade");
             if (PosFlat())
             {
                 StartTradePosition(signal);
@@ -515,8 +570,8 @@ In our case it is a 2000 ticks bar. */
             {
                 if (signal[0] != '2')
                 {
-                    //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                    //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyLoss();
@@ -527,7 +582,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -538,8 +593,8 @@ In our case it is a 2000 ticks bar. */
             {
                 if (signal[0] != '0')
                 {
-                    //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyLoss();
@@ -550,7 +605,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -576,13 +631,13 @@ In our case it is a 2000 ticks bar. */
             if (PosFlat())
             {
                 // this is not possible
-                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleSoftDeck");
+                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleHardDeck");
                 return;
             }
 
             if (PosLong())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                 AiFlat();
 
                 IncrementDailyLoss();
@@ -593,14 +648,14 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
 
             if (PosShort())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                 AiFlat();
 
                 IncrementDailyLoss();
@@ -611,7 +666,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -643,8 +698,8 @@ In our case it is a 2000 ticks bar. */
             {
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
                 {
-                    //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                    //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyWin();
@@ -655,7 +710,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -664,7 +719,7 @@ In our case it is a 2000 ticks bar. */
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyWin();
@@ -675,7 +730,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -691,7 +746,7 @@ In our case it is a 2000 ticks bar. */
                 //if (Close[0] >= (closedPrice + profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -701,7 +756,7 @@ In our case it is a 2000 ticks bar. */
                 //if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
-                    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -715,7 +770,7 @@ In our case it is a 2000 ticks bar. */
             // EOD close current position(s)
             if (PosLong())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
 
                 AiFlat();
 
@@ -725,7 +780,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -733,7 +788,7 @@ In our case it is a 2000 ticks bar. */
 
             if (PosShort())
             {
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
 
                 AiFlat();
 
@@ -743,7 +798,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -761,15 +816,15 @@ In our case it is a 2000 ticks bar. */
             int resetSent = sender.Send(resetMsg);
 
             //reset global flags
-            currPos = Position.posFlat;
-            profitChasingFlag = false;
-            //stopLossEncountered = false;
+            ResetGlobalFlags(false);
             lineNo = 0;
         }
 
         private void PrintDailyProfitAndLoss()
-        {   // Print out the net profit of all trades
-            Print("Daily Net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
+        {   // MyPrint out the net profit of all trades
+            MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            MyPrint("Cumulative net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
+            MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         }
 
         // Need to Handle end of session on tick because to avoid closing position past current day
@@ -793,8 +848,8 @@ In our case it is a 2000 ticks bar. */
             {
                 if (Time[0].Minute > endSessionTime.Minute)
                 {
-                    Print("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
-                    Print("Current Time[0]= " + Time[0].ToString("HH:mm"));
+                    MyPrint("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
+                    MyPrint("Current Time[0]= " + Time[0].ToString("HH:mm"));
 
                     CloseCurrentPositions();
 
@@ -802,7 +857,6 @@ In our case it is a 2000 ticks bar. */
                     endSession = true;
 
                     ResetWinLossState();
-                    PrintDailyProfitAndLoss();
                 }
             }
         }
@@ -828,7 +882,11 @@ In our case it is a 2000 ticks bar. */
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                if (CurrentBar < BarsRequiredToTrade)
+                //if (CurrentBar < BarsRequiredToTrade)
+                //    return;
+
+                // for live trading, don't start feeding bars to the server until in real time mode
+                if (!realTimeMode)
                     return;
 
                 //ignore all bars that come after end of session, until next day
@@ -846,7 +904,7 @@ In our case it is a 2000 ticks bar. */
                     }
                 }
 
-                // For live trading, don't modify lineNo
+                // For live trading, don't modify lineNo when Stop Loss was encountered
                 // prior Stop-Loss observed, construct the lineNo with special code before sending msg to the server - so that the server will flatten the position
                 //if (stopLossEncountered)
                 //{
@@ -856,7 +914,7 @@ In our case it is a 2000 ticks bar. */
                 // HandleEndOfSession() will handle End of day (e.g. 2359pm), End of session (e.g. 1515pm) and this will handle occasional missing historical data cases
                 //if (CurrentBar != 0 && (Bars.GetTime(CurrentBar - 1).TimeOfDay > Bars.GetTime(CurrentBar).TimeOfDay))
                 //{
-                //    Print("!!!!!!!!!!! Missing data detected !!!!!!!!!!!:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss"));
+                //    MyPrint("!!!!!!!!!!! Missing data detected !!!!!!!!!!!:: <<CurrentBar - 1>> :" + Bars.GetTime(CurrentBar - 1).ToString("yyyy-MM-ddTHH:mm:ss") + "   <<CurrentBar>> :" + Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss"));
 
                 //    // close current positions, reset the server and skip to next bar
                 //    CloseCurrentPositions();
@@ -904,7 +962,7 @@ In our case it is a 2000 ticks bar. */
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
-                //Print("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
+                //MyPrint("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
@@ -924,20 +982,21 @@ In our case it is a 2000 ticks bar. */
 
                 //    //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 //    svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                //    Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Ignore Post STOP-LOSS Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                //    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Ignore Post STOP-LOSS Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
 
                 //    return;
                 //}
 
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
-                //Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
+                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
                 // Return signal from DLNN is not we expected, close outstanding position and restart
                 if (bytesRec == -1)
                 {
                     lineNo = 0;
+                    MyErrPrint("Socket received error!");
                     // TODO: close current position?
                 }
                 else
@@ -982,9 +1041,7 @@ In our case it is a 2000 ticks bar. */
                     HandleHardDeck();
 
                     //reset global flags
-                    currPos = Position.posFlat;
-                    profitChasingFlag = false;
-                    //stopLossEncountered = true;
+                    ResetGlobalFlags(true);
                 }
                 return;
             }

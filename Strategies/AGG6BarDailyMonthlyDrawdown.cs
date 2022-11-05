@@ -51,7 +51,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static readonly int lotSize = 1;
-        private static double InitStartingCapital = 10000 * lotSize; // assume starting capital is $10,000
+        private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         private bool haltTrading = false;
 
@@ -73,6 +73,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private static readonly int portNumber = 3333;
         private double closedPrice = 0.0;
+
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
         private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
@@ -195,8 +196,8 @@ In our case it is a 2000 ticks bar. */
 
 
                 // set static profit target and stop loss
-                //SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                //SetStopLoss(CalculationMode.Ticks, hardDeck);
+                SetProfitTarget(CalculationMode.Ticks, profitTarget);
+                SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
             else if (State == State.Realtime)
             {
@@ -358,6 +359,8 @@ In our case it is a 2000 ticks bar. */
         {
             if (position.MarketPosition == MarketPosition.Flat)
             {
+                PrintDailyProfitAndLoss();
+                ResetGlobalFlags(false);
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
@@ -408,6 +411,13 @@ In our case it is a 2000 ticks bar. */
             Print("Server Signal=" + svrSignal + " Long");
         }
 
+        private void ResetGlobalFlags(bool stopLoss)
+        {
+            currPos = Position.posFlat;
+            profitChasingFlag = false;
+            stopLossEncountered = stopLoss;
+        }
+
         private void AiFlat()
         {
             Print("AiFlat: currPos = " + currPos.ToString());
@@ -424,11 +434,10 @@ In our case it is a 2000 ticks bar. */
                 Print(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
                 Print("---------------------------------------------------------------------------------");
             }
+            //PrintDailyProfitAndLoss();
 
             //reset global flags
-            currPos = Position.posFlat;
-            profitChasingFlag = false;
-            stopLossEncountered = false;
+            ResetGlobalFlags(false);
         }
 
         private void StartTradePosition(string signal)
@@ -576,7 +585,7 @@ In our case it is a 2000 ticks bar. */
             if (PosFlat())
             {
                 // this is not possible
-                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleSoftDeck");
+                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleHardDeck");
                 return;
             }
 
@@ -761,13 +770,20 @@ In our case it is a 2000 ticks bar. */
             int resetSent = sender.Send(resetMsg);
 
             //reset global flags
-            currPos = Position.posFlat;
-            profitChasingFlag = false;
-            stopLossEncountered = false;
+            ResetGlobalFlags(false);
             lineNo = 0;
         }
+		
+		
+		private void PrintDailyProfitAndLoss()
+        {   // Print out the net profit of all trades
+			Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            Print("Cumulative net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
+            Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+        }
 
-        // Need to Handle end of session on tick because to avoid closing position past current day
+        
+		// Need to Handle end of session on tick because to avoid closing position past current day
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;
@@ -973,9 +989,7 @@ In our case it is a 2000 ticks bar. */
                     HandleHardDeck();
 
                     //reset global flags
-                    currPos = Position.posFlat;
-                    profitChasingFlag = false;
-                    stopLossEncountered = true;
+                    ResetGlobalFlags(true);
                 }
                 return;
             }
