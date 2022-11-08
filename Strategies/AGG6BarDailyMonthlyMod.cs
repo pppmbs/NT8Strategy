@@ -33,7 +33,7 @@ namespace NinjaTrader.NinjaScript.Strategies
     {
         private string path;
         private string pathErr;
-        private StreamWriter sw; // a variable for the StreamWriter that will be used 
+        private StreamWriter sw = null; // a variable for the StreamWriter that will be used 
         private StreamWriter swErr = null;
 
         private int Fast;
@@ -127,9 +127,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Fast = 10;
                 Slow = 25;
 
-                //Set this scripts MyPrint() calls to the second output tab
-                PrintTo = PrintTo.OutputTab2;
-
                 //// Connect to DLNN Server  
                 //try
                 //{
@@ -219,11 +216,6 @@ In our case it is a 2000 ticks bar. */
             }
             else if (State == State.DataLoaded)
             {
-
-                //Create log file in the portNumber-yyyyMMdd.log format
-                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
-                sw = File.AppendText(path);  // Open the path for log file writing
-
                 // Connect to DLNN Server  
                 try
                 {
@@ -350,6 +342,9 @@ In our case it is a 2000 ticks bar. */
 
         private void MyErrPrint(string buf)
         {
+            //Set this scripts MyPrint() calls to the first output tab
+            PrintTo = PrintTo.OutputTab1;
+
             if (swErr == null)
             {
                 pathErr = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err"; // Define the Path to our err file
@@ -362,6 +357,16 @@ In our case it is a 2000 ticks bar. */
 
         private void MyPrint(string buf)
         {
+            //Set this scripts MyPrint() calls to the second output tab
+            PrintTo = PrintTo.OutputTab2;
+
+            if (sw == null)
+            {
+                //Create log file in the portNumber-yyyyMMdd.log format
+                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
+                sw = File.AppendText(path);  // Open the path for log file writing
+            }
+
             sw.WriteLine(buf); // Append a new line to the log file
             Print(buf);
         }

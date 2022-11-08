@@ -33,7 +33,7 @@ namespace NinjaTrader.NinjaScript.Strategies
     {
         private string path;
         private string pathErr;
-        private StreamWriter sw; // a variable for the StreamWriter that will be used 
+        private StreamWriter sw = null; // a variable for the StreamWriter that will be used 
         private StreamWriter swErr = null;
 
         private int Fast;
@@ -127,9 +127,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Fast = 10;
                 Slow = 25;
 
-                //Set this scripts MyPrint() calls to the second output tab
-                PrintTo = PrintTo.OutputTab1;
-
                 //// Connect to DLNN Server  
                 //try
                 //{
@@ -221,10 +218,6 @@ In our case it is a 2000 ticks bar. */
             }
             else if (State == State.DataLoaded)
             {
-
-                //Create log file in the portNumber-yyyyMMdd.log format
-                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
-                sw = File.AppendText(path);  // Open the path for log file writing
 
                 // Connect to DLNN Server  
                 try
@@ -353,6 +346,9 @@ In our case it is a 2000 ticks bar. */
 
         private void MyErrPrint(string buf)
         {
+            //Set this scripts MyPrint() calls to the first output tab
+            PrintTo = PrintTo.OutputTab1;
+
             if (swErr == null)
             {
                 pathErr = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err"; // Define the Path to our err file
@@ -365,6 +361,16 @@ In our case it is a 2000 ticks bar. */
 
         private void MyPrint(string buf)
         {
+            //Set this scripts MyPrint() calls to the second output tab
+            PrintTo = PrintTo.OutputTab2;
+
+            if (sw == null)
+            {
+                //Create log file in the portNumber-yyyyMMdd.log format
+                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
+                sw = File.AppendText(path);  // Open the path for log file writing
+            }
+
             sw.WriteLine(buf); // Append a new line to the log file
             Print(buf);
         }
@@ -966,11 +972,22 @@ In our case it is a 2000 ticks bar. */
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
-                // Send the data through the socket.  
-                int bytesSent = sender.Send(msg);
 
-                // Receive the response from the remote device.  
-                int bytesRec = sender.Receive(bytes);
+                int bytesSent;
+                int bytesRec;
+
+                try
+                {
+                    // Send the data through the socket.  
+                    bytesSent = sender.Send(msg);
+
+                    // Receive the response from the remote device.  
+                    bytesRec = sender.Receive(bytes);
+                }
+                catch (SocketException ex)
+                {
+                    MyErrPrint("Socket exception::" + ex.Message + "" + ex.ToString());
+                }
 
                 // for Live Trading, don't reset server and change lineNo
                 // prior Stop-Loss observed, hence ignore the returned signal from server and move on to the next bar, reset lineNo to next counter and reset stopLossEncountered flag
@@ -992,15 +1009,7 @@ In our case it is a 2000 ticks bar. */
                 MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
                 //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
-                // Return signal from DLNN is not we expected, close outstanding position and restart
-                if (bytesRec == -1)
-                {
-                    lineNo = 0;
-                    MyErrPrint("Socket received error!");
-                    // TODO: close current position?
-                }
-                else
-                    lineNo++;
+                lineNo++;
 
                 // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
