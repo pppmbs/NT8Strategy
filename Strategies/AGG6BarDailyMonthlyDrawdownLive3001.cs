@@ -60,7 +60,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         private bool haltTrading = false;
-        private bool realTimeMode = false;  //indicate that the system is now in real time mode - live trading
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
@@ -118,7 +117,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MaximumBarsLookBack = MaximumBarsLookBack.TwoHundredFiftySix;
                 OrderFillResolution = OrderFillResolution.Standard;
                 Slippage = 0;
-                StartBehavior = StartBehavior.WaitUntilFlat;
+                /*
+                 * When network goes down and subsequently reconnected, the following behaviors are expected:
+                 * - If the Account Position is flat already, no reconciliatory order will be submitted. 
+                 *   The strategy will then wait for the Strategy Position to reach a flat state as well before submitting any orders live.
+                 * - If the Account Position is not flat, NinjaTrader will submit a market order(s) to reconcile the Account Position to a flat state. 
+                 *   The strategy will then wait for the Strategy Position to reach a flat state before submitting live orders.
+                 *   
+                 *   The outcome is that NT strategy code will ensure all virtual positions to be flatten, and NT will ensure all account positions to be flatten.
+                 */
+                StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                 TimeInForce = TimeInForce.Gtc;
                 TraceOrders = false;
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
@@ -214,7 +222,8 @@ In our case it is a 2000 ticks bar. */
                 if (targetOrder != null)
                     targetOrder = GetRealtimeOrder(targetOrder);
 
-                realTimeMode = true;
+                // start real time mode with lineNo=0 for server
+                lineNo = 0;
             }
             else if (State == State.DataLoaded)
             {
@@ -247,10 +256,6 @@ In our case it is a 2000 ticks bar. */
                         MyPrint(" ************ Socket connected to : " +
                             sender.RemoteEndPoint.ToString() + "*************");
 
-                        // TODO: Release the socket.  
-                        //sender.Shutdown(SocketShutdown.Both);
-                        //sender.Close();
-
                     }
                     catch (ArgumentNullException ane)
                     {
@@ -282,6 +287,10 @@ In our case it is a 2000 ticks bar. */
                     swErr.Dispose();
                     swErr = null;
                 }
+
+                // Release the socket  
+                sender.Shutdown(SocketShutdown.Both);
+                sender.Close();
             }
         }
 
@@ -892,8 +901,13 @@ In our case it is a 2000 ticks bar. */
                 //    return;
 
                 // for live trading, don't start feeding bars to the server until in real time mode
-                if (!realTimeMode)
+                if (State == State.Historical)
+                {
+                    // during live trading, flatten all virtual positions when loading historical data, this way positions will be flat for real time trading
+                    // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
+                    AiFlat();   
                     return;
+                }
 
                 //ignore all bars that come after end of session, until next day
                 if (endSession)

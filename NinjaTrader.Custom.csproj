@@ -394,19 +394,19 @@
     <Compile Include="Strategies\%40%40ProfitChasingCombined.cs" />
     <Compile Include="Strategies\%40%40ProfitChasingReversal.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
-    <Compile Include="Strategies\AGG5BarLiveTrading.cs" />
-    <Compile Include="Strategies\AGG6Bar.cs" />
-    <Compile Include="Strategies\AGG6BarLiveTrading.cs" />
-    <Compile Include="Strategies\AGG6BarPlus.cs" />
+    <Compile Include="Strategies\%40%40AGG5BarLiveTrading.cs" />
+    <Compile Include="Strategies\%40%40AGG6Bar.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarLiveTrading.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarPlus.cs" />
     <Compile Include="Strategies\%40%40AGG5Bar.cs" />
     <Compile Include="Strategies\CaptureNTData.cs" />
     <Compile Include="Strategies\Sample.cs" />
-    <Compile Include="Strategies\AGG6BarDailyDrawdown.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyDrawdown.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdown.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyMod.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyVarPeak.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyPeak.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyThreshold.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVarPeak.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyPeak.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyThreshold.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001.cs" />
   </ItemGroup>
