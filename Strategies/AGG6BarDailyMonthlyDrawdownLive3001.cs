@@ -43,6 +43,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
+        private bool orderPartialFilled = false;
 
         // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
         private static int MaxConsecutiveLossesUpper = 6;
@@ -56,7 +57,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double MaxPercentAllowableDrawdown = 0.5; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-        private static readonly int lotSize = 2;
+        private static readonly int LotSize = 2;
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
         private bool haltTrading = false;
@@ -134,6 +135,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 BarsRequiredToTrade = 0;
                 Fast = 10;
                 Slow = 25;
+
+                // Strategies will attempt to recalculate its strategy position when a connection is reestablished.
+                ConnectionLossHandling = ConnectionLossHandling.Recalculate;
 
                 //// Connect to DLNN Server  
                 //try
@@ -278,19 +282,26 @@ In our case it is a 2000 ticks bar. */
             // Necessary to call in order to clean up resources used by the StreamWriter object
             else if (State == State.Terminated)
             {
-                if (sw != null)
+                if (sw!=null)
                 {
                     sw.Close();
                     sw.Dispose();
                     sw = null;
+                }
+
+                if (swErr!=null)
+                {
                     swErr.Close();
                     swErr.Dispose();
                     swErr = null;
                 }
 
                 // Release the socket  
-                sender.Shutdown(SocketShutdown.Both);
-                sender.Close();
+                if (sender!=null)
+                {
+                    sender.Shutdown(SocketShutdown.Both);
+                    sender.Close();
+                }
             }
         }
 
@@ -332,15 +343,26 @@ In our case it is a 2000 ticks bar. */
             {
                 entryOrder = order;
 
-                if (order.Filled == 1)
+                if (order.OrderState == OrderState.Filled)
                 {
-                    closedPrice = order.AverageFillPrice;
-                    if (order.Name == "Long")
-                        currPos = Position.posLong;
-                    if (order.Name == "Short")
-                        currPos = Position.posShort;
+                    if (order.Filled == LotSize)
+                    {
+                        closedPrice = order.AverageFillPrice;
+                        if (order.Name == "Long")
+                            currPos = Position.posLong;
+                        if (order.Name == "Short")
+                            currPos = Position.posShort;
 
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled, closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
+                        MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
+                    }
+                    else
+                        MyErrPrint("Order filled, but not filled at lot size specified!!");
+                }
+
+                if (order.OrderState == OrderState.PartFilled)
+                {
+                    sumFilled = order.Filled;
+                    orderPartialFilled = true;
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -348,6 +370,13 @@ In our case it is a 2000 ticks bar. */
                 {
                     entryOrder = null;
                     sumFilled = 0;
+                }
+
+                // Report error and flatten position if order submissoin rejected
+                if (order.OrderState == OrderState.Rejected)
+                {
+                    MyErrPrint("Trade order rejected!!" + " ####### order filled=" + order.Filled);
+                    AiFlat();
                 }
             }
         }
@@ -461,13 +490,13 @@ In our case it is a 2000 ticks bar. */
 
         private void AiShort()
         {
-            EnterShort(lotSize, "Short");
+            EnterShort(LotSize, "Short");
             MyPrint("Server Signal=" + svrSignal + " Short");
         }
 
         private void AiLong()
         {
-            EnterLong(lotSize, "Long");
+            EnterLong(LotSize, "Long");
             MyPrint("Server Signal=" + svrSignal + " Long");
         }
 
@@ -476,6 +505,8 @@ In our case it is a 2000 ticks bar. */
             currPos = Position.posFlat;
             profitChasingFlag = false;
             stopLossEncountered = stopLoss;
+            sumFilled = 0;
+            orderPartialFilled = false;
         }
 
 
@@ -901,11 +932,12 @@ In our case it is a 2000 ticks bar. */
                 //    return;
 
                 // for live trading, don't start feeding bars to the server until in real time mode
-                if (State == State.Historical)
+                if (State != State.Realtime)
                 {
                     // during live trading, flatten all virtual positions when loading historical data, this way positions will be flat for real time trading
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
-                    AiFlat();   
+                    if (!PosFlat())
+                        AiFlat();   
                     return;
                 }
 
@@ -1031,7 +1063,7 @@ In our case it is a 2000 ticks bar. */
                     ExecuteAITrade(svrSignal);
 
                     // if position is flat, no need to do anything
-                    if (currPos == Position.posFlat)
+                    if (PosFlat())
                         return;
 
                     // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
