@@ -392,7 +392,7 @@ In our case it is a 2000 ticks bar. */
                     {
                         MyErrPrint(ErrorType.warning, "New position order rejected!!" + " ####### order filled=" + order.Filled);
                         
-                        ResetGlobalFlags(false);
+                        ResetGlobalFlags(false);    // this will flatten virtual positions and reset all flags
                     }
                 }
             }
@@ -485,7 +485,7 @@ In our case it is a 2000 ticks bar. */
             if (position.MarketPosition == MarketPosition.Flat)
             {
                 PrintDailyProfitAndLoss();
-                ResetGlobalFlags(false);
+                ResetGlobalFlags(false);    // this will flatten virtual positions and reset all flags
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
@@ -568,8 +568,8 @@ In our case it is a 2000 ticks bar. */
                 //PrintDailyProfitAndLoss();
             }
 
-            //reset global flags
-            ResetGlobalFlags(false);
+            // this will flatten virtual positions and reset all flags
+            ResetGlobalFlags(false); 
         }
 
         private void StartTradePosition(string signal)
@@ -901,7 +901,7 @@ In our case it is a 2000 ticks bar. */
             // Send reset string of "-1" to the server  
             int resetSent = sender.Send(resetMsg);
 
-            //reset global flags
+            // this will flatten virtual positions and reset all flags
             ResetGlobalFlags(false);
             lineNo = 0;
         }
@@ -977,8 +977,9 @@ In our case it is a 2000 ticks bar. */
                     // during live trading, flatten all virtual positions when loading historical data, real time trading will start with flat position
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
-                        AiFlat();
-                    
+                        // this will flatten virtual positions and reset all flags
+                        ResetGlobalFlags(false);
+
                     // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
                     lineNo = 0;
                     return;
@@ -1129,7 +1130,6 @@ In our case it is a 2000 ticks bar. */
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else
             {
-
                 // Need to Handle end of session on tick because to avoid closing position past current day
                 HandleEndOfSession();
 
@@ -1138,7 +1138,7 @@ In our case it is a 2000 ticks bar. */
                 {
                     HandleHardDeck();
 
-                    //reset global flags
+                    // this will flatten virtual positions and reset all flags, stopLoss = true
                     ResetGlobalFlags(true);
                 }
                 return;
