@@ -89,6 +89,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // global flags
         private bool profitChasingFlag = false;
         private bool stopLossEncountered = false;
+        private bool flattenPosAttempt = false;
 
         private Socket sender = null;
         private byte[] bytes = new byte[1024];
@@ -101,6 +102,12 @@ namespace NinjaTrader.NinjaScript.Strategies
             posLong
         };
         Position currPos = Position.posFlat;
+
+        enum ErrorType
+        {
+            warning,
+            fatal
+        };
 
         protected override void OnStateChange()
         {
@@ -263,20 +270,20 @@ In our case it is a 2000 ticks bar. */
                     }
                     catch (ArgumentNullException ane)
                     {
-                        MyErrPrint("Socket Connect Error: ArgumentNullException : " + ane.ToString());
+                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: ArgumentNullException : " + ane.ToString());
                     }
                     catch (SocketException se)
                     {
-                        MyErrPrint("Socket Connect Error: SocketException : " + se.ToString());
+                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: SocketException : " + se.ToString());
                     }
                     catch (Exception e)
                     {
-                        MyErrPrint("Socket Connect Error: Unexpected exception : " + e.ToString());
+                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: Unexpected exception : " + e.ToString());
                     }
                 }
                 catch (Exception e)
                 {
-                    MyErrPrint(e.ToString());
+                    MyErrPrint(ErrorType.fatal, e.ToString());
                 }
             }
             // Necessary to call in order to clean up resources used by the StreamWriter object
@@ -353,10 +360,12 @@ In our case it is a 2000 ticks bar. */
                         if (order.Name == "Short")
                             currPos = Position.posShort;
 
+                        flattenPosAttempt = false;   // no longer attempting to flatten position once the order is filled
+
                         MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                     }
                     else
-                        MyErrPrint("Order filled, but not filled at lot size specified!!");
+                        MyErrPrint(ErrorType.warning, "Order filled, but not filled at lot size specified!!");
                 }
 
                 if (order.OrderState == OrderState.PartFilled)
@@ -372,29 +381,56 @@ In our case it is a 2000 ticks bar. */
                     sumFilled = 0;
                 }
 
-                // Report error and flatten position if order submissoin rejected
+                // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
                 if (order.OrderState == OrderState.Rejected)
                 {
-                    MyErrPrint("Trade order rejected!!" + " ####### order filled=" + order.Filled);
-                    AiFlat();
+                    if (flattenPosAttempt) // attempting to close existing positions
+                    {
+                        MyErrPrint(ErrorType.fatal, "Closing position order rejected!! Check order status, may need to call brokerage to close existing position." + " ####### order filled=" + order.Filled);
+                    } 
+                    else // opening new position rejected
+                    {
+                        MyErrPrint(ErrorType.warning, "New position order rejected!!" + " ####### order filled=" + order.Filled);
+                        
+                        ResetGlobalFlags(false);
+                    }
                 }
             }
         }
 
 
-        private void MyErrPrint(string buf)
+        private void MyErrPrint(ErrorType errType, string buf)
         {
+            string errString="";
+
             //Set this scripts MyPrint() calls to the first output tab
             PrintTo = PrintTo.OutputTab1;
 
             if (swErr == null)
             {
                 pathErr = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err"; // Define the Path to our err file
-                swErr = File.AppendText(pathErr);  // Open the path for err file writing
+                swErr = File.CreateText(pathErr);  // Open the path for err file writing
             }
 
-            swErr.WriteLine(buf); // Append a new line to the err file
-            Print(buf);
+            switch (errType)
+            {
+                case ErrorType.fatal:
+                    errString = "FATAL: ";
+                    break;
+                case ErrorType.warning:
+                    errString = "WARNING: ";
+                    break;
+            }
+
+            swErr.WriteLine(errString + Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Append a new line to the err file
+
+            // close error file
+            swErr.Close();
+            swErr.Dispose();
+            swErr = null;
+
+            Print(errString + Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Screen print out
+            MyPrint(errString + buf); // replicate error message to log file
         }
 
         private void MyPrint(string buf)
@@ -409,8 +445,8 @@ In our case it is a 2000 ticks bar. */
                 sw = File.AppendText(path);  // Open the path for log file writing
             }
 
-            sw.WriteLine(buf); // Append a new line to the log file
-            Print(buf);
+            sw.WriteLine(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Append a new line to the log file
+            Print(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf);
         }
 
         private void ResetWinLossState()
@@ -514,19 +550,23 @@ In our case it is a 2000 ticks bar. */
         {
             MyPrint("AiFlat: currPos = " + currPos.ToString());
 
-            if (PosLong())
+            if (!PosFlat())
             {
-                ExitLong("ExitLong", "Long");
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
-                MyPrint("---------------------------------------------------------------------------------");
+                flattenPosAttempt = true;    // attempt to flatten position, to be checked at OnOrderUpdate for successful flattening of positions
+                if (PosLong())
+                {
+                    ExitLong("ExitLong", "Long");
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
+                    MyPrint("---------------------------------------------------------------------------------");
+                }
+                if (PosShort())
+                {
+                    ExitShort("ExitShort", "Short");
+                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
+                    MyPrint("---------------------------------------------------------------------------------");
+                }
+                //PrintDailyProfitAndLoss();
             }
-            if (PosShort())
-            {
-                ExitShort("ExitShort", "Short");
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
-                MyPrint("---------------------------------------------------------------------------------");
-            }
-            //PrintDailyProfitAndLoss();
 
             //reset global flags
             ResetGlobalFlags(false);
@@ -934,10 +974,13 @@ In our case it is a 2000 ticks bar. */
                 // for live trading, don't start feeding bars to the server until in real time mode
                 if (State != State.Realtime)
                 {
-                    // during live trading, flatten all virtual positions when loading historical data, this way positions will be flat for real time trading
+                    // during live trading, flatten all virtual positions when loading historical data, real time trading will start with flat position
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
-                        AiFlat();   
+                        AiFlat();
+                    
+                    // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
+                    lineNo = 0;
                     return;
                 }
 
@@ -1032,7 +1075,7 @@ In our case it is a 2000 ticks bar. */
                 }
                 catch (SocketException ex)
                 {
-                    MyErrPrint("Socket exception::" + ex.Message + "" + ex.ToString());
+                    MyErrPrint(ErrorType.fatal, "Socket exception::" + ex.Message + "" + ex.ToString());
                 }
 
                 // for Live Trading, don't reset server and change lineNo
