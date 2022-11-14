@@ -773,17 +773,24 @@ In our case it is a 2000 ticks bar. */
             ResetGlobalFlags(false);
             lineNo = 0;
         }
-		
-		
-		private void PrintDailyProfitAndLoss()
-        {   // Print out the net profit of all trades
-			Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            Print("Cumulative net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
+
+
+        private void PrintDailyProfitAndLoss()
+        {
+            double cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit; // cumulative P&L
+
+            // MyPrint out the net profit of all trades
+            Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            Print("Cumulative net profit is: " + cumulativePL);
+            Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+
+            Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            Print("Curret capital is: " + currentCapital);
             Print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         }
 
-        
-		// Need to Handle end of session on tick because to avoid closing position past current day
+
+        // Need to Handle end of session on tick because to avoid closing position past current day
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;

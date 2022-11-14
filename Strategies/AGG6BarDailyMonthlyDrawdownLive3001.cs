@@ -31,10 +31,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
     public class AGG6BarDailyMonthlyDrawdownLive3001 : Strategy
     {
-        private string path;
+        private string pathLog;
         private string pathErr;
+        private string pathCC;
+        private string pathVIX;
         private StreamWriter sw = null; // a variable for the StreamWriter that will be used 
-        private StreamWriter swErr = null;
+        private StreamWriter swErr = null; // err file
+        private StreamWriter swCC = null;  // current capital file 
+        private StreamReader srVIX = null;
 
         private int Fast;
         private int Slow;
@@ -45,40 +49,84 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
         private bool orderPartialFilled = false;
 
-        // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
-        private static int MaxConsecutiveLossesUpper = 6;
-        private static int MaxConsecutiveLosses = 4;
-        private static int MinConsecutiveWins = 2;
 
-        private static double CommissionRate = 5.48;
+        /* **********************************************************************************************************
+         * Following settings need to be set before run
+         * **********************************************************************************************************
+         */
+        // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
+        private static double HighVixTreshold = 40;
+
+        // Low VIX
+        private static int LVmaxConsecutiveLossesUpper = 7;
+        private static int LVmaxConsecutiveLosses = 5;
+        private static int LVminConsecutiveWins = 2;
+        // High VIX
+        private static int HVmaxConsecutiveLossesUpper = 4;
+        private static int HVmaxConsecutiveLosses = 2;
+        private static int HVminConsecutiveWins = 2;
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
-        private static double ProfitChasingTarget = 0.75; // % monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.5; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        //Low VIX
+        private static double LVprofitChasingTarget = 0.6; // % monthly gain profit target
+        private static double LVmaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double LVprofitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        // High VIX
+        private static double HVprofitChasingTarget = 0.75; // % monthly gain profit target
+        private static double HVmaxPercentAllowableDrawdown = 0.1; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double HVprofitChasingAllowableDrawdown = 0.05; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static readonly int LotSize = 2;
-        private static double InitStartingCapital = 10000; // assume starting capital is $10,000
+        private static double InitStartingCapital = 10000 * LotSize; // assume starting capital is $10,000 even though capital to lot ratio is $25,000 per lot
+        /*
+         * **********************************************************************************************************
+         */
+
+        // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
+        private int maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+        private int maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+        private int minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+        //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
+        private double profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+        private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+
+        private double currentCapital = InitStartingCapital; // set to  startingCapital before the day
+
+         
+        /* **********************************************************************************************************
+         * Commission rate needs to be set to the current commission rate
+         * **********************************************************************************************************
+         */
+        private static double CommissionRate = 5.48;
 
         private bool haltTrading = false;
 
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
         private double prevCapital = InitStartingCapital; // set to  startingCapital before the month
-        private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
 
-        private int maxConsecutiveDailyLosses = MaxConsecutiveLosses;
+        private int maxConsecutiveDailyLosses = 0;
         private int consecutiveDailyLosses = 0;
         private int consecutiveDailyWins = 0;
 
         private string svrSignal = "1";
 
+        /* **********************************************************************************************************
+         * Following settings need to be set once
+         * **********************************************************************************************************
+         */
         private static readonly int profitChasing = 20 * 4; // the target where HandleProfitChasing kicks in
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
         private static readonly int portNumber = 3001;
+        /*
+         * **********************************************************************************************************
+         */
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
@@ -235,6 +283,66 @@ In our case it is a 2000 ticks bar. */
 
                 // start real time mode with lineNo=0 for server
                 lineNo = 0;
+
+
+                // read the current capital file .cc for the current capital, create one if it does not exist
+                if (swCC == null)
+                {
+                    //Create file in the portNumber-yyyyMMdd.cc format, the Path to current capital file
+                    pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                    pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".cc");
+
+                    if (File.Exists(pathCC))
+                    {
+                        // Read current capital from the cc file
+                        string ccStr = File.ReadAllText(pathCC);
+                        currentCapital = Convert.ToDouble(ccStr);
+                    }
+                    swCC = File.CreateText(pathCC); // Open the path for current capital
+                }
+
+                if (srVIX == null)
+                {
+                    //Read file in the portNumber-yyyyMMdd.cc format, the Path to current vix file
+                    pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                    pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".vix");
+
+                    if (File.Exists(pathVIX))
+                    {
+                        double currentVIX;
+
+                        string maVIX = File.ReadAllText(pathVIX); // read moving average of VIX
+                        currentVIX = Convert.ToDouble(maVIX);
+                     
+                        if (currentVIX >= HighVixTreshold)
+                        {
+                            maxConsecutiveLossesUpper = HVmaxConsecutiveLossesUpper;
+                            maxConsecutiveLosses = HVmaxConsecutiveLossesUpper;
+                            minConsecutiveWins = HVmaxConsecutiveLossesUpper;
+
+                            profitChasingTarget = HVprofitChasingTarget; // % monthly gain profit target
+                            maxPercentAllowableDrawdown = HVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                            profitChasingAllowableDrawdown = HVprofitChasingAllowableDrawdown;
+                        }
+                        else
+                        {
+                            maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                            maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                            minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+                            profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                            maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                            profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+                        }
+                    } 
+                    else
+                    {
+                        MyErrPrint(ErrorType.fatal, pathVIX + " VIX file does not exist!");
+                    }
+                }
+
+                // This statement needs to be the last statement in real time state
+                ResetWinLossState();
             }
             else if (State == State.DataLoaded)
             {
@@ -301,6 +409,13 @@ In our case it is a 2000 ticks bar. */
                     swErr.Close();
                     swErr.Dispose();
                     swErr = null;
+                }
+
+                if (swCC != null)
+                {
+                    swCC.Close();
+                    swCC.Dispose();
+                    swCC = null;
                 }
 
                 // Release the socket  
@@ -408,7 +523,8 @@ In our case it is a 2000 ticks bar. */
 
             if (swErr == null)
             {
-                pathErr = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err"; // Define the Path to our err file
+                pathErr = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                pathErr = System.IO.Path.Combine(pathErr, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".err");
                 swErr = File.CreateText(pathErr);  // Open the path for err file writing
             }
 
@@ -416,6 +532,7 @@ In our case it is a 2000 ticks bar. */
             {
                 case ErrorType.fatal:
                     errString = "FATAL: ";
+                    haltTrading = true;
                     break;
                 case ErrorType.warning:
                     errString = "WARNING: ";
@@ -441,8 +558,10 @@ In our case it is a 2000 ticks bar. */
             if (sw == null)
             {
                 //Create log file in the portNumber-yyyyMMdd.log format
-                path = NinjaTrader.Core.Globals.UserDataDir + portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log"; // Define the Path to our log file
-                sw = File.AppendText(path);  // Open the path for log file writing
+                pathLog = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                pathLog = System.IO.Path.Combine(pathLog, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".log");
+
+                sw = File.AppendText(pathLog);  // Open the path for log file writing
             }
 
             sw.WriteLine(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Append a new line to the log file
@@ -451,7 +570,7 @@ In our case it is a 2000 ticks bar. */
 
         private void ResetWinLossState()
         {
-            maxConsecutiveDailyLosses = MaxConsecutiveLosses;
+            maxConsecutiveDailyLosses = maxConsecutiveLosses;
             consecutiveDailyLosses = 0;
             consecutiveDailyWins = 0;
         }
@@ -462,9 +581,9 @@ In our case it is a 2000 ticks bar. */
             consecutiveDailyWins++;
             consecutiveDailyLosses = 0;
 
-            if (consecutiveDailyWins >= MinConsecutiveWins)
+            if (consecutiveDailyWins >= minConsecutiveWins)
             {
-                if (maxConsecutiveDailyLosses < MaxConsecutiveLossesUpper)
+                if (maxConsecutiveDailyLosses < maxConsecutiveLossesUpper)
                 {
                     maxConsecutiveDailyLosses++;
                 }
@@ -606,7 +725,7 @@ In our case it is a 2000 ticks bar. */
             // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
-                if (currentCapital > (startingCapital * (1 + ProfitChasingTarget)))
+                if (currentCapital > (startingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
                     MyPrint("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
@@ -616,8 +735,8 @@ In our case it is a 2000 ticks bar. */
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
-                // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from prevCapital
-                if (currentCapital < (prevCapital * (1 - ProfitChasingAllowableDrawdown)))
+                // trading halt if suffers more than profitChasingAllowableDrawdown losses from prevCapital
+                if (currentCapital < (prevCapital * (1 - profitChasingAllowableDrawdown)))
                 {
                     MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
@@ -626,8 +745,8 @@ In our case it is a 2000 ticks bar. */
             }
             else
             {
-                // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (startingCapital * (1 - MaxPercentAllowableDrawdown)))
+                // trading halt if suffers more than maxPercentAllowableDrawdown losses
+                if (currentCapital < (startingCapital * (1 - maxPercentAllowableDrawdown)))
                 {
                     MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
                     haltTrading = true;
@@ -907,10 +1026,19 @@ In our case it is a 2000 ticks bar. */
         }
 
         private void PrintDailyProfitAndLoss()
-        {   // MyPrint out the net profit of all trades
+        {
+            double cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit; // cumulative P&L
+
+            // MyPrint out the net profit of all trades
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            MyPrint("Cumulative net profit is: " + SystemPerformance.AllTrades.TradesPerformance.NetProfit);
+            MyPrint("Cumulative net profit is: " + cumulativePL);
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+
+            // MyPrint out the current capital with P/L
+            MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            MyPrint("Curret capital is: " + currentCapital);
+            MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            swCC.WriteLine(currentCapital);
         }
 
         // Need to Handle end of session on tick because to avoid closing position past current day
