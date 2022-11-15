@@ -288,9 +288,9 @@ In our case it is a 2000 ticks bar. */
                 // read the current capital file .cc for the current capital, create one if it does not exist
                 if (swCC == null)
                 {
-                    //Create file in the portNumber-yyyyMMdd.cc format, the Path to current capital file
+                    //Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
                     pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                    pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".cc");
+                    pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + ".cc");
 
                     if (File.Exists(pathCC))
                     {
@@ -303,9 +303,9 @@ In our case it is a 2000 ticks bar. */
 
                 if (srVIX == null)
                 {
-                    //Read file in the portNumber-yyyyMMdd.cc format, the Path to current vix file
+                    //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
                     pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                    pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + "-" + Time[0].ToString("yyyyMMdd") + ".vix");
+                    pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + ".vix");
 
                     if (File.Exists(pathVIX))
                     {
@@ -341,8 +341,8 @@ In our case it is a 2000 ticks bar. */
                     }
                 }
 
-                // This statement needs to be the last statement in real time state
-                ResetWinLossState();
+                // This statement needs to be the last statement in real time state so that maxConsecutiveDailyLosses is set after maxConsecutiveLosses is set
+                SetDailyWinLossState();
             }
             else if (State == State.DataLoaded)
             {
@@ -507,7 +507,7 @@ In our case it is a 2000 ticks bar. */
                     {
                         MyErrPrint(ErrorType.warning, "New position order rejected!!" + " ####### order filled=" + order.Filled);
                         
-                        ResetGlobalFlags(false);    // this will flatten virtual positions and reset all flags
+                        FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
                     }
                 }
             }
@@ -568,7 +568,7 @@ In our case it is a 2000 ticks bar. */
             Print(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf);
         }
 
-        private void ResetWinLossState()
+        private void SetDailyWinLossState()
         {
             maxConsecutiveDailyLosses = maxConsecutiveLosses;
             consecutiveDailyLosses = 0;
@@ -604,7 +604,7 @@ In our case it is a 2000 ticks bar. */
             if (position.MarketPosition == MarketPosition.Flat)
             {
                 PrintDailyProfitAndLoss();
-                ResetGlobalFlags(false);    // this will flatten virtual positions and reset all flags
+                FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
@@ -655,7 +655,7 @@ In our case it is a 2000 ticks bar. */
             MyPrint("Server Signal=" + svrSignal + " Long");
         }
 
-        private void ResetGlobalFlags(bool stopLoss)
+        private void FlattenVirtualPositions(bool stopLoss)
         {
             currPos = Position.posFlat;
             profitChasingFlag = false;
@@ -688,7 +688,7 @@ In our case it is a 2000 ticks bar. */
             }
 
             // this will flatten virtual positions and reset all flags
-            ResetGlobalFlags(false); 
+            FlattenVirtualPositions(false); 
         }
 
         private void StartTradePosition(string signal)
@@ -1021,7 +1021,7 @@ In our case it is a 2000 ticks bar. */
             int resetSent = sender.Send(resetMsg);
 
             // this will flatten virtual positions and reset all flags
-            ResetGlobalFlags(false);
+            FlattenVirtualPositions(false);
             lineNo = 0;
         }
 
@@ -1070,7 +1070,7 @@ In our case it is a 2000 ticks bar. */
                     ResetServer();
                     endSession = true;
 
-                    ResetWinLossState();
+                    SetDailyWinLossState();
                 }
             }
         }
@@ -1106,7 +1106,7 @@ In our case it is a 2000 ticks bar. */
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
                         // this will flatten virtual positions and reset all flags
-                        ResetGlobalFlags(false);
+                        FlattenVirtualPositions(false);
 
                     // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
                     lineNo = 0;
@@ -1267,7 +1267,7 @@ In our case it is a 2000 ticks bar. */
                     HandleHardDeck();
 
                     // this will flatten virtual positions and reset all flags, stopLoss = true
-                    ResetGlobalFlags(true);
+                    FlattenVirtualPositions(true);
                 }
                 return;
             }
