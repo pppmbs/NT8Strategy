@@ -102,8 +102,6 @@ namespace NinjaTrader.NinjaScript.Strategies
          */
         private static double CommissionRate = 5.48;
 
-        private bool haltTrading = false;
-
         //below are variables accounting for each trading day for the month
         private double startingCapital = InitStartingCapital; // set before trading starts for the month
         private double prevCapital = InitStartingCapital; // set to  startingCapital before the month
@@ -137,7 +135,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // global flags
         private bool profitChasingFlag = false;
         private bool stopLossEncountered = false;
-        private bool flattenPosAttempt = false;
+        private bool attemptToFlattenPos = false;
+        private bool haltTrading = false;
+
 
         private Socket sender = null;
         private byte[] bytes = new byte[1024];
@@ -475,8 +475,6 @@ In our case it is a 2000 ticks bar. */
                         if (order.Name == "Short")
                             currPos = Position.posShort;
 
-                        flattenPosAttempt = false;   // no longer attempting to flatten position once the order is filled
-
                         MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                     }
                     else
@@ -499,7 +497,7 @@ In our case it is a 2000 ticks bar. */
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
                 if (order.OrderState == OrderState.Rejected)
                 {
-                    if (flattenPosAttempt) // attempting to close existing positions
+                    if (attemptToFlattenPos) // attempting to close existing positions
                     {
                         MyErrPrint(ErrorType.fatal, "Closing position order rejected!! Check order status, may need to call brokerage to close existing position." + " ####### order filled=" + order.Filled);
                     } 
@@ -603,7 +601,7 @@ In our case it is a 2000 ticks bar. */
         {
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                PrintDailyProfitAndLoss();
+                PrintProfitLossCurrentCapital();
                 FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
             }
             if (position.MarketPosition == MarketPosition.Long)
@@ -662,16 +660,19 @@ In our case it is a 2000 ticks bar. */
             stopLossEncountered = stopLoss;
             sumFilled = 0;
             orderPartialFilled = false;
+            attemptToFlattenPos = false;
         }
 
-
+        
         private void AiFlat()
         {
             MyPrint("AiFlat: currPos = " + currPos.ToString());
 
             if (!PosFlat())
             {
-                flattenPosAttempt = true;    // attempt to flatten position, to be checked at OnOrderUpdate for successful flattening of positions
+                // attempting to flatten virtual positions, flattening of positions will take place in OnPositionUpdate() callback
+                attemptToFlattenPos = true;
+
                 if (PosLong())
                 {
                     ExitLong("ExitLong", "Long");
@@ -684,16 +685,12 @@ In our case it is a 2000 ticks bar. */
                     MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
                     MyPrint("---------------------------------------------------------------------------------");
                 }
-                //PrintDailyProfitAndLoss();
             }
-
-            // this will flatten virtual positions and reset all flags
-            FlattenVirtualPositions(false); 
         }
 
-        private void StartTradePosition(string signal)
+        private void StartNewTradePosition(string signal)
         {
-            //MyPrint("StartTradePosition");
+            //MyPrint("StartNewTradePosition");
             switch (signal[0])
             {
                 case '0':
@@ -712,13 +709,14 @@ In our case it is a 2000 ticks bar. */
 
         private void ExecuteAITrade(string signal)
         {
-            if (haltTrading)
+            // don't start new trade if halt trading or attempting to flatten positions
+            if (haltTrading || attemptToFlattenPos)
                 return;
 
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
-                MyPrint("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartTradePosition");
+                MyPrint("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
                 return;
             }
 
@@ -738,7 +736,7 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than profitChasingAllowableDrawdown losses from prevCapital
                 if (currentCapital < (prevCapital * (1 - profitChasingAllowableDrawdown)))
                 {
-                    MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                     return;
                 }
@@ -748,7 +746,7 @@ In our case it is a 2000 ticks bar. */
                 // trading halt if suffers more than maxPercentAllowableDrawdown losses
                 if (currentCapital < (startingCapital * (1 - maxPercentAllowableDrawdown)))
                 {
-                    MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
+                    MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
                     haltTrading = true;
                     return;
                 }
@@ -757,7 +755,7 @@ In our case it is a 2000 ticks bar. */
             //MyPrint("ExecuteAITrade");
             if (PosFlat())
             {
-                StartTradePosition(signal);
+                StartNewTradePosition(signal);
                 return;
             }
         }
@@ -787,7 +785,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -810,7 +808,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -853,7 +851,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -871,7 +869,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -915,7 +913,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -935,7 +933,7 @@ In our case it is a 2000 ticks bar. */
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
-                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -985,7 +983,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1003,7 +1001,7 @@ In our case it is a 2000 ticks bar. */
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                 {
-                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1025,7 +1023,7 @@ In our case it is a 2000 ticks bar. */
             lineNo = 0;
         }
 
-        private void PrintDailyProfitAndLoss()
+        private void PrintProfitLossCurrentCapital()
         {
             double cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit; // cumulative P&L
 
@@ -1105,8 +1103,7 @@ In our case it is a 2000 ticks bar. */
                     // during live trading, flatten all virtual positions when loading historical data, real time trading will start with flat position
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
-                        // this will flatten virtual positions and reset all flags
-                        FlattenVirtualPositions(false);
+                        FlattenVirtualPositions(false); // this will flatten virtual positions and reset all flags
 
                     // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
                     lineNo = 0;
