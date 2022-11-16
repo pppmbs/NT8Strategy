@@ -566,6 +566,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             Print(errString + Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Screen print out
             MyPrint(errString + buf); // replicate error message to log file
+
+            // Cancels all working orders, closes any existing positions, and finally disables the strategy. 
+            if (errType == ErrorType.fatal)
+            {
+                CloseStrategy(buf);
+            }
         }
 
         private void MyPrint(string buf)
