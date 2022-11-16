@@ -105,7 +105,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 Description = @"Implements the daily drawdown control and monthly profit chasing/stop loss strategy";
                 Name = "AGG6BarDailyMonthlyDrawdown";
-                //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
+                //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;

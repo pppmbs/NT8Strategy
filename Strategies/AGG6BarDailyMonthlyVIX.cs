@@ -23,26 +23,63 @@ using NinjaTrader.Core.FloatingPoint;
 using NinjaTrader.NinjaScript.Indicators;
 using NinjaTrader.NinjaScript.DrawingTools;
 using System.Diagnostics;
+using System.IO;
 #endregion
 
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyMod : Strategy
+    public class AGG6BarDailyMonthlyVIX : Strategy
     {
-        private int Fast;
-        private int Slow;
+        private string pathVIX;
+        private StreamWriter swVIX = null;  // Store 10 days Moving average VIX
 
         private Order entryOrder = null; // This variable holds an object representing our entry order
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
-        // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
-        private static int MaxConsecutiveLossesUpper = 6;
-        private static int MaxConsecutiveLosses = 4;
-        private static int MinConsecutiveWins = 2;
+        /* **********************************************************************************************************
+         * Following settings need to be set before run
+         * **********************************************************************************************************
+         */
+        // these constants affects how the drawdown policy is being enforced,  
+        // current optimal low vix settings 7-5-2 / 60-30-10, high vix >= 40 settings 4-2-2 / 75-10-5
+        private static double HighVixTreshold = 40;
 
+        //below are Daily drawdown (counting wins and losses) strategy settings
+        // Low VIX daily drawdown control settings
+        private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
+        private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
+        private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
+        // High VIX daily drawdown control settings
+        private static int HVmaxConsecutiveLossesUpper = 4; // upper limit allowable daily losses
+        private static int HVmaxConsecutiveLosses = 2;     // max allowable daily losses if no win
+        private static int HVminConsecutiveWins = 2;      // min wins to increment max allowable daily losses
+
+        //below are Monthly drawdown (Profit chasing and stop loss) strategy settings
+        //Low VIX monthly drawdown control settings
+        private static double LVprofitChasingTarget = 0.6; // % monthly gain profit target
+        private static double LVmaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double LVprofitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        // High VIX monthly drawdown control settings
+        private static double HVprofitChasingTarget = 0.75; // % monthly gain profit target
+        private static double HVmaxPercentAllowableDrawdown = 0.1; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double HVprofitChasingAllowableDrawdown = 0.05; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+        // these variables affects how the daily drawdown policy is being enforced
+        private int maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+        private int maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+        private int minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+        // these variables affects how the monthly drawdown policy is being enforced 
+        private double profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+        private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+
+
+        // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
         private static double CommissionRate = 5.48;
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
@@ -60,7 +97,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the month
         private bool monthlyProfitChasingFlag = false; // set to false before the month
 
-        private int maxConsecutiveDailyLosses = MaxConsecutiveLosses;
+        private int maxConsecutiveDailyLosses = 0;
         private int consecutiveDailyLosses = 0;
         private int consecutiveDailyWins = 0;
 
@@ -99,8 +136,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"Implements the daily drawdown control and monthly profit chasing/stop loss strategy";
-                Name = "AGG6BarDailyMonthlyMod";
+                Description = @"Switching monthly and daily drawdown control settings with 10 days moving average VIX values";
+                Name = "AGG6BarDailyMonthlyVIX";
                 //Calculate = Calculate.OnEachTick; //Must be on each tick, otherwise won't check time in real time.
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
@@ -117,63 +154,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
                 BarsRequiredToTrade = 0;
-                Fast = 10;
-                Slow = 25;
 
                 //Set this scripts Print() calls to the second output tab
                 PrintTo = PrintTo.OutputTab2;
-
-                //// Connect to DLNN Server  
-                //try
-                //{
-                //    // Do not attempt connection if already connected
-                //    if (sender != null)
-                //        return;
-
-                //    // Establish the remote endpoint for the socket.  
-                //    // connecting server on port 3333  
-                //    IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                //    // IPAddress ipAddress = ipHostInfo.AddressList[1]; depending on the Wifi set up, this index may change accordingly
-                //    IPAddress ipAddress = ipHostInfo.AddressList[4];
-                //    IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
-
-                //    Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
-
-                //    // Create a TCP/IP  socket.  
-                //    sender = new Socket(ipAddress.AddressFamily,
-                //        SocketType.Stream, ProtocolType.Tcp);
-
-                //    // Connect the socket to the remote endpoint. Catch any errors.  
-                //    try
-                //    {
-                //        sender.Connect(remoteEP);
-
-                //        Print(" ************ Socket connected to : " +
-                //            sender.RemoteEndPoint.ToString() + "*************");
-
-                //        // TODO: Release the socket.  
-                //        //sender.Shutdown(SocketShutdown.Both);
-                //        //sender.Close();
-
-                //    }
-                //    catch (ArgumentNullException ane)
-                //    {
-                //        Print("ArgumentNullException : " + ane.ToString());
-                //    }
-                //    catch (SocketException se)
-                //    {
-                //        Print("SocketException : " + se.ToString());
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        Print("Unexpected exception : " + e.ToString());
-                //    }
-
-                //}
-                //catch (Exception e)
-                //{
-                //    Print(e.ToString());
-                //}
             }
             else if (State == State.Configure)
             {
@@ -183,6 +166,8 @@ Very Important: This secondary bar series needs to be smaller than the primary b
 Note: The primary bar series is whatever you choose for the strategy at startup.
 In our case it is a 2000 ticks bar. */
                 AddDataSeries(Data.BarsPeriodType.Tick, 1);
+
+                AddDataSeries("^VIX", BarsPeriodType.Day, 1);
 
                 //            // Add two EMA indicators to be plotted on the primary bar series
                 //            AddChartIndicator(EMA(Fast));
@@ -212,6 +197,8 @@ In our case it is a 2000 ticks bar. */
             }
             else if (State == State.DataLoaded)
             {
+                ReadEMAVixToSetUpDrawdownSettings();
+
                 // Connect to DLNN Server  
                 try
                 {
@@ -347,9 +334,61 @@ In our case it is a 2000 ticks bar. */
             }
         }
 
+        private void ReadEMAVixToSetUpDrawdownSettings()
+        {
+            if (swVIX == null)
+            {
+                //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
+                pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + ".vix");
+
+                if (File.Exists(pathVIX))
+                {
+                    double currentVIX;
+
+                    string maVIX = File.ReadAllText(pathVIX); // read moving average of VIX
+                    currentVIX = Convert.ToDouble(maVIX);
+
+                    // Set monthly and daily drawdown control strategy settings according to moving average VIX read from vix file
+                    if (currentVIX >= HighVixTreshold)
+                    {
+                        maxConsecutiveLossesUpper = HVmaxConsecutiveLossesUpper;
+                        maxConsecutiveLosses = HVmaxConsecutiveLossesUpper;
+                        minConsecutiveWins = HVmaxConsecutiveLossesUpper;
+
+                        profitChasingTarget = HVprofitChasingTarget; // % monthly gain profit target
+                        maxPercentAllowableDrawdown = HVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                        profitChasingAllowableDrawdown = HVprofitChasingAllowableDrawdown;
+                    }
+                    else
+                    {
+                        maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                        maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                        minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+                        profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                        maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                        profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+                    }
+                }
+                else
+                {
+                    Print(pathVIX + " VIX file does not exist!");
+
+                    maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                    maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                    minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+                    profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                    maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                    profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+                }
+            }
+        }
+
         private void ResetWinLossState()
         {
-            maxConsecutiveDailyLosses = MaxConsecutiveLosses;
+            maxConsecutiveDailyLosses = maxConsecutiveLosses;
             consecutiveDailyLosses = 0;
             consecutiveDailyWins = 0;
         }
@@ -360,9 +399,9 @@ In our case it is a 2000 ticks bar. */
             consecutiveDailyWins++;
             consecutiveDailyLosses = 0;
 
-            if (consecutiveDailyWins >= MinConsecutiveWins)
+            if (consecutiveDailyWins >= minConsecutiveWins)
             {
-                if (maxConsecutiveDailyLosses < MaxConsecutiveLossesUpper)
+                if (maxConsecutiveDailyLosses < maxConsecutiveLossesUpper)
                 {
                     maxConsecutiveDailyLosses++;
                 }
@@ -541,7 +580,7 @@ In our case it is a 2000 ticks bar. */
                     currentCapital += ((Close[0] - closedPrice) * 50 - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (currentCapital < prevCapital)) 
+                    if (monthlyProfitChasingFlag && (currentCapital < prevCapital))
                     {
                         Print("currentCapital=" + currentCapital.ToString() + " prevCapital=" + prevCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
@@ -991,7 +1030,7 @@ In our case it is a 2000 ticks bar. */
                 }
             }
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
-            else
+            else if (BarsInProgress == 1)
             {
 
                 // Need to Handle end of session on tick because to avoid closing position past current day
@@ -1006,6 +1045,19 @@ In our case it is a 2000 ticks bar. */
                     ResetGlobalFlags(true);
                 }
                 return;
+            }
+            // ^VIX daily data
+            else if (BarsInProgress == 2)
+            {
+                Print("======================================================");
+                Print("^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
+                Print("======================================================");
+                Print("======================================================");
+                Print("^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
+                Print("======================================================");
+
+                // write 10 days EMA VIX into VIX file 
+                swVIX.WriteLine(EMA(BarsArray[2], 10)[0]);
             }
         }
     }
