@@ -459,7 +459,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // read the current capital file .cc for the current capital, create one if it does not exist
             // Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
             pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + ".cc");
+            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + "-" + Time[0].ToString("yyyyMM") + ".cc");
 
             if (File.Exists(pathCC))
             {

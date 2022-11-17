@@ -86,11 +86,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
         private static double CommissionRate = 5.48;
 
-        //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
-        private static double ProfitChasingTarget = 0.75; // % monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.7; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
-
         private static readonly int lotSize = 1;
         private static double InitStartingCapital = 10000; // assume starting capital is $10,000
 
@@ -365,7 +360,7 @@ In our case it is a 2000 ticks bar. */
             // read the current capital file .cc for the current capital, create one if it does not exist
             // Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
             pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + ".cc");
+            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + "-" + Time[0].ToString("yyyyMM") + ".cc");
 
             if (File.Exists(pathCC))
             {
@@ -586,6 +581,8 @@ In our case it is a 2000 ticks bar. */
             if (haltTrading)
                 return;
 
+            MyPrint("consecutiveDailyLosses=" + consecutiveDailyLosses.ToString() + " maxConsecutiveDailyLosses=" + maxConsecutiveDailyLosses.ToString());
+
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
@@ -593,31 +590,41 @@ In our case it is a 2000 ticks bar. */
                 return;
             }
 
+            MyPrint("monthlyProfitChasingFlag=" + monthlyProfitChasingFlag.ToString());
+
             // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
-                if (currentCapital > (InitStartingCapital * (1 + ProfitChasingTarget)))
+                MyPrint("currentCapital=" + currentCapital.ToString() + " InitStartingCapital=" + InitStartingCapital.ToString() + " profitChasingTarget=" + profitChasingTarget.ToString());
+
+                if (currentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
                     MyPrint("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
+
                 }
             }
 
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
+                MyPrint("currentCapital=" + currentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown.ToString());
+
                 // trading halt if suffers more than ProfitChasingAllowableDrawdown losses from yesterdayCapital
-                if (currentCapital < (yesterdayCapital * (1 - ProfitChasingAllowableDrawdown)))
+                if (currentCapital < (yesterdayCapital * (1 - profitChasingAllowableDrawdown)))
                 {
                     MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartTradePosition $$$$$$$!!!!!!!!");
+
                     haltTrading = true;
                     return;
                 }
             }
             else
             {
+                MyPrint("currentCapital=" + currentCapital.ToString() + " InitStartingCapital=" + InitStartingCapital.ToString() + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown.ToString());
+
                 // trading halt if suffers more than MaxPercentAllowableDrawdown losses
-                if (currentCapital < (InitStartingCapital * (1 - MaxPercentAllowableDrawdown)))
+                if (currentCapital < (InitStartingCapital * (1 - maxPercentAllowableDrawdown)))
                 {
                     MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartTradePosition !!!!!!!!!!!!");
                     haltTrading = true;
@@ -911,6 +918,8 @@ In our case it is a 2000 ticks bar. */
             MyPrint("Curret capital is: " + currentCapital);
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
+            MyPrint("profitChasingTarget=" + profitChasingTarget.ToString() + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown.ToString() + " profitChasingAllowableDrawdown =" + profitChasingAllowableDrawdown.ToString());
+
             // ouput current capital to cc file
             swCC = File.CreateText(pathCC); // Open the path for current capital
             swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
@@ -943,6 +952,9 @@ In our case it is a 2000 ticks bar. */
                 {
                     MyPrint("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
                     MyPrint("Current Time[0]= " + Time[0].ToString("HH:mm"));
+
+                    // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
+                    ReadEMAVixToSetUpDrawdownSettings();
                     CloseCurrentPositions();
                     ResetServer();
 
