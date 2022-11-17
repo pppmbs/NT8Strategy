@@ -112,7 +112,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double yesterdayCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
 
-        private int maxConsecutiveDailyLosses = 0;
+        private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
         private int consecutiveDailyLosses = 0;
         private int consecutiveDailyWins = 0;
 
@@ -330,11 +330,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                     swCC = null;
                 }
 
-                // Release the socket  
-                if (sender!=null)
+                if (swVIX != null)
                 {
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+                    swVIX.Close();
+                    swVIX.Dispose();
+                    swVIX = null;
                 }
             }
         }
@@ -457,80 +457,84 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void ReadCurrentCapital()
         {
             // read the current capital file .cc for the current capital, create one if it does not exist
-            if (swCC == null)
+            // Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
+            pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + ".cc");
+
+            if (File.Exists(pathCC))
             {
-                //Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
-                pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + ".cc");
+                // Read current capital from the cc file
+                string ccStr = File.ReadAllText(pathCC);
+                currentCapital = Convert.ToDouble(ccStr);
 
-                if (File.Exists(pathCC))
-                {
-                    // Read current capital from the cc file
-                    string ccStr = File.ReadAllText(pathCC);
-                    currentCapital = Convert.ToDouble(ccStr);
-
-                    // initializing the monthly control strategy variables with currentCapital from the cc file
-                    yesterdayCapital = currentCapital; // keep track of capital from previous day
-                    monthlyProfitChasingFlag = false; // set to false before the month
-                }
-                swCC = File.CreateText(pathCC); // Open the path for current capital
-                swCC.WriteLine(currentCapital); // write current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+                // initializing the monthly control strategy variables with currentCapital from the cc file
+                yesterdayCapital = currentCapital; // keep track of capital from previous day
+                monthlyProfitChasingFlag = false; // set to false before the month
             }
+            swCC = File.CreateText(pathCC); // Open the path for current capital
+            swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+            swCC.Close();
+            swCC.Dispose();
+            swCC = null;
+
         }
 
 
         // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
         private void ReadEMAVixToSetUpDrawdownSettings()
         {
-            if (swVIX == null)
+            //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
+            pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + ".vix");
+
+            if (File.Exists(pathVIX))
             {
-                //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
-                pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + ".vix");
+                double currentVIX;
 
-                if (File.Exists(pathVIX))
+                string maVIX = File.ReadAllText(pathVIX); // read moving average of VIX
+
+                MyPrint("maVIX = " + maVIX);
+
+                currentVIX = Convert.ToDouble(maVIX);
+
+                MyPrint("currentVIX = " + currentVIX);
+
+                // Set monthly and daily drawdown control strategy settings according to moving average VIX read from vix file
+                if (currentVIX >= HighVixTreshold)
                 {
-                    double currentVIX;
+                    maxConsecutiveLossesUpper = HVmaxConsecutiveLossesUpper;
+                    maxConsecutiveLosses = HVmaxConsecutiveLosses;
+                    minConsecutiveWins = HVminConsecutiveWins;
 
-                    string maVIX = File.ReadAllText(pathVIX); // read moving average of VIX
-                    currentVIX = Convert.ToDouble(maVIX);
-
-                    // Set monthly and daily drawdown control strategy settings according to moving average VIX read from vix file
-                    if (currentVIX >= HighVixTreshold)
-                    {
-                        maxConsecutiveLossesUpper = HVmaxConsecutiveLossesUpper;
-                        maxConsecutiveLosses = HVmaxConsecutiveLossesUpper;
-                        minConsecutiveWins = HVmaxConsecutiveLossesUpper;
-
-                        profitChasingTarget = HVprofitChasingTarget; // % monthly gain profit target
-                        maxPercentAllowableDrawdown = HVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                        profitChasingAllowableDrawdown = HVprofitChasingAllowableDrawdown;
-                    }
-                    else
-                    {
-                        maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
-                        maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
-                        minConsecutiveWins = LVmaxConsecutiveLossesUpper;
-
-                        profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
-                        maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                        profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
-                    }
+                    profitChasingTarget = HVprofitChasingTarget; // % monthly gain profit target
+                    maxPercentAllowableDrawdown = HVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                    profitChasingAllowableDrawdown = HVprofitChasingAllowableDrawdown;
                 }
                 else
                 {
-                    MyErrPrint(ErrorType.warning, pathVIX + " VIX file does not exist! Assume Low VIX drawdown control strategy settings.");
-
                     maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
-                    maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
-                    minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+                    maxConsecutiveLosses = LVmaxConsecutiveLosses;
+                    minConsecutiveWins = LVminConsecutiveWins;
 
                     profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
                     maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
                     profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
                 }
             }
+            else
+            {
+                MyPrint(pathVIX + " VIX file does not exist!");
+
+                maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+
+                profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+            }
         }
+
 
         private void MyErrPrint(ErrorType errType, string buf)
         {
@@ -1051,7 +1055,11 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
             // ouput current capital to cc file
-            swCC.WriteLine(currentCapital);
+            swCC = File.CreateText(pathCC); // Open the path for current capital
+            swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+            swCC.Close();
+            swCC.Dispose();
+            swCC = null;
         }
 
         // Need to Handle end of session on tick because to avoid closing position past current day
@@ -1291,7 +1299,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("======================================================");
 
                 // write 10 days EMA VIX into VIX file 
-                swVIX.WriteLine(EMA(BarsArray[2], 10)[0]);
+                swVIX = File.CreateText(pathVIX); // Open the path for VIX
+                swVIX.WriteLine(EMA(BarsArray[2], 10)[0].ToString());
+                swVIX.Close();
+                swVIX.Dispose();
+                swVIX = null;
+
+                MyPrint("======================================================");
+                MyPrint("^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
+                MyPrint("======================================================");
             }
         }
     }
