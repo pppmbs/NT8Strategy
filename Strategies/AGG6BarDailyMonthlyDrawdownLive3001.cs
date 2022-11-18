@@ -139,7 +139,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // global flags
         private bool profitChasingFlag = false;
-        private bool stopLossEncountered = false;
+        //private bool stopLossEncountered = false;
         private bool attemptToFlattenPos = false;
         private bool haltTrading = false;
 
@@ -215,6 +215,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //Strategies will attempt to recalculate its strategy position when a connection is reestablished.
                 ConnectionLossHandling = ConnectionLossHandling.Recalculate;
 
+                //Set this scripts MyPrint() calls to the first output tab
+                PrintTo = PrintTo.OutputTab1;
             }
             else if (State == State.Configure)
             {
@@ -229,6 +231,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 AddDataSeries("^VIX", BarsPeriodType.Day, 1);
 
                 // set static profit target and stop loss, this will ensure outstanding Account Positions are protected automatically
+                MyPrint("Set static profit target and stop loss (ticks), profitTarget=" + profitTarget + " hardDeck=" + hardDeck);
                 SetProfitTarget(CalculationMode.Ticks, profitTarget);
                 SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
@@ -387,16 +390,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (order.Name == "Short")
                             currPos = Position.posShort;
 
-                        MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
+                        MyPrint("OnOrderUpdate, #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                     }
                     else
-                        MyErrPrint(ErrorType.fatal, "Order filled, but not filled at lot size specified!!");
+                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Order filled, but not filled at lot size specified!! This SHOULD NOT HAPPEN.");
                 }
 
                 if (order.OrderState == OrderState.PartFilled)
                 {
                     sumFilled = order.Filled;
                     orderPartialFilled = true;
+
+                    MyPrint("OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled);
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -404,6 +409,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     entryOrder = null;
                     sumFilled = 0;
+                    MyPrint("OnOrderUpdate, OrderState.Cancelled");
+
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -431,10 +438,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                MyPrint("%%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-                MyPrint("PnL of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
-                MyPrint("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+                MyPrint("OnPositionUpdate, PnL of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
+                MyPrint("OnPositionUpdate, @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
                 // current capital is accurately accounted for when the position is flatten
                 currentCapital += SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency;
@@ -444,11 +451,11 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
-                MyPrint("%%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long %%%%%%%%%%%%%%%%%%%%%%%%");
             }
             if (position.MarketPosition == MarketPosition.Short)
             {
-                MyPrint("%%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short %%%%%%%%%%%%%%%%%%%%%%%%");
             }
         }
 
@@ -471,6 +478,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 yesterdayCapital = currentCapital; // keep track of capital from previous day
                 monthlyProfitChasingFlag = false; // set to false before the month
             }
+            MyPrint("ReadCurrentCapital currentCapital=" + currentCapital);
+
             swCC = File.CreateText(pathCC); // Open the path for current capital
             swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
             swCC.Close();
@@ -493,11 +502,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 string maVIX = File.ReadAllText(pathVIX); // read moving average of VIX
 
-                MyPrint("maVIX = " + maVIX);
+                MyPrint("ReadEMAVixToSetUpDrawdownSettings, maVIX=" + maVIX);
 
                 currentVIX = Convert.ToDouble(maVIX);
 
-                MyPrint("currentVIX = " + currentVIX);
+                MyPrint("ReadEMAVixToSetUpDrawdownSettings, currentVIX=" + currentVIX);
 
                 // Set monthly and daily drawdown control strategy settings according to moving average VIX read from vix file
                 if (currentVIX >= HighVixTreshold)
@@ -520,18 +529,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                     maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
                     profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
                 }
+
+                MyPrint("ReadEMAVixToSetUpDrawdownSettings, maxConsecutiveLossesUpper=" + maxConsecutiveLossesUpper + " maxConsecutiveLosses=" + maxConsecutiveLosses + " minConsecutiveWins=" + minConsecutiveWins);
+                MyPrint("ReadEMAVixToSetUpDrawdownSettings, profitChasingTarget=" + profitChasingTarget + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown + " profitChasingAllowableDrawdown" + profitChasingAllowableDrawdown);
             }
             else
             {
-                MyPrint(pathVIX + " VIX file does not exist!");
+                MyErrPrint(ErrorType.fatal, pathVIX + " VIX file does not exist!");
 
-                maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
-                maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
-                minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+                //maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                //maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                //minConsecutiveWins = LVmaxConsecutiveLossesUpper;
 
-                profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
-                maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+                //profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                //maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                //profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
             }
         }
 
@@ -539,9 +551,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void MyErrPrint(ErrorType errType, string buf)
         {
             string errString="";
-
-            //Set this scripts MyPrint() calls to the first output tab
-            PrintTo = PrintTo.OutputTab1;
 
             if (swErr == null)
             {
@@ -580,9 +589,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void MyPrint(string buf)
         {
-            //Set this scripts MyPrint() calls to the second output tab
-            PrintTo = PrintTo.OutputTab2;
-
             if (swLog == null)
             {
                 //Create log file in the portNumber-yyyyMMdd.log format
@@ -602,6 +608,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             maxConsecutiveDailyLosses = maxConsecutiveLosses;
             consecutiveDailyLosses = 0;
             consecutiveDailyWins = 0;
+
+            MyPrint("SetDailyWinLossState, maxConsecutiveDailyLosses=" + maxConsecutiveDailyLosses + " consecutiveDailyLosses=" + consecutiveDailyLosses + " consecutiveDailyWins=" + consecutiveDailyWins);
         }
 
         // increment of daily win will increase max consecutive daily losses as long as it does not exceed the upper limit, 
@@ -619,12 +627,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 consecutiveDailyWins = 0;
             }
+            MyPrint("IncrementDailyWin, consecutiveDailyWins=" + consecutiveDailyWins + " consecutiveDailyLosses=" + consecutiveDailyLosses);
         }
 
         private void IncrementDailyLoss()
         {
             consecutiveDailyWins = 0;
             consecutiveDailyLosses++;
+
+            MyPrint("IncrementDailyLoss, consecutiveDailyWins=" + consecutiveDailyWins + " consecutiveDailyLosses=" + consecutiveDailyLosses);
         }
 
         private bool PosFlat()
@@ -645,23 +656,25 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void AiShort()
         {
             EnterShort(LotSize, "Short");
-            MyPrint("Server Signal=" + svrSignal + " Short");
+            MyPrint("AiShort, Server Signal=" + svrSignal + " Short");
         }
 
         private void AiLong()
         {
             EnterLong(LotSize, "Long");
-            MyPrint("Server Signal=" + svrSignal + " Long");
+            MyPrint("AiLong, Server Signal=" + svrSignal + " Long");
         }
 
         private void FlattenVirtualPositions(bool stopLoss)
         {
             currPos = Position.posFlat;
             profitChasingFlag = false;
-            stopLossEncountered = stopLoss;
+            //stopLossEncountered = stopLoss;
             sumFilled = 0;
             orderPartialFilled = false;
             attemptToFlattenPos = false;
+
+            MyPrint("FlattenVirtualPositions, currPos=" + currPos + " profitChasingFlag=" + profitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
         }
 
         
@@ -677,21 +690,23 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (PosLong())
                 {
                     ExitLong("ExitLong", "Long");
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitLong");
-                    MyPrint("---------------------------------------------------------------------------------");
+                    MyPrint("AiFlat, ---------------------------------------------------------------------------------");
+                    MyPrint("AiFlat, ExitLong");
+                    MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                 }
                 if (PosShort())
                 {
                     ExitShort("ExitShort", "Short");
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " AiFlat::ExitShort");
-                    MyPrint("---------------------------------------------------------------------------------");
+                    MyPrint("AiFlat, ---------------------------------------------------------------------------------");
+                    MyPrint("AiFlat, ExitShort");
+                    MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                 }
             }
         }
 
         private void StartNewTradePosition(string signal)
         {
-            //MyPrint("StartNewTradePosition");
+            MyPrint("StartNewTradePosition, Server signal=" + signal);
             switch (signal[0])
             {
                 case '0':
@@ -710,6 +725,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void ExecuteAITrade(string signal)
         {
+            MyPrint("ExecuteAITrade, haltTrading=" + haltTrading + " attemptToFlattenPos=" + attemptToFlattenPos);
+
             // don't start new trade if halt trading or attempting to flatten positions
             if (haltTrading || attemptToFlattenPos)
                 return;
@@ -717,7 +734,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
-                MyPrint("consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
+                MyPrint("ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
+                MyPrint("ExecuteAITrade, consecutiveDailyLosses=" + consecutiveDailyLosses + " maxConsecutiveDailyLosses=" + maxConsecutiveDailyLosses);
                 return;
             }
 
@@ -727,7 +745,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (currentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
-                    MyPrint("$$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
+                    MyPrint("ExecuteAITrade, $$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
+                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " profitChasingTarget=" + profitChasingTarget);
                 }
             }
 
@@ -737,7 +756,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // trading halt if suffers more than profitChasingAllowableDrawdown losses from yesterdayCapital
                 if (currentCapital < (yesterdayCapital * (1 - profitChasingAllowableDrawdown)))
                 {
-                    MyPrint("$$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("ExecuteAITrade, $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " yesterdayCapital=" + yesterdayCapital + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
                     haltTrading = true;
                     return;
                 }
@@ -747,7 +767,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // trading halt if suffers more than maxPercentAllowableDrawdown losses
                 if (currentCapital < (InitStartingCapital * (1 - maxPercentAllowableDrawdown)))
                 {
-                    MyPrint("!!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
+                    MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
+                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown);
                     haltTrading = true;
                     return;
                 }
@@ -777,7 +798,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (signal[0] != '2')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                    MyPrint("HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyLoss();
@@ -789,7 +810,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                     {
-                        MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -801,7 +822,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (signal[0] != '0')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    MyPrint("HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyLoss();
@@ -813,7 +834,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                     {
-                        MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -847,7 +868,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosLong())
             {
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                 AiFlat();
 
                 IncrementDailyLoss();
@@ -859,14 +880,14 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                 {
-                    MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
 
             if (PosShort())
             {
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleHardDeck:: " + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                 AiFlat();
 
                 IncrementDailyLoss();
@@ -878,7 +899,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                 {
-                    MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -913,7 +934,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                    MyPrint("HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate));
                     AiFlat();
 
                     IncrementDailyWin();
@@ -925,7 +946,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                     {
-                        MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -934,7 +955,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
                 {
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    MyPrint("HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                     AiFlat();
 
                     IncrementDailyWin();
@@ -946,7 +967,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                     {
-                        MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -962,7 +983,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] >= (closedPrice + profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
+                    MyPrint("TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -972,7 +993,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
-                    MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " TouchedProfitChasing");
+                    MyPrint("TouchedProfitChasing");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -988,7 +1009,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // EOD close current position(s)
             if (PosLong())
             {
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
 
                 AiFlat();
 
@@ -999,7 +1020,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                 {
-                    MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1007,7 +1028,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice + " Close[0]=" + Close[0] + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate));
 
                 AiFlat();
 
@@ -1018,7 +1039,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                 {
-                    MyPrint("estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1046,12 +1067,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // MyPrint out the net profit of all trades
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            MyPrint("Cumulative net profit is: " + cumulativePL);
+            MyPrint("PrintProfitLossCurrentCapital, Cumulative net profit is: " + cumulativePL);
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
             // MyPrint out the current capital with P/L
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            MyPrint("Curret capital is: " + currentCapital);
+            MyPrint("PrintProfitLossCurrentCapital, Curret capital is: " + currentCapital);
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
             // ouput current capital to cc file
@@ -1083,8 +1104,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Time[0].Minute > endSessionTime.Minute)
                 {
-                    MyPrint("HandleEndOfSession for Time= " + endSessionTime.ToString("HH:mm"));
-                    MyPrint("Current Time[0]= " + Time[0].ToString("HH:mm"));
+                    MyPrint("HandleEndOfSession, Time= " + endSessionTime.ToString("HH:mm"));
+                    MyPrint("HandleEndOfSession, Current Time[0]= " + Time[0].ToString("HH:mm"));
 
                     CloseCurrentPositions();
 
@@ -1244,7 +1265,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                MyPrint("OnBarUpdate, Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
                 //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
                 lineNo++;
@@ -1294,9 +1315,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             // ^VIX daily data
             else if (BarsInProgress == 2)
             {
-                MyPrint("======================================================");
-                MyPrint("^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
-                MyPrint("======================================================");
+                MyPrint("OnBarUpdate, ======================================================");
+                MyPrint("OnBarUpdate, ^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
+                MyPrint("OnBarUpdate, ======================================================");
 
                 // write 10 days EMA VIX into VIX file 
                 swVIX = File.CreateText(pathVIX); // Open the path for VIX
@@ -1305,9 +1326,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 swVIX.Dispose();
                 swVIX = null;
 
-                MyPrint("======================================================");
-                MyPrint("^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
-                MyPrint("======================================================");
+                MyPrint("OnBarUpdate, ======================================================");
+                MyPrint("OnBarUpdate, ^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
+                MyPrint("OnBarUpdate, ======================================================");
             }
         }
     }
