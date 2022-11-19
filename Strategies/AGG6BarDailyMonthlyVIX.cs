@@ -419,6 +419,9 @@ In our case it is a 2000 ticks bar. */
                     maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
                     profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
                 }
+
+                // Need to reset before trading begins
+                ResetWinLossState();
             }
             else
             {
