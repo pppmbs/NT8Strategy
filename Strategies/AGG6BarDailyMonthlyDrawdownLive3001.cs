@@ -290,6 +290,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                         MyPrint(" ************ Socket connected to : " +
                             sender.RemoteEndPoint.ToString() + "*************");
 
+                        // set receive timeout 10 secs
+                        sender.ReceiveTimeout = 10000;
+                        // set send timeout 10 secs
+                        sender.SendTimeout = 10000;
                     }
                     catch (ArgumentNullException ane)
                     {
@@ -563,7 +567,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 case ErrorType.fatal:
                     errString = "FATAL: ";
-                    haltTrading = true;
+                    haltTrading = true;             // halt trading is it is fatal error
                     break;
                 case ErrorType.warning:
                     errString = "WARNING: ";
@@ -1245,7 +1249,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 catch (SocketException ex)
                 {
-                    MyErrPrint(ErrorType.fatal, "Socket exception::" + ex.Message + "" + ex.ToString());
+                    MyErrPrint(ErrorType.fatal, "Socket exception::" + ex.Message + " " + ex.ToString());
+                    if (!PosFlat())
+                        MyErrPrint(ErrorType.fatal, "There is an outstanding position for this strategy, manual flattening of the position is needed.");
                 }
 
                 // for Live Trading, don't reset server and change lineNo
