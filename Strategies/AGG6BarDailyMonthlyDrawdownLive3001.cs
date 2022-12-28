@@ -108,7 +108,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double currentCapital = InitStartingCapital; // set to  startingCapital before the day
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
-        // they are to be initialized when State == State.Realtime during start up
+        // they are to be initialized when State == State.DataLoaded during start up
         private double yesterdayCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
 
@@ -142,6 +142,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         //private bool stopLossEncountered = false;
         private bool attemptToFlattenPos = false;
         private bool haltTrading = false;
+        private bool attemptToEnterNewPosition = false;
 
 
         private Socket sender = null;
@@ -166,7 +167,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Print("State == State.SetDefaults");
+                MyPrint("State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy";
                 Name = "AGG6BarDailyMonthlyDrawdownLive3001";
@@ -222,7 +223,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.Configure)
             {
-                Print("State == State.Configure");
+                MyPrint("State == State.Configure");
 
                 /* Add a secondary bar series.
                    Very Important: This secondary bar series needs to be smaller than the primary bar series.
@@ -241,7 +242,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.Realtime)
             {
-                Print("State == State.Realtime");
+                MyPrint("State == State.Realtime");
 
                 // one time only, as we transition from historical
                 // convert any old historical order object references
@@ -255,7 +256,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.DataLoaded)
             {
-                Print("State == State.DataLoaded");
+                MyPrint("State == State.DataLoaded");
 
                 // Connect to DLNN Server  
                 try
@@ -403,6 +404,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (order.Name == "Short")
                             currPos = Position.posShort;
 
+                        // keep track if a position has been successfully entered, otherwise the position has to be canceled when the next bar arrives
+                        attemptToEnterNewPosition = false;
                         MyPrint("OnOrderUpdate, #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                     }
                     else
@@ -583,7 +586,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     break;
             }
 
-            if (State == State.DataLoaded)
+            if (State == State.Realtime)
                 swErr.WriteLine(errString + Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Append a new line to the err file
             else
                 swErr.WriteLine(errString + DateTime.Today.ToString() + " " + buf); // Append a new line to the err file
@@ -593,7 +596,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             swErr.Dispose();
             swErr = null;
 
-            if (State == State.DataLoaded)
+            if (State == State.Realtime)
                 Print(errString + Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Screen print out
             else
                 Print(errString + DateTime.Today.ToString() + " " + buf); // Screen print out
@@ -617,7 +620,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 swLog = File.AppendText(pathLog);  // Open the path for log file writing
             }
 
-            if (State == State.DataLoaded)
+            if (State == State.Realtime)
             {
                 swLog.WriteLine(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf); // Append a new line to the log file
                 Print(Time[0].ToString("yyyyMMdd:HHmmss: ") + buf);
@@ -740,6 +743,15 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void StartNewTradePosition(string signal)
         {
             MyPrint("StartNewTradePosition, Server signal=" + signal);
+
+            // There is an existing attempt to enter position, has to cancel the last attempt to enter position before entering new position
+            if (attemptToEnterNewPosition)
+            {
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition: There is an existing entryPosition, need to cancel the previous pending order before entering new position.");
+                CancelOrder(entryOrder);
+            }
+            attemptToEnterNewPosition = true;
+
             switch (signal[0])
             {
                 case '0':
@@ -1260,7 +1272,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
-                //MyPrint("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
+                MyPrint("CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
@@ -1334,6 +1346,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else if (BarsInProgress == 1)
             {
+                if (State != State.Realtime)
+                    return;
+
                 // Need to Handle end of session on tick because to avoid closing position past current day
                 HandleEndOfSession();
 
