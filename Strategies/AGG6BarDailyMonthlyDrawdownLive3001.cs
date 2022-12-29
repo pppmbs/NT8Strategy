@@ -417,7 +417,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     sumFilled = order.Filled;
                     orderPartialFilled = true;
 
-                    MyPrint("OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled);
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to check Order status in Control Center.");
                 }
 
                 // Reset the entryOrder object to null if order was cancelled without any fill
@@ -425,8 +425,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     entryOrder = null;
                     sumFilled = 0;
-                    MyPrint("OnOrderUpdate, OrderState.Cancelled");
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.Canceled");
 
+                    FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -434,11 +435,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     if (attemptToFlattenPos) // attempting to close existing positions
                     {
-                        MyErrPrint(ErrorType.fatal, "Closing position order rejected!! Check order status, may need to call brokerage to close existing position." + " ####### order filled=" + order.Filled);
+                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Closing position order rejected!! Check order status, may need to call brokerage to close existing position." + " ####### order filled=" + order.Filled);
                     }
                     else // opening new position rejected
                     {
-                        MyErrPrint(ErrorType.warning, "New position order rejected!!" + " ####### order filled=" + order.Filled);
+                        MyErrPrint(ErrorType.warning, "OnOrderUpdate, New position order rejected!!" + " ####### order filled=" + order.Filled);
 
                         FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
                     }
@@ -745,10 +746,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint("StartNewTradePosition, Server signal=" + signal);
 
             // There is an existing attempt to enter position, has to cancel the last attempt to enter position before entering new position
-            if (attemptToEnterNewPosition)
+            if (attemptToEnterNewPosition && (entryOrder != null))
             {
                 MyErrPrint(ErrorType.warning, "StartNewTradePosition: There is an existing entryPosition, need to cancel the previous pending order before entering new position.");
                 CancelOrder(entryOrder);
+
+                // reset profit target and stop loss
+                SetProfitTarget(CalculationMode.Ticks, profitTarget);
+                SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
             attemptToEnterNewPosition = true;
 
