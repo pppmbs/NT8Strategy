@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyDrawdownLive3001 : Strategy
+    public class AGG6BarDailyMonthlyDrawdownLive3002 : Strategy
     {
         // log, error, current capital and vix  files
         private string pathLog;
@@ -126,7 +126,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
-        private static readonly int portNumber = 3001;
+        private static readonly int portNumber = 3002;
         /*
          * **********************************************************************************************************
          */
@@ -170,7 +170,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy";
-                Name = "AGG6BarDailyMonthlyDrawdownLive3001";
+                Name = "AGG6BarDailyMonthlyDrawdownLive3002";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -219,7 +219,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 ConnectionLossHandling = ConnectionLossHandling.Recalculate;
 
                 //Set this scripts MyPrint() calls to the first output tab
-                PrintTo = PrintTo.OutputTab1;
+                PrintTo = PrintTo.OutputTab2;
             }
             else if (State == State.Configure)
             {
