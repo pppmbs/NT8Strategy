@@ -142,8 +142,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         //private bool stopLossEncountered = false;
         private bool attemptToFlattenPos = false;
         private bool haltTrading = false;
-        private bool attemptToEnterNewPosition = false;
-
 
         private Socket sender = null;
         private byte[] bytes = new byte[1024];
@@ -423,7 +421,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                             currPos = Position.posShort;
 
                         // keep track if a position has been successfully entered, otherwise the position has to be canceled when the next bar arrives
-                        attemptToEnterNewPosition = false;
                         MyPrint("OnOrderUpdate, #######Order filled=" + order.Filled + " closedPrice=" + closedPrice + " order name=" + order.Name + " currPos=" + currPos.ToString());
                     }
                     else
@@ -435,15 +432,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     sumFilled = order.Filled;
                     orderPartialFilled = true;
 
-                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to check Order status in Control Center.");
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
                 }
 
-                // Reset the entryOrder object to null if order was cancelled without any fill
-                if (order.OrderState == OrderState.Cancelled && order.Filled == 0)
+                // Order cancellation is confirmed by the exchange, CancelOrder was issued in StartNewTradePosition due to start new trade while working on order
+                if (order.OrderState == OrderState.Cancelled)
                 {
-                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Position order was canceled, OrderState.Canceled");
-
-                    FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Position order cancellation was confirmed by exchange.");
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -739,19 +734,34 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
-            // There is an existing attempt to enter position, has to cancel the last attempt to enter position before entering new position
-            if (attemptToEnterNewPosition && (entryOrder != null))
+            // if there is an existing working order, perform the following
+            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.Working))
             {
-                MyErrPrint(ErrorType.warning, "StartNewTradePosition, There is an existing entryPosition, canceling the previous pending order before entering new position.");
-                CancelOrder(entryOrder);
+                if (attemptToFlattenPos)
+                {
+                    MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while flattening position, will not start new trade. Check current position exit status.");
+                    return;
+                }
+                else
+                {
+                    MyErrPrint(ErrorType.warning, "StartNewTradePosition, There is an existing working order, will cancel working order and enter new trade position.");
+                    CancelOrder(entryOrder);
 
-                // reset profit target and stop loss
-                SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                SetStopLoss(CalculationMode.Ticks, hardDeck);
+                    // reset profit target and stop loss
+                    SetProfitTarget(CalculationMode.Ticks, profitTarget);
+                    SetStopLoss(CalculationMode.Ticks, hardDeck);
+                }
             }
-            attemptToEnterNewPosition = true;
+            // if existing order is partially filled, skip starting new position
+            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.PartFilled))
+            {
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Current order is partially filled, will not start new trade. Check position exit status.");
+                return;
+            }
+
 
             switch (signal[0])
             {
