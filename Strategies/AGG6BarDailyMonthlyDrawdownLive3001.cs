@@ -363,7 +363,25 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         protected override void OnConnectionStatusUpdate(ConnectionStatusEventArgs connectionStatusUpdate)
         {
+            if (connectionStatusUpdate.Status == ConnectionStatus.Connected)
+            {
+                MyPrint("OnConnectionStatusUpdate, Connected to brokerage at " + DateTime.Now);
+            }
 
+            else if (connectionStatusUpdate.Status == ConnectionStatus.ConnectionLost)
+            {
+                MyErrPrint(ErrorType.fatal, "OnConnectionStatusUpdate, Connection to brokerage lost at: " + DateTime.Now);
+            }
+
+            if (connectionStatusUpdate.PriceStatus == ConnectionStatus.Connected)
+            {
+                MyPrint("OnConnectionStatusUpdate, Connected to data feed at " + DateTime.Now);
+            }
+
+            else if (connectionStatusUpdate.PriceStatus == ConnectionStatus.ConnectionLost)
+            {
+                MyErrPrint(ErrorType.fatal, "OnConnectionStatusUpdate, Connection to data feed lost at: " + DateTime.Now);
+            }
         }
 
         protected override void OnExecutionUpdate(Execution execution, string executionId, double price, int quantity, MarketPosition marketPosition, string orderId, DateTime time)
@@ -427,7 +445,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     sumFilled = 0;
                     MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.Canceled");
 
-                    FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
+                    FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -441,7 +459,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyErrPrint(ErrorType.warning, "OnOrderUpdate, New position order rejected!!" + " ####### order filled=" + order.Filled);
 
-                        FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
+                        FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
                     }
                 }
             }
@@ -464,7 +482,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 currentCapital += SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency;
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
-                FlattenVirtualPositions(false);    // this will flatten virtual positions and reset all flags
+                FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
@@ -702,11 +720,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint("AiLong, Server Signal=" + svrSignal + " Long");
         }
 
-        private void FlattenVirtualPositions(bool stopLoss)
+        private void FlattenVirtualPositions()
         {
             currPos = Position.posFlat;
             profitChasingFlag = false;
-            //stopLossEncountered = stopLoss;
             sumFilled = 0;
             orderPartialFilled = false;
             attemptToFlattenPos = false;
@@ -748,7 +765,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // There is an existing attempt to enter position, has to cancel the last attempt to enter position before entering new position
             if (attemptToEnterNewPosition && (entryOrder != null))
             {
-                MyErrPrint(ErrorType.warning, "StartNewTradePosition: There is an existing entryPosition, need to cancel the previous pending order before entering new position.");
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, There is an existing entryPosition, need to cancel the previous pending order before entering new position.");
                 CancelOrder(entryOrder);
 
                 // reset profit target and stop loss
@@ -1107,7 +1124,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             int resetSent = sender.Send(resetMsg);
 
             // this will flatten virtual positions and reset all flags
-            FlattenVirtualPositions(false);
+            FlattenVirtualPositions();
             lineNo = 0;
         }
 
@@ -1197,7 +1214,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // during live trading, flatten all virtual positions when loading historical data, real time trading will start with flat position
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
-                        FlattenVirtualPositions(false); // this will flatten virtual positions and reset all flags
+                        FlattenVirtualPositions(); // this will flatten virtual positions and reset all flags
 
                     // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
                     lineNo = 0;
@@ -1362,8 +1379,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     HandleHardDeck();
 
-                    // this will flatten virtual positions and reset all flags, stopLoss = true
-                    FlattenVirtualPositions(true);
+                    // this will flatten virtual positions and reset all flags
+                    FlattenVirtualPositions();
                 }
                 return;
             }
