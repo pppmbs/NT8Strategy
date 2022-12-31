@@ -45,10 +45,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
 
-        // following two variables are placeholders, not currently being used
-        private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
-        private bool orderPartialFilled = false;
-
 
         /* **********************************************************************************************************
          * Following settings need to be set before run
@@ -429,9 +425,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (order.OrderState == OrderState.PartFilled)
                 {
-                    sumFilled = order.Filled;
-                    orderPartialFilled = true;
-
                     MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
                 }
 
@@ -696,12 +689,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void FlattenVirtualPositions()
         {
-            entryOrder = null;
-            sumFilled = 0;
-
             currPos = Position.posFlat;
             profitChasingFlag = false;
-            orderPartialFilled = false;
             attemptToFlattenPos = false;
 
             MyPrint("FlattenVirtualPositions, currPos=" + currPos + " profitChasingFlag=" + profitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
@@ -737,31 +726,25 @@ namespace NinjaTrader.NinjaScript.Strategies
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
-            // if there is an existing working order, perform the following
-            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.Working))
-            {
-                if (attemptToFlattenPos)
-                {
-                    MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while flattening position, will not start new trade. Check current position exit status.");
-                    return;
-                }
-                else
-                {
-                    MyErrPrint(ErrorType.warning, "StartNewTradePosition, There is an existing working order, will cancel working order and enter new trade position.");
-                    CancelOrder(entryOrder);
 
-                    // reset profit target and stop loss
-                    SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                    SetStopLoss(CalculationMode.Ticks, hardDeck);
-                }
-            }
-            // if existing order is partially filled, skip starting new position
-            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.PartFilled))
+            // Attempting to start new trade while flattening current position, will not start new trade
+            if (attemptToFlattenPos)
             {
-                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Current order is partially filled, will not start new trade. Check position exit status.");
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while flattening current position, will not start new trade. Check exit order status.");
                 return;
             }
-
+            // Attempting to start new trade while current order partially filled, will not start new trade
+            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.PartFilled))
+            {
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while current order partially filled, will not start new trade. Check current order status.");
+                return;
+            }
+            // Current order is in Submitted, Accepted or Working state, will not start new trade
+            if ((entryOrder != null) && (entryOrder.OrderState == OrderState.Submitted || entryOrder.OrderState == OrderState.Accepted || entryOrder.OrderState == OrderState.Working))
+            {
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while current order status is " + entryOrder.OrderState.ToString() + ",  will not start new trade. Check current order status.");
+                return;
+            }
 
             switch (signal[0])
             {
