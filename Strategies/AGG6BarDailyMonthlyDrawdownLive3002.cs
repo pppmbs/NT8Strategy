@@ -428,10 +428,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
                 }
 
-                // Order cancellation is confirmed by the exchange, CancelOrder was issued in StartNewTradePosition due to start new trade while working on order
+                // Order cancellation is confirmed by the exchange
                 if (order.OrderState == OrderState.Cancelled)
                 {
-                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Position order cancellation was confirmed by exchange.");
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Order cancellation was confirmed by exchange.");
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -439,11 +439,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     if (attemptToFlattenPos) // attempting to close existing positions
                     {
-                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Closing position order rejected!! Check order status, may need to call brokerage to close existing position." + " ####### order filled=" + order.Filled);
+                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Closing position order rejected!!" + " Error code=" + error.ToString() + ": " + nativeError);
                     }
                     else // opening new position rejected
                     {
-                        MyErrPrint(ErrorType.warning, "OnOrderUpdate, New position order rejected!!" + " ####### order filled=" + order.Filled);
+                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, New position order rejected!!" + " Error code=" + error.ToString() + ": " + nativeError);
                     }
                     FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
                 }
