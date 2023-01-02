@@ -428,10 +428,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
                 }
 
-                // Order cancellation is confirmed by the exchange
+                // Order cancellation is confirmed by the exchange, cancellation only done manually, therefore will flatten position
                 if (order.OrderState == OrderState.Cancelled)
                 {
-                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Order cancellation was confirmed by exchange.");
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Order cancellation was confirmed by exchange. Will flatten all positions.");
+                    FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
