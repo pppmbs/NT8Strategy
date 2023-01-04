@@ -403,14 +403,16 @@
     <Compile Include="Strategies\Sample.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyDrawdown.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdown.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyMod.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyMod.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVarPeak.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyPeak.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyThreshold.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyVIX.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3002.cs" />
+    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
+    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLiveBackup.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

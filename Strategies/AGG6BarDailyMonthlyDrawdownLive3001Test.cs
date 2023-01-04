@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyDrawdownLive3001 : Strategy
+    public class AGG6BarDailyMonthlyDrawdownLive3001Test : Strategy
     {
         // log, error, current capital and vix  files
         private string pathLog;
@@ -164,7 +164,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy";
-                Name = "AGG6BarDailyMonthlyDrawdownLive3001";
+                Name = "AGG6BarDailyMonthlyDrawdownLive3001Test";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy

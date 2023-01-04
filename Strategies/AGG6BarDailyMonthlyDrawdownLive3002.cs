@@ -576,7 +576,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 pathErr = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
                 pathErr = System.IO.Path.Combine(pathErr, portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
-                swErr = File.CreateText(pathErr);  // Open the path for err file writing
+                swErr = File.AppendText(pathErr);  // Open the path for err file writing
             }
 
             switch (errType)
@@ -767,10 +767,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void ExecuteAITrade(string signal)
         {
-            MyPrint("ExecuteAITrade, haltTrading=" + haltTrading + " attemptToFlattenPos=" + attemptToFlattenPos);
+            MyPrint("ExecuteAITrade, haltTrading=" + haltTrading + " attemptToFlattenPos=" + attemptToFlattenPos + " State=" + State.ToString());
 
-            // don't start new trade if halt trading or attempting to flatten positions
-            if (haltTrading || attemptToFlattenPos)
+            // don't start new trade if not real time, halt trading or attempting to flatten positions
+            if ((State != State.Realtime) || haltTrading || attemptToFlattenPos)
                 return;
 
             // don't execute trade if consecutive losses greater than allowable limits
@@ -876,7 +876,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
                     {
-                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -1180,8 +1180,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                //if (CurrentBar < BarsRequiredToTrade)
-                //    return;
+                // skip all historical bars until about 10 bars before real time bar, this is to prime the server before real time trading
+                // BarsRequiredToTrade set to 240, is defined in the strategy property. MaximumBarsLookBack is set to 256.
+                if (CurrentBar < BarsRequiredToTrade)
+                {
+                    // set lineNo to 0 for the "first bar" to server
+                    lineNo = 0;
+                    return;
+                }
 
                 // for live trading, don't start feeding bars to the server until in real time mode
                 if (State != State.Realtime)
@@ -1190,10 +1196,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // See StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount; 
                     if (!PosFlat())
                         FlattenVirtualPositions(); // this will flatten virtual positions and reset all flags
-
-                    // reset lineNo to 0 for all other states, real time trading will start with lineNo = 0
-                    lineNo = 0;
-                    return;
                 }
 
                 //ignore all bars that come after end of session, until next day
@@ -1289,7 +1291,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     MyErrPrint(ErrorType.fatal, "Socket exception::" + ex.Message + " " + ex.ToString());
                     if (!PosFlat())
-                        MyErrPrint(ErrorType.fatal, "There is an outstanding position for this strategy, manual flattening of the position is needed.");
+                        MyErrPrint(ErrorType.fatal, "There may be an outstanding position for this strategy, manual flattening of the position may be needed.");
                 }
 
                 // for Live Trading, don't reset server and change lineNo
