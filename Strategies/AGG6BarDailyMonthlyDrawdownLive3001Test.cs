@@ -318,7 +318,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Necessary to call in order to clean up resources used by the StreamWriter object
             else if (State == State.Terminated)
             {
-                Print("State == State.Terminated");
+                MyErrPrint(ErrorType.warning, "State == State.Terminated, Check for potential strategy termination due to error only captured in NT log.");
 
                 if (swLog != null)
                 {
