@@ -80,7 +80,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose, 
         //            the monthly drawdown comparison is based on %percentage% of $10,000
         //            even though capital to lot ratio can be set to $25,000 per lot
-        private static double InitStartingCapital = 10000;
+        private static double InitStartingCapital = 10000 * LotSize;
 
         /* **********************************************************************************************************
          * Commission rate needs to be set to the current commission rate
@@ -460,7 +460,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (position.MarketPosition == MarketPosition.Flat)
             {
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("OnPositionUpdate, PnL of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
+                MyPrint("OnPositionUpdate, P&L of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 // current capital is accurately accounted for when the position is flatten
