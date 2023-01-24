@@ -412,7 +412,6 @@
     <Compile Include="Strategies\AGG6BarDailyMonthlyVIX.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3002.cs" />
     <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLiveBackup.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
