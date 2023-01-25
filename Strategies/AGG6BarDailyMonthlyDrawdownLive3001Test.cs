@@ -107,6 +107,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // they are to be initialized when State == State.DataLoaded during start up
         private double yesterdayCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
+        private double lastTotalRealtimePnL = 0;
 
         private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
         private int consecutiveDailyLosses = 0;
@@ -455,14 +456,27 @@ namespace NinjaTrader.NinjaScript.Strategies
         protected override void OnPositionUpdate(Cbi.Position position, double averagePrice,
             int quantity, Cbi.MarketPosition marketPosition)
         {
+            double totalRealtimePnL = 0;
+
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("OnPositionUpdate, P&L of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+
+                //MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
+                //MyPrint("OnPositionUpdate, P&L of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
+                //MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 // current capital is accurately accounted for when the position is flatten
-                currentCapital += SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency;
+                // currentCapital += SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency;
+
+                for (int i=0; i<SystemPerformance.RealTimeTrades.Count; i++)
+                {
+                    totalRealtimePnL += SystemPerformance.RealTimeTrades[i].ProfitCurrency;
+                }
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, P&L of last trade= " + (totalRealtimePnL - lastTotalRealtimePnL));
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+                currentCapital = yesterdayCapital + totalRealtimePnL;
+                lastTotalRealtimePnL = totalRealtimePnL;
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
                 FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
