@@ -86,7 +86,7 @@ namespace NinjaTrader.NinjaScript.Strategies
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate = 5.48;
+        private static double CommissionRate = 5.53 * LotSize;
         /*
          * **********************************************************************************************************
          */
@@ -305,7 +305,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
 
                 // start real time mode with lineNo=0 for AI server
-                lineNo = 0;
+                //lineNo = 0;
 
                 // Read the current capital file .cc for the current capital, create one if it does not exist
                 ReadCurrentCapital();
