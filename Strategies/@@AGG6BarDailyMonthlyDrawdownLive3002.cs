@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class AGG6BarDailyMonthlyDrawdownLive3001Test : Strategy
+    public class AGG6BarDailyMonthlyDrawdownLive3002 : Strategy
     {
         // log, error, current capital and vix  files
         private string pathLog;
@@ -107,7 +107,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         // they are to be initialized when State == State.DataLoaded during start up
         private double yesterdayCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
-        private double lastTotalRealtimePnL = 0;
 
         private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
         private int consecutiveDailyLosses = 0;
@@ -123,7 +122,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int profitTarget = profitChasing * 10; // for automatic profits taking, HandleProfitChasing will take care of profit taking once profit > profitChasing
         private static readonly int softDeck = 10 * 4; // number of stops for soft stop loss
         private static readonly int hardDeck = 20 * 4; //hard deck for auto stop loss
-        private static readonly int portNumber = 3001;
+        private static readonly int portNumber = 3002;
         /*
          * **********************************************************************************************************
          */
@@ -158,20 +157,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             fatal
         };
 
-        enum ExitOrderType
-        {
-            limit,
-            market
-        };
-
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
             {
                 MyPrint("State == State.SetDefaults");
 
-                Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "AGG6BarDailyMonthlyDrawdownLive3001Limit";
+                Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy";
+                Name = "AGG6BarDailyMonthlyDrawdownLive3002";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -220,7 +213,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 ConnectionLossHandling = ConnectionLossHandling.Recalculate;
 
                 //Set this scripts MyPrint() calls to the first output tab
-                PrintTo = PrintTo.OutputTab1;
+                PrintTo = PrintTo.OutputTab2;
             }
             else if (State == State.Configure)
             {
@@ -311,7 +304,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
 
                 // start real time mode with lineNo=0 for AI server
-                //lineNo = 0;
+                lineNo = 0;
 
                 // Read the current capital file .cc for the current capital, create one if it does not exist
                 ReadCurrentCapital();
@@ -429,7 +422,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     else
                     {
                         // order partially filled
-                        MyErrPrint(ErrorType.warning, "OnOrderUpdate, +++++++OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
+                        MyErrPrint(ErrorType.warning, "OnOrderUpdate, OrderState.PartFilled, sumFilled=" + order.Filled + ". Need to monitor Order status in Control Center.");
                     }
                 }
 
@@ -457,28 +450,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-
         // WARNING!!!! Will NOT receive position updates for manually placed orders, or orders managed by other strategies
         protected override void OnPositionUpdate(Cbi.Position position, double averagePrice,
             int quantity, Cbi.MarketPosition marketPosition)
         {
-            double totalRealtimePnL = 0;
-            double lastTradePnL = 0;
-
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                for (int i = 0; i < SystemPerformance.RealTimeTrades.Count; i++)
-                {
-                    totalRealtimePnL += SystemPerformance.RealTimeTrades[i].ProfitCurrency;
-                }
-                lastTradePnL = totalRealtimePnL - lastTotalRealtimePnL;
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL);
+                MyPrint("OnPositionUpdate, P&L of last trade= " + SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency);
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 // current capital is accurately accounted for when the position is flatten
-                currentCapital += lastTradePnL;
-                lastTotalRealtimePnL = totalRealtimePnL;
+                currentCapital += SystemPerformance.AllTrades[SystemPerformance.AllTrades.Count - 1].ProfitCurrency;
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
                 FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
@@ -691,13 +674,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void AiShort()
         {
-            EnterShortLimit(LotSize, Bars.GetClose(CurrentBar), "Short");
+            EnterShort(LotSize, "Short");
             MyPrint("AiShort, Server Signal=" + svrSignal + " Short");
         }
 
         private void AiLong()
         {
-            EnterLongLimit(LotSize, Bars.GetClose(CurrentBar), "Long");
+            EnterLong(LotSize, "Long");
             MyPrint("AiLong, Server Signal=" + svrSignal + " Long");
         }
 
@@ -711,7 +694,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        private void AiFlat(ExitOrderType order)
+        private void AiFlat()
         {
             MyPrint("AiFlat: currPos = " + currPos.ToString());
 
@@ -722,22 +705,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (PosLong())
                 {
-                    if (order == ExitOrderType.limit)
-                        ExitLongLimit(Bars.GetClose(CurrentBar), "ExitLong", "Long");
-                    else
-                        ExitLong("ExitLong", "Long");
-
+                    ExitLong("ExitLong", "Long");
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                     MyPrint("AiFlat, ExitLong");
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                 }
                 if (PosShort())
                 {
-                    if (order == ExitOrderType.limit)
-                        ExitShortLimit(Bars.GetClose(CurrentBar), "ExitShort", "Short");
-                    else
-                        ExitShort("ExitLong", "Long");
-
+                    ExitShort("ExitShort", "Short");
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                     MyPrint("AiFlat, ExitShort");
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
@@ -861,10 +836,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (signal[0] != '2')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
-                    MyPrint("");
+                    MyPrint(""); 
                     MyPrint("HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
-                    MyPrint("");
-                    AiFlat(ExitOrderType.limit);
+                    MyPrint(""); 
+                    AiFlat();
 
                     IncrementDailyLoss();
 
@@ -887,10 +862,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (signal[0] != '0')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
-                    MyPrint("");
+                    MyPrint(""); 
                     MyPrint("HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
-                    MyPrint("");
-                    AiFlat(ExitOrderType.limit);
+                    MyPrint(""); 
+                    AiFlat();
 
                     IncrementDailyLoss();
 
@@ -935,10 +910,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosLong())
             {
-                MyPrint("");
+                MyPrint(""); 
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
-                MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                MyPrint(""); 
+                AiFlat();
 
                 IncrementDailyLoss();
 
@@ -956,10 +931,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                MyPrint("");
+                MyPrint(""); 
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
-                MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                MyPrint(""); 
+                AiFlat();
 
                 IncrementDailyLoss();
 
@@ -1005,10 +980,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
-                    MyPrint("");
+                    MyPrint(""); 
                     MyPrint("HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate));
-                    MyPrint("");
-                    AiFlat(ExitOrderType.limit);
+                    MyPrint(""); 
+                    AiFlat();
 
                     IncrementDailyWin();
 
@@ -1028,10 +1003,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
                 {
-                    MyPrint("");
+                    MyPrint(""); 
                     MyPrint("HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
-                    MyPrint("");
-                    AiFlat(ExitOrderType.limit);
+                    MyPrint(""); 
+                    AiFlat();
 
                     IncrementDailyWin();
 
@@ -1086,7 +1061,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
 
-                AiFlat(ExitOrderType.limit);
+                AiFlat();
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
@@ -1105,7 +1080,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice + " Close[0]=" + Close[0] + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate));
 
-                AiFlat(ExitOrderType.limit);
+                AiFlat();
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
@@ -1352,16 +1327,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
                 {
-                    // If failed to exit position with limit order, switch to exit with market order
-                    if (attemptToFlattenPos && !PosFlat())
-                    {
-                        MyErrPrint(ErrorType.warning, "*******Failed to exit position using LIMIT ORDER, attemptToFlattenPos=" + attemptToFlattenPos + " Now exit position using MARKET ORDER.");
-                        AiFlat(ExitOrderType.market);
-
-                        // skip further processing until after position exit
-                        return;
-                    }
-
                     ExecuteAITrade(svrSignal);
 
                     // if position is flat, no need to do anything

@@ -86,7 +86,7 @@ namespace NinjaTrader.NinjaScript.Strategies
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate = 5.53 * LotSize;
+        private static double CommissionRate = 5.48 * LotSize;
         /*
          * **********************************************************************************************************
          */
@@ -206,9 +206,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //Sets the manner in which your strategy will behave when a connection loss is detected.
                 //When using ConnectionLossHandling.Recalculate, recalculations will only occur if the strategy was stopped based on the conditions below.
-                //•If data feed disconnects for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
-                //•If the order feed disconnects and the strategy places an order action while disconnected, the strategy is stopped.
-                //•If both the data and order feeds disconnect for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
+                //ï¿½If data feed disconnects for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
+                //ï¿½If the order feed disconnects and the strategy places an order action while disconnected, the strategy is stopped.
+                //ï¿½If both the data and order feeds disconnect for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
                 //Strategies will attempt to recalculate its strategy position when a connection is reestablished.
                 ConnectionLossHandling = ConnectionLossHandling.Recalculate;
 
@@ -595,7 +595,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             swErr.Dispose();
             swErr = null;
 
-            Print(errString + DateTime.Now + " " + buf); // Screen print out
             MyPrint(errString + DateTime.Now + " " + buf); // replicate error message to log file
 
             // Cancels all working orders, closes any existing positions, and finally disables the strategy. 
