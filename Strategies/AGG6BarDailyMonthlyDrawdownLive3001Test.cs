@@ -171,7 +171,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "AGG6BarDailyMonthlyDrawdownLive3001Limit";
+                Name = "AGG6BarDailyMonthlyDrawdownLive3001Test";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -736,7 +736,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (order == ExitOrderType.limit)
                         ExitShortLimit(Bars.GetClose(CurrentBar), "ExitShort", "Short");
                     else
-                        ExitShort("ExitLong", "Long");
+                        ExitShort("ExitShort", "Short");
 
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                     MyPrint("AiFlat, ExitShort");
@@ -1068,7 +1068,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //if (Close[0] <= (closedPrice - profitChasing * TickSize))
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
-                    MyPrint("TouchedProfitChasing");
+                    MyPrint("TouchedProfitChasing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==================================");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -1234,6 +1234,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //ignore all bars that come after end of session, until next day
                 if (endSession)
                 {
+                    // If failed to exit position with limit order during endSession, switch to exit with market order
+                    if (!PosFlat())
+                    {
+                        MyErrPrint(ErrorType.warning, "*******Failed to exit position using LIMIT ORDER, attemptToFlattenPos=" + attemptToFlattenPos + " Now exit position using MARKET ORDER.");
+                        AiFlat(ExitOrderType.market);
+
+                        // skip further processing until after position exit
+                        return;
+                    }
+
                     // if new day, then reset endSession
                     if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
                     {
