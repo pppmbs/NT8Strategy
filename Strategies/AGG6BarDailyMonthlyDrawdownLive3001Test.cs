@@ -713,7 +713,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void AiFlat(ExitOrderType order)
         {
-            MyPrint("AiFlat: currPos = " + currPos.ToString());
+            MyPrint("AiFlat: currPos=" + currPos.ToString() + ", ExitOrderType=" + order);
 
             if (!PosFlat())
             {
@@ -728,7 +728,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         ExitLong("ExitLong", "Long");
 
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
-                    MyPrint("AiFlat, ExitLong");
+                    MyPrint("AiFlat, ExitLong, ExitOrderType=" + order);
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                 }
                 if (PosShort())
@@ -739,7 +739,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         ExitShort("ExitShort", "Short");
 
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
-                    MyPrint("AiFlat, ExitShort");
+                    MyPrint("AiFlat, ExitShort, ExitOrderType=" + order);
                     MyPrint("AiFlat, ---------------------------------------------------------------------------------");
                 }
             }
@@ -1086,7 +1086,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
 
-                AiFlat(ExitOrderType.limit);
+                AiFlat(ExitOrderType.market);
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
@@ -1234,16 +1234,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //ignore all bars that come after end of session, until next day
                 if (endSession)
                 {
-                    // If failed to exit position with limit order during endSession, switch to exit with market order
-                    if (!PosFlat())
-                    {
-                        MyErrPrint(ErrorType.warning, "*******Failed to exit position using LIMIT ORDER, attemptToFlattenPos=" + attemptToFlattenPos + " Now exit position using MARKET ORDER.");
-                        AiFlat(ExitOrderType.market);
-
-                        // skip further processing until after position exit
-                        return;
-                    }
-
                     // if new day, then reset endSession
                     if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
                     {
