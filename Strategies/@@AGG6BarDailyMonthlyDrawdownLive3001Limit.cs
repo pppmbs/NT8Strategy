@@ -86,7 +86,7 @@ namespace NinjaTrader.NinjaScript.Strategies
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate = 5.48 * LotSize;
+        private static double CommissionRate = 5.53 * LotSize;
         /*
          * **********************************************************************************************************
          */
