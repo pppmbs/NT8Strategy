@@ -939,7 +939,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("");
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                 MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
 
@@ -960,7 +960,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("");
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                 MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
 
@@ -1082,12 +1082,16 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             double estCurrentCapital;
 
+            // Flattening position already in progress
+            if (attemptToFlattenPos)
+                return;
+
             // EOD close current position(s)
             if (PosLong())
             {
                 MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
 
-                AiFlat(ExitOrderType.market);
+                AiFlat(ExitOrderType.limit);
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
@@ -1106,7 +1110,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 MyPrint("CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice + " Close[0]=" + Close[0] + " P/L= " + ((closedPrice - Close[0]) * 50 - CommissionRate));
 
-                AiFlat(ExitOrderType.market);
+                AiFlat(ExitOrderType.limit);
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
@@ -1132,8 +1136,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Send reset string of "-1" to the server  
             int resetSent = sender.Send(resetMsg);
 
-            // this will flatten virtual positions and reset all flags
-            FlattenVirtualPositions();
             lineNo = 0;
         }
 
@@ -1185,7 +1187,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     CloseCurrentPositions();
 
-                    ResetServer();
+                    // No need to reset server in Live trading
+                    //ResetServer();
                     endSession = true;
 
                     SetDailyWinLossState();
@@ -1235,6 +1238,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //ignore all bars that come after end of session, until next day
                 if (endSession)
                 {
+                    // If failed to exit position with limit order for EOD, switch to exit with market order
+                    if (attemptToFlattenPos && !PosFlat())
+                    {
+                        MyErrPrint(ErrorType.warning, "*******Failed to exit position using LIMIT ORDER, attemptToFlattenPos=" + attemptToFlattenPos + " Now exit position using MARKET ORDER.");
+                        AiFlat(ExitOrderType.market);
+
+                        // skip further processing until after position exit
+                        return;
+                    }
+
                     // if new day, then reset endSession
                     if (Bars.GetTime(CurrentBar).Date > Bars.GetTime(CurrentBar - 1).Date)
                     {
@@ -1390,6 +1403,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             else if (BarsInProgress == 1)
             {
                 if (State != State.Realtime)
+                    return;
+
+                // If in attemptToFlattenPos then don't do anything until after position flatten 
+                if (attemptToFlattenPos && !PosFlat())
                     return;
 
                 // Need to Handle end of session on tick because to avoid closing position past current day

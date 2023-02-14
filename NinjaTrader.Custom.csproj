@@ -414,8 +414,8 @@
     <Compile Include="Strategies\SP500EminiLive3001.cs" />
     <Compile Include="Strategies\SP500EminiLive3002.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001Limit.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
     <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3002Limit.cs" />
+    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

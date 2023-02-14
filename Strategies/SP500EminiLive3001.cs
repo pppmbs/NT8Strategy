@@ -1392,6 +1392,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (State != State.Realtime)
                     return;
 
+                // If in attemptToFlattenPos then don't do anything until after position flatten 
+                if (attemptToFlattenPos && !PosFlat())
+                    return;
+
                 // Need to Handle end of session on tick because to avoid closing position past current day
                 HandleEndOfSession();
 
