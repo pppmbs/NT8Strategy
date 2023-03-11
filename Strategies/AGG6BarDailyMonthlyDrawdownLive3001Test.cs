@@ -826,6 +826,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
+                // continue to move trailing stop for profit chasing
+                if (currentCapital > capitalAtProfitChasing)
+                    capitalAtProfitChasing = currentCapital;
+
                 // trading halt if suffers more than profitChasingAllowableDrawdown losses from capitalAtProfitChasing
                 if (currentCapital < (capitalAtProfitChasing * (1 - profitChasingAllowableDrawdown)))
                 {
