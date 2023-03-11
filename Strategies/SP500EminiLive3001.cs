@@ -1,4 +1,4 @@
-﻿#region Using declarations
+#region Using declarations
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -75,7 +75,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double HVprofitChasingAllowableDrawdown = 0.05; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         // initial trading capital and trading lot size
-        private static readonly int LotSize = 2;
+        private static readonly int LotSize = 20;
+
+        // Dollar value for ONE point, i.e. 4 ticks, 4 x $12.50 (value per tick) = $50
+        private static double dollarValPerPoint = 50;
 
         // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose, 
         //            the monthly drawdown comparison is based on %percentage% of $10,000
@@ -86,7 +89,7 @@ namespace NinjaTrader.NinjaScript.Strategies
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate = 5.53 * LotSize;
+        private static double CommissionRate = 5.58 * LotSize;
         /*
          * **********************************************************************************************************
          */
@@ -468,17 +471,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                for (int i = 0; i < SystemPerformance.RealTimeTrades.Count; i++)
-                {
-                    totalRealtimePnL += SystemPerformance.RealTimeTrades[i].ProfitCurrency;
-                }
+                totalRealtimePnL = Account.Get(AccountItem.RealizedProfitLoss, Currency.UsDollar);
                 lastTradePnL = totalRealtimePnL - lastTotalRealtimePnL;
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
                 MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL);
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 // current capital is accurately accounted for when the position is flatten
-                currentCapital += lastTradePnL;
+                currentCapital += Account.Get(AccountItem.CashValue, Currency.UsDollar);
                 lastTotalRealtimePnL = totalRealtimePnL;
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
@@ -501,7 +501,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // read the current capital file .cc for the current capital, create one if it does not exist
             // Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
             pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathCC = System.IO.Path.Combine(pathCC, portNumber.ToString() + "-" + Time[0].ToString("yyyyMM") + ".cc");
+            pathCC = System.IO.Path.Combine(pathCC, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cc");
 
             if (File.Exists(pathCC))
             {
@@ -529,7 +529,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
             pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathVIX = System.IO.Path.Combine(pathVIX, portNumber.ToString() + ".vix");
+            pathVIX = System.IO.Path.Combine(pathVIX, Dns.GetHostName() + "-" + portNumber.ToString() + ".vix");
 
             if (File.Exists(pathVIX))
             {
@@ -590,7 +590,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (swErr == null)
             {
                 pathErr = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                pathErr = System.IO.Path.Combine(pathErr, portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
+                pathErr = System.IO.Path.Combine(pathErr, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
                 swErr = File.AppendText(pathErr);  // Open the path for err file writing
             }
 
@@ -627,7 +627,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 //Create log file in the portNumber-yyyyMMdd.log format
                 pathLog = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                pathLog = System.IO.Path.Combine(pathLog, portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+                pathLog = System.IO.Path.Combine(pathLog, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
                 swLog = File.AppendText(pathLog);  // Open the path for log file writing
             }
 
@@ -749,7 +749,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
-
             // Attempting to start new trade while flattening current position, will not start new trade
             if (attemptToFlattenPos)
             {
@@ -800,6 +799,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 MyPrint("ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
                 MyPrint("ExecuteAITrade, consecutiveDailyLosses=" + consecutiveDailyLosses + " maxConsecutiveDailyLosses=" + maxConsecutiveDailyLosses);
+                haltTrading = true;
                 return;
             }
 
@@ -871,7 +871,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * 50 - CommissionRate);
+                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -897,7 +897,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * 50 - CommissionRate);
+                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -939,13 +939,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("");
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
                 MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * 50 - CommissionRate);
+                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -960,13 +960,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("");
                 MyPrint("HandleHardDeck, OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                 MyPrint("");
-                AiFlat(ExitOrderType.limit);
+                AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * 50 - CommissionRate);
+                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -1015,7 +1015,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // currentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * 50 - CommissionRate);
+                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -1038,7 +1038,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * 50 - CommissionRate);
+                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -1082,6 +1082,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             double estCurrentCapital;
 
+            // Flattening position already in progress
+            if (attemptToFlattenPos)
+                return;
+
             // EOD close current position(s)
             if (PosLong())
             {
@@ -1091,7 +1095,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * 50 - CommissionRate);
+                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -1110,7 +1114,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * 50 - CommissionRate);
+                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
                 if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
@@ -1132,8 +1136,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Send reset string of "-1" to the server  
             int resetSent = sender.Send(resetMsg);
 
-            // this will flatten virtual positions and reset all flags
-            FlattenVirtualPositions();
             lineNo = 0;
         }
 
@@ -1185,7 +1187,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     CloseCurrentPositions();
 
-                    ResetServer();
+                    // No need to reset server in Live trading
+                    //ResetServer();
                     endSession = true;
 
                     SetDailyWinLossState();
