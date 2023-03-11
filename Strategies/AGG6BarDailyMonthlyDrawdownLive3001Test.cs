@@ -832,8 +832,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else
             {
-                // trading halt if suffers more than maxPercentAllowableDrawdown losses
-                if (currentCapital < (InitStartingCapital * (1 - maxPercentAllowableDrawdown)))
+                // trading halt if suffers more than maxPercentAllowableDrawdown losses from either InitStartingCapital or yesterdayCapital
+                // comparison to both var because the need to compare to a larger number (either InitStartingCapital or yesterdayCapital) and exit sooner
+                if ((currentCapital < (InitStartingCapital * (1 - maxPercentAllowableDrawdown))) ||
+                    (currentCapital < (yesterdayCapital * (1 - maxPercentAllowableDrawdown))))
                 {
                     MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
                     MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown);
