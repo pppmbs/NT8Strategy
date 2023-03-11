@@ -792,6 +792,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void ExecuteAITrade(string signal)
         {
+            double capitalAtProfitChasing = 0;
+            double allowableLossesNoProfitChasing;
+
             MyPrint("ExecuteAITrade, haltTrading=" + haltTrading + " attemptToFlattenPos=" + attemptToFlattenPos + " State=" + State.ToString());
 
             // don't start new trade if not real time, halt trading or attempting to flatten positions
@@ -813,6 +816,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (currentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
+                    capitalAtProfitChasing = currentCapital; // remember this capital for trailing stop
+
                     MyPrint("ExecuteAITrade, $$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
                     MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " profitChasingTarget=" + profitChasingTarget);
                 }
@@ -821,24 +826,24 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
             if (monthlyProfitChasingFlag)
             {
-                // trading halt if suffers more than profitChasingAllowableDrawdown losses from yesterdayCapital
-                if (currentCapital < (yesterdayCapital * (1 - profitChasingAllowableDrawdown)))
+                // trading halt if suffers more than profitChasingAllowableDrawdown losses from capitalAtProfitChasing
+                if (currentCapital < (capitalAtProfitChasing * (1 - profitChasingAllowableDrawdown)))
                 {
                     MyPrint("ExecuteAITrade, $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
-                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " yesterdayCapital=" + yesterdayCapital + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
+                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " capitalAtProfitChasing=" + capitalAtProfitChasing + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
                     haltTrading = true;
                     return;
                 }
             }
             else
             {
-                // trading halt if suffers more than maxPercentAllowableDrawdown losses from either InitStartingCapital or yesterdayCapital
-                // comparison to both var because the need to compare to a larger number (either InitStartingCapital or yesterdayCapital) and exit sooner
-                if ((currentCapital < (InitStartingCapital * (1 - maxPercentAllowableDrawdown))) ||
-                    (currentCapital < (yesterdayCapital * (1 - maxPercentAllowableDrawdown))))
+                // the dollar amount allowed for losses if no profit chasing
+                allowableLossesNoProfitChasing = InitStartingCapital * maxPercentAllowableDrawdown;
+
+                if ((yesterdayCapital - currentCapital) > allowableLossesNoProfitChasing)
                 {
-                    MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly profit target NOT met, stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
-                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown);
+                    MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
+                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " yesterdayCapital=" + yesterdayCapital + " allowableLossesNoProfitChasing=" + allowableLossesNoProfitChasing);
                     haltTrading = true;
                     return;
                 }
