@@ -468,26 +468,23 @@ namespace NinjaTrader.NinjaScript.Strategies
         protected override void OnPositionUpdate(Cbi.Position position, double averagePrice,
             int quantity, Cbi.MarketPosition marketPosition)
         {
-            double realizedProfitLoss;
+            double totalRealtimePnL = 0;
             double lastTradePnL;
-            double currentCapital;
-
-            // current capital is accurately accounted for when the position is flatten
-            currentCapital = Account.Get(AccountItem.CashValue, Currency.UsDollar);
 
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                realizedProfitLoss = Account.Get(AccountItem.RealizedProfitLoss, Currency.UsDollar);
-                if (SystemPerformance.RealTimeTrades.Count > 0)
-                    lastTradePnL = SystemPerformance.RealTimeTrades[SystemPerformance.RealTimeTrades.Count - 1].ProfitCurrency;
-                else
-                    lastTradePnL = 0;
+                for (int i = 0; i < SystemPerformance.RealTimeTrades.Count; i++)
+                {
+                    totalRealtimePnL += SystemPerformance.RealTimeTrades[i].ProfitCurrency;
+                }
+                lastTradePnL = totalRealtimePnL - lastTotalRealtimePnL;
 
-                // virtual current capital is accurately accounted for when the position is flatten
+                // current capital is accurately accounted for when the position is flatten
                 virtualCurrentCapital += lastTradePnL;
+                lastTotalRealtimePnL = totalRealtimePnL;
 
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL + " Total realized P&L= " + realizedProfitLoss + " currentCapital= " + currentCapital + " virtualCurrentCapital= " + virtualCurrentCapital);
+                MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL + " virtualCurrentCapital= " + virtualCurrentCapital);
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
@@ -495,11 +492,11 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long, currentCapital= " + currentCapital + " %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long %%%%%%%%%%%%%%%%%%%%%%%%");
             }
             if (position.MarketPosition == MarketPosition.Short)
             {
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short, currentCapital= " + currentCapital + " %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short %%%%%%%%%%%%%%%%%%%%%%%%");
             }
         }
 
