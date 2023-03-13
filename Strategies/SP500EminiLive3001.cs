@@ -104,11 +104,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-        private double currentCapital = InitStartingCapital; // set to  startingCapital before the day
+        private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
         // they are to be initialized when State == State.DataLoaded during start up
-        private double yesterdayCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
+        private double yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
         private double lastTotalRealtimePnL = 0;
 
@@ -273,8 +273,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Establish the remote endpoint for the socket.  
                     // connecting server on portNumber  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                    IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
-                    // IPAddress ipAddress = ipHostInfo.AddressList[4];
+
+                    //IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                    IPAddress ipAddress = ipHostInfo.AddressList[3];
+                    ipAddress = ipAddress.MapToIPv4();
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
                     MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -466,31 +468,38 @@ namespace NinjaTrader.NinjaScript.Strategies
         protected override void OnPositionUpdate(Cbi.Position position, double averagePrice,
             int quantity, Cbi.MarketPosition marketPosition)
         {
-            double totalRealtimePnL = 0;
-            double lastTradePnL = 0;
+            double realizedProfitLoss;
+            double lastTradePnL;
+            double currentCapital;
+
+            // current capital is accurately accounted for when the position is flatten
+            currentCapital = Account.Get(AccountItem.CashValue, Currency.UsDollar);
 
             if (position.MarketPosition == MarketPosition.Flat)
             {
-                totalRealtimePnL = Account.Get(AccountItem.RealizedProfitLoss, Currency.UsDollar);
-                lastTradePnL = totalRealtimePnL - lastTotalRealtimePnL;
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
-                MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL);
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+                realizedProfitLoss = Account.Get(AccountItem.RealizedProfitLoss, Currency.UsDollar);
+                if (SystemPerformance.RealTimeTrades.Count > 0)
+                    lastTradePnL = SystemPerformance.RealTimeTrades[SystemPerformance.RealTimeTrades.Count - 1].ProfitCurrency;
+                else
+                    lastTradePnL = 0;
 
-                // current capital is accurately accounted for when the position is flatten
-                currentCapital += Account.Get(AccountItem.CashValue, Currency.UsDollar);
-                lastTotalRealtimePnL = totalRealtimePnL;
+                // virtual current capital is accurately accounted for when the position is flatten
+                virtualCurrentCapital += lastTradePnL;
+
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%% Account Positions: Flatten %%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL + " Total realized P&L= " + realizedProfitLoss + " currentCapital= " + currentCapital + " virtualCurrentCapital= " + virtualCurrentCapital);
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
                 FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long, currentCapital= " + currentCapital + " %%%%%%%%%%%%%%%%%%%%%%%%");
             }
             if (position.MarketPosition == MarketPosition.Short)
             {
-                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short %%%%%%%%%%%%%%%%%%%%%%%%");
+                MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short, currentCapital= " + currentCapital + " %%%%%%%%%%%%%%%%%%%%%%%%");
             }
         }
 
@@ -507,16 +516,16 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Read current capital from the cc file
                 string ccStr = File.ReadAllText(pathCC);
-                currentCapital = Convert.ToDouble(ccStr);
+                virtualCurrentCapital = Convert.ToDouble(ccStr);
 
                 // initializing the monthly control strategy variables with currentCapital from the cc file
-                yesterdayCapital = currentCapital; // keep track of capital from previous day
+                yesterdayVirtualCapital = virtualCurrentCapital; // keep track of capital from previous day
                 monthlyProfitChasingFlag = false; // set to false before the month
             }
-            MyPrint("ReadCurrentCapital currentCapital=" + currentCapital);
+            MyPrint("ReadCurrentCapital virtualCurrentCapital=" + virtualCurrentCapital);
 
             swCC = File.CreateText(pathCC); // Open the path for current capital
-            swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+            swCC.WriteLine(virtualCurrentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
             swCC.Close();
             swCC.Dispose();
             swCC = null;
@@ -786,6 +795,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        // Will stop trades from proceeding if some conditions are met, e.g. stop loss
         private void ExecuteAITrade(string signal)
         {
             double capitalAtProfitChasing = 0;
@@ -809,13 +819,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
-                if (currentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
+                if (virtualCurrentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
-                    capitalAtProfitChasing = currentCapital; // remember this capital for trailing stop
+                    capitalAtProfitChasing = virtualCurrentCapital; // remember this capital for trailing stop
 
                     MyPrint("ExecuteAITrade, $$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
-                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " InitStartingCapital=" + InitStartingCapital + " profitChasingTarget=" + profitChasingTarget);
+                    MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " InitStartingCapital=" + InitStartingCapital + " profitChasingTarget=" + profitChasingTarget);
                 }
             }
 
@@ -823,14 +833,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (monthlyProfitChasingFlag)
             {
                 // continue to move trailing stop for profit chasing
-                if (currentCapital > capitalAtProfitChasing)
-                    capitalAtProfitChasing = currentCapital;
+                if (virtualCurrentCapital > capitalAtProfitChasing)
+                    capitalAtProfitChasing = virtualCurrentCapital;
 
                 // trading halt if suffers more than profitChasingAllowableDrawdown losses from capitalAtProfitChasing
-                if (currentCapital < (capitalAtProfitChasing * (1 - profitChasingAllowableDrawdown)))
+                if (virtualCurrentCapital < (capitalAtProfitChasing * (1 - profitChasingAllowableDrawdown)))
                 {
                     MyPrint("ExecuteAITrade, $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
-                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " capitalAtProfitChasing=" + capitalAtProfitChasing + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
+                    MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " capitalAtProfitChasing=" + capitalAtProfitChasing + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
                     haltTrading = true;
                     return;
                 }
@@ -840,10 +850,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // the dollar amount allowed for losses if no profit chasing
                 allowableLossesNoProfitChasing = InitStartingCapital * maxPercentAllowableDrawdown;
 
-                if ((yesterdayCapital - currentCapital) > allowableLossesNoProfitChasing)
+                if ((yesterdayVirtualCapital - virtualCurrentCapital) > allowableLossesNoProfitChasing)
                 {
                     MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
-                    MyPrint("ExecuteAITrade, currentCapital=" + currentCapital + " yesterdayCapital=" + yesterdayCapital + " allowableLossesNoProfitChasing=" + allowableLossesNoProfitChasing);
+                    MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " allowableLossesNoProfitChasing=" + allowableLossesNoProfitChasing);
                     haltTrading = true;
                     return;
                 }
@@ -859,7 +869,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleSoftDeck(string signal)
         {
-            double estCurrentCapital;
+            double estVirtualCurrentCapital;
 
             if (PosFlat())
             {
@@ -882,12 +892,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
+                    estVirtualCurrentCapital = virtualCurrentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                    if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                     {
-                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -908,12 +918,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
+                    estVirtualCurrentCapital = virtualCurrentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                    if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                     {
-                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentVirtualCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -936,7 +946,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleHardDeck()
         {
-            double estCurrentCapital;
+            double estVirtualCurrentCapital;
 
             if (PosFlat())
             {
@@ -956,12 +966,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
+                estVirtualCurrentCapital = virtualCurrentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
-                if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                 {
-                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -977,12 +987,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
+                estVirtualCurrentCapital = virtualCurrentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
-                if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                 {
-                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
             }
@@ -1003,7 +1013,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void HandleProfitChasing(string signal)
         {
-            double estCurrentCapital;
+            double estVirtualCurrentCapital;
 
             if (PosFlat())
             {
@@ -1026,12 +1036,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // currentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
+                    estVirtualCurrentCapital = virtualCurrentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                    if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                     {
-                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -1049,12 +1059,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // keeping records for monthly profit chasing and stop loss strategy
                     // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                    estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
+                    estVirtualCurrentCapital = virtualCurrentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                     // stop trading if monthly profit is met and trading going negative
-                    if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                    if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                     {
-                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital.ToString() + " yesterdayCapital=" + yesterdayCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
                     }
                 }
@@ -1091,7 +1101,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void CloseCurrentPositions()
         {
-            double estCurrentCapital;
+            double estVirtualCurrentCapital;
 
             // Flattening position already in progress
             if (attemptToFlattenPos)
@@ -1106,12 +1116,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
+                estVirtualCurrentCapital = virtualCurrentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
-                if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                 {
-                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1125,12 +1135,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // keeping records for monthly profit chasing and stop loss strategy
                 // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
-                estCurrentCapital = currentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
+                estVirtualCurrentCapital = virtualCurrentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
 
                 // stop trading if monthly profit is met and trading going negative
-                if (monthlyProfitChasingFlag && (estCurrentCapital < yesterdayCapital))
+                if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                 {
-                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estCurrentCapital=" + estCurrentCapital + " yesterdayCapital=" + yesterdayCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                    MyPrint("CloseCurrentPositions, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
                 }
                 return;
@@ -1161,12 +1171,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // MyPrint out the current capital with P/L
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            MyPrint("PrintProfitLossCurrentCapital, Current capital is: " + currentCapital);
+            MyPrint("PrintProfitLossCurrentCapital, Virtual current capital is: " + virtualCurrentCapital);
             MyPrint("$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
             // ouput current capital to cc file
             swCC = File.CreateText(pathCC); // Open the path for current capital
-            swCC.WriteLine(currentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+            swCC.WriteLine(virtualCurrentCapital); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
             swCC.Close();
             swCC.Dispose();
             swCC = null;
@@ -1177,7 +1187,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             DateTime endSessionTime;
 
-            yesterdayCapital = currentCapital;
+            yesterdayVirtualCapital = virtualCurrentCapital;
 
             // pick the correct End session time
             if (Time[0].DayOfWeek == DayOfWeek.Friday)
