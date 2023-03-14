@@ -463,6 +463,35 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        // check if the cumulative P&L is greater than allowable monthly losses, if greater then set virtualCurrentCapital to zero and halt monthly trading
+        private void CheckMonthlyStopLoss()
+        {
+            double cumulativePL;
+            double allowableMonthlyLossesg;
+
+
+            cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit;
+            if (cumulativePL < 0)
+            {
+                // the dollar amount allowed for monthly losses depending if monthly profit chasing is met
+                if (monthlyProfitChasingFlag)
+                    allowableMonthlyLossesg = InitStartingCapital * profitChasingAllowableDrawdown;
+                else
+                    allowableMonthlyLossesg = InitStartingCapital * maxPercentAllowableDrawdown;
+
+                if (Math.Abs(cumulativePL) > allowableMonthlyLossesg)
+                {
+                    haltTrading = true;
+
+                    // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                    virtualCurrentCapital = 0;
+
+                    MyPrint("CheckMonthlyStopLoss, !!!!!!!!!!!! Monthly stop loss enforced, Skipping New Trade Position and setting virtualCurrentCapital to ZERO !!!!!!!!!!!!" + " monthlyProfitChasingFlag" + monthlyProfitChasingFlag);
+                    MyPrint("CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " cumulativePL=" + cumulativePL);
+                }
+            }
+        }
+
 
         // WARNING!!!! Will NOT receive position updates for manually placed orders, or orders managed by other strategies
         protected override void OnPositionUpdate(Cbi.Position position, double averagePrice,
@@ -470,6 +499,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             double totalRealtimePnL = 0;
             double lastTradePnL;
+
 
             if (position.MarketPosition == MarketPosition.Flat)
             {
@@ -487,6 +517,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint("OnPositionUpdate, P&L of last trade= " + lastTradePnL + " virtualCurrentCapital= " + virtualCurrentCapital);
                 MyPrint("OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
+                CheckMonthlyStopLoss();   // check for monthly stop loss, if stop loss happened, virtualCurrentCapital will be set to zero
                 PrintProfitLossCurrentCapital();   // output current capital to cc file
                 FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
             }
@@ -773,6 +804,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyErrPrint(ErrorType.warning, "StartNewTradePosition, Attempting to enter new trade while current order status is " + entryOrder.OrderState.ToString() + ",  will not start new trade. Check current order status.");
                 return;
             }
+            // Monrhly stop loss enfoced, will not start new trade
+            if (virtualCurrentCapital == 0)
+            {
+                MyErrPrint(ErrorType.warning, "StartNewTradePosition, Will NOT start new trade while Virtual Current Capital is " + virtualCurrentCapital + " Monthly Stop Loss enforced!");
+                return;
+            }
 
             switch (signal[0])
             {
@@ -792,12 +829,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        // Will stop trades from proceeding if some conditions are met, e.g. stop loss
+        // Will stop trades from proceeding if some conditions are met, e.g. daily stop loss met
         private void ExecuteAITrade(string signal)
         {
-            double capitalAtProfitChasing = 0;
-            double allowableLossesNoProfitChasing;
-
             MyPrint("ExecuteAITrade, haltTrading=" + haltTrading + " attemptToFlattenPos=" + attemptToFlattenPos + " State=" + State.ToString());
 
             // don't start new trade if not real time, halt trading or attempting to flatten positions
@@ -819,40 +853,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (virtualCurrentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     monthlyProfitChasingFlag = true;
-                    capitalAtProfitChasing = virtualCurrentCapital; // remember this capital for trailing stop
 
                     MyPrint("ExecuteAITrade, $$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
                     MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " InitStartingCapital=" + InitStartingCapital + " profitChasingTarget=" + profitChasingTarget);
-                }
-            }
-
-            // Don't trade if monthly profit chasing and stop loss strategy decided not to trade for the rest of the month
-            if (monthlyProfitChasingFlag)
-            {
-                // continue to move trailing stop for profit chasing
-                if (virtualCurrentCapital > capitalAtProfitChasing)
-                    capitalAtProfitChasing = virtualCurrentCapital;
-
-                // trading halt if suffers more than profitChasingAllowableDrawdown losses from capitalAtProfitChasing
-                if (virtualCurrentCapital < (capitalAtProfitChasing * (1 - profitChasingAllowableDrawdown)))
-                {
-                    MyPrint("ExecuteAITrade, $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
-                    MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " capitalAtProfitChasing=" + capitalAtProfitChasing + " profitChasingAllowableDrawdown=" + profitChasingAllowableDrawdown);
-                    haltTrading = true;
-                    return;
-                }
-            }
-            else
-            {
-                // the dollar amount allowed for losses if no profit chasing
-                allowableLossesNoProfitChasing = InitStartingCapital * maxPercentAllowableDrawdown;
-
-                if ((yesterdayVirtualCapital - virtualCurrentCapital) > allowableLossesNoProfitChasing)
-                {
-                    MyPrint("ExecuteAITrade, !!!!!!!!!!!! Monthly stop loss enforced, Skipping StartNewTradePosition !!!!!!!!!!!!");
-                    MyPrint("ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " allowableLossesNoProfitChasing=" + allowableLossesNoProfitChasing);
-                    haltTrading = true;
-                    return;
                 }
             }
 
