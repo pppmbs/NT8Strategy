@@ -35,10 +35,12 @@ namespace NinjaTrader.NinjaScript.Strategies
         private string pathLog;
         private string pathErr;
         private string pathCC;
+        private string pathCL;
         private string pathVIX;
         private StreamWriter swLog = null; // runtime log file 
         private StreamWriter swErr = null; // error file
         private StreamWriter swCC = null;  // Store current capital for each strategy 
+        private StreamWriter swCL = null;  // Store current monthly losses for each strategy
         private StreamWriter swVIX = null;  // Store 10 days Moving average VIX
 
         private Order entryOrder = null; // This variable holds an object representing our entry order
@@ -105,6 +107,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
+        private double currentMonthlyLosses = 0; // starts with zero losses for the monthly 
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
         // they are to be initialized when State == State.DataLoaded during start up
@@ -275,9 +278,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // connecting server on portNumber  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
-                    IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
-                    //IPAddress ipAddress = ipHostInfo.AddressList[3];
-                    //ipAddress = ipAddress.MapToIPv4();
+                    //IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                    IPAddress ipAddress = ipHostInfo.AddressList[3];
+                    ipAddress = ipAddress.MapToIPv4();
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
                     MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -323,6 +326,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Read the current capital file .cc for the current capital, create one if it does not exist
                 ReadCurrentCapital();
 
+                // Read current monthly losses file .cl for the current monthly losses, create one if it does not exist
+                ReadCurrentMonthlyLosses();
+
                 // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
                 ReadEMAVixToSetUpDrawdownSettings();
 
@@ -353,6 +359,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     swCC.Close();
                     swCC.Dispose();
                     swCC = null;
+                }
+
+                if (swCL != null)
+                {
+                    swCL.Close();
+                    swCL.Dispose();
+                    swCL = null;
                 }
 
                 if (swVIX != null)
@@ -464,7 +477,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // check if the cumulative P&L is greater than allowable monthly losses, if greater then set virtualCurrentCapital to zero and halt monthly trading
+        // check if the cumulative P&L or the monthly losses + cumulative P&L is greater than allowable monthly losses, 
+        // if greater then set virtualCurrentCapital to zero and halt monthly trading
         private void CheckMonthlyStopLoss()
         {
             double cumulativePL;
@@ -480,6 +494,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 else
                     allowableMonthlyLossesg = InitStartingCapital * maxPercentAllowableDrawdown;
 
+                //Either of the following two conditions could trigger a monthly stop-loss enforcement
                 if (Math.Abs(cumulativePL) > allowableMonthlyLossesg)
                 {
                     haltTrading = true;
@@ -488,7 +503,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                     virtualCurrentCapital = 0;
 
                     MyErrPrint(ErrorType.warning, "CheckMonthlyStopLoss, !!!!!!!!!!!! Monthly stop loss enforced, Skipping New Trade Position and setting virtualCurrentCapital to ZERO !!!!!!!!!!!!" + " monthlyProfitChasingFlag" + monthlyProfitChasingFlag);
-                    MyPrint("CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " cumulativePL=" + cumulativePL);
+                    MyPrint("CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " currentMonthlyLosses=" + currentMonthlyLosses + " cumulativePL=" + cumulativePL);
+                }
+                if (currentMonthlyLosses < 0)
+                {
+                    if ((Math.Abs(currentMonthlyLosses) + Math.Abs(cumulativePL)) > allowableMonthlyLossesg)
+                    {
+                        haltTrading = true;
+
+                        // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                        virtualCurrentCapital = 0;
+
+                        MyErrPrint(ErrorType.warning, "CheckMonthlyStopLoss, !!!!!!!!!!!! Monthly stop loss enforced, Skipping New Trade Position and setting virtualCurrentCapital to ZERO !!!!!!!!!!!!" + " monthlyProfitChasingFlag" + monthlyProfitChasingFlag);
+                        MyPrint("CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " currentMonthlyLosses=" + currentMonthlyLosses + " cumulativePL=" + cumulativePL);
+                    }
                 }
             }
         }
@@ -559,6 +587,30 @@ namespace NinjaTrader.NinjaScript.Strategies
             swCC.Dispose();
             swCC = null;
 
+        }
+
+
+        // Read the current monthly losses file .cl for the current monthly losses, create one if it does not exist
+        private void ReadCurrentMonthlyLosses()
+        {
+            // read the current monthly losses file .c1 for the current monthly losses, create one if it does not exist
+            // Create file in the hostname-portNumber.cl format, the Path to current losses file, cl file does not have date as part of file name
+            pathCL = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathCL = System.IO.Path.Combine(pathCL, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cl");
+
+            if (File.Exists(pathCL))
+            {
+                // Read current capital from the cc file
+                string ccStr = File.ReadAllText(pathCL);
+                currentMonthlyLosses = Convert.ToDouble(ccStr);
+            }
+            MyPrint("ReadCurrentMonthlyLosses currentMonthlyLosses=" + currentMonthlyLosses);
+
+            swCL = File.CreateText(pathCL); // Open the path for current capital
+            swCL.WriteLine(currentMonthlyLosses); // overwrite current capital to cc file, if no existing file, InitStartingCapital will be written as currentCapital
+            swCL.Close();
+            swCL.Dispose();
+            swCL = null;
         }
 
 
@@ -843,7 +895,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
-                MyPrint("ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
+                MyErrPrint(ErrorType.fatal, "ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Halt trading enforced, skipping StartNewTradePosition");
                 haltTrading = true;
                 return;
             }
@@ -1183,6 +1235,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             swCC.Close();
             swCC.Dispose();
             swCC = null;
+
+            // ouput current monthly losses to cl file, currentMonthlyLosses is updated only ONCE during start up
+            swCL = File.CreateText(pathCL); // Open the path for current monthly losses
+            swCL.WriteLine(currentMonthlyLosses + cumulativePL); // overwrite current monthly losses to cl file
+            swCL.Close();
+            swCL.Dispose();
+            swCL = null;
         }
 
         // Need to Handle end of session on tick because to avoid closing position past current day

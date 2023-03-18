@@ -278,9 +278,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // connecting server on portNumber  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
-                    IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
-                    //IPAddress ipAddress = ipHostInfo.AddressList[3];
-                    //ipAddress = ipAddress.MapToIPv4();
+                    //IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                    IPAddress ipAddress = ipHostInfo.AddressList[3];
+                    ipAddress = ipAddress.MapToIPv4();
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
                     MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -895,7 +895,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
-                MyPrint("ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Skipping StartNewTradePosition");
+                MyErrPrint(ErrorType.fatal, "ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Halt trading enforced, skipping StartNewTradePosition");
                 haltTrading = true;
                 return;
             }
@@ -1236,7 +1236,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             swCC.Dispose();
             swCC = null;
 
-            // ouput current monthly losses to cl file
+            // ouput current monthly losses to cl file, currentMonthlyLosses is updated only ONCE during start up
             swCL = File.CreateText(pathCL); // Open the path for current monthly losses
             swCL.WriteLine(currentMonthlyLosses + cumulativePL); // overwrite current monthly losses to cl file
             swCL.Close();
