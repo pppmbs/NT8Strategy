@@ -328,6 +328,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 // Read current monthly losses file .cl for the current monthly losses, create one if it does not exist
                 ReadCurrentMonthlyLosses();
+                CheckMonthlyStopLoss();
 
                 // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
                 ReadEMAVixToSetUpDrawdownSettings();
@@ -486,7 +487,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 
             cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit;
-            if (cumulativePL < 0)
+            if (cumulativePL <= 0)
             {
                 // the dollar amount allowed for monthly losses depending if monthly profit chasing is met
                 if (monthlyProfitChasingFlag)
