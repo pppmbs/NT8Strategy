@@ -77,7 +77,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double HVprofitChasingAllowableDrawdown = 0.05; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         // initial trading capital and trading lot size
-        private static readonly int LotSize = 20;
+        private static readonly int LotSize = 100;
 
         // Dollar value for ONE point, i.e. 4 ticks, 4 x $12.50 (value per tick) = $50
         private static double dollarValPerPoint = 50;
@@ -278,9 +278,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // connecting server on portNumber  
                     IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
-                    //IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
-                    IPAddress ipAddress = ipHostInfo.AddressList[3];
-                    ipAddress = ipAddress.MapToIPv4();
+                    IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                    //IPAddress ipAddress = ipHostInfo.AddressList[3];
+                    //ipAddress = ipAddress.MapToIPv4();
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
 
                     MyPrint("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -723,7 +723,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
 
             swLog.WriteLine(DateTime.Now + " " + buf); // Append a new line to the log file
-            Print(DateTime.Now + " " + buf);
+            Print(portNumber.ToString() + ":" + DateTime.Now + " " + buf);
 
             swLog.Close();
             swLog.Dispose();
@@ -978,6 +978,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyPrint("HandleSoftDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentVirtualCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+
+                        // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                        virtualCurrentCapital = 0;
+                        PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
                     }
                 }
                 return;
@@ -1026,6 +1030,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+
+                    // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                    virtualCurrentCapital = 0;
+                    PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
                 }
             }
 
@@ -1047,6 +1055,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     MyPrint("HandleHardDeck, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     haltTrading = true;
+
+                    // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                    virtualCurrentCapital = 0;
+                    PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
                 }
             }
         }
@@ -1096,6 +1108,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+
+                        // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                        virtualCurrentCapital = 0;
+                        PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
                     }
                 }
             }
@@ -1119,6 +1135,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyPrint("HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+
+                        // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                        virtualCurrentCapital = 0;
+                        PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
                     }
                 }
             }
