@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -32,33 +32,35 @@ namespace NinjaTrader.NinjaScript.Indicators
 	/// </summary>
 	public class ParabolicSAR : Indicator
 	{
-		private double 			af;				// Acceleration factor
-		private bool 			afIncreased;
-		private bool   			longPosition;
-		private int 			prevBar;
-		private double 			prevSAR;
-		private int 			reverseBar;
+		private double			af;				// Acceleration factor
+		private bool			afIncreased;
+		private bool			longPosition;
+		private int				prevBar;
+		private double			prevSAR;
+		private int				reverseBar;
 		private double			reverseValue;
-		private double 			todaySAR;		// SAR value
-		private double 			xp;				// Extreme Price
+		private double			todaySAR;		// SAR value
+		private double			xp;				// Extreme Price
 
-		private Series<double> 	afSeries;
-		private Series<bool> 	afIncreasedSeries;
-		private Series<bool>   	longPositionSeries;
-		private Series<int> 	prevBarSeries;
-		private Series<double> 	prevSARSeries;
-		private Series<int> 	reverseBarSeries;
+		private Series<double>	afSeries;
+		private Series<bool>	afIncreasedSeries;
+		private Series<bool>	longPositionSeries;
+		private Series<int>		prevBarSeries;
+		private Series<double>	prevSARSeries;
+		private Series<int>		reverseBarSeries;
 		private Series<double>	reverseValueSeries;
-		private Series<double> 	todaySARSeries;
-		private Series<double> 	xpSeries;
+		private Series<double>	todaySARSeries;
+		private Series<double>	xpSeries;
 
+		private ISeries<double>	high;
+		private ISeries<double>	low;
 
 		protected override void OnStateChange()
 		{
 			if (State == State.SetDefaults)
 			{
-				Description					= NinjaTrader.Custom.Resource.NinjaScriptIndicatorDescriptionParabolicSAR;
-				Name						= NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameParabolicSAR;
+				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionParabolicSAR;
+				Name						= Custom.Resource.NinjaScriptIndicatorNameParabolicSAR;
 				Acceleration				= 0.02;
 				AccelerationStep			= 0.02;
 				AccelerationMax				= 0.2;
@@ -66,19 +68,19 @@ namespace NinjaTrader.NinjaScript.Indicators
 				IsSuspendedWhileInactive	= true;
 				IsOverlay					= true;
 
-				AddPlot(new Stroke(Brushes.Goldenrod, 2), PlotStyle.Dot, NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameParabolicSAR);
+				AddPlot(new Stroke(Brushes.Goldenrod, 2), PlotStyle.Dot, Custom.Resource.NinjaScriptIndicatorNameParabolicSAR);
 			}
 
 			else if (State == State.Configure)
 			{
-	 			xp				= 0.0;
-		 		af				= 0;
-		 		todaySAR		= 0;
-		 		prevSAR			= 0;
-		 		reverseBar		= 0;
-		 		reverseValue	= 0;
-		 		prevBar			= 0;
-		 		afIncreased		= false;
+				xp				= 0.0;
+				af				= 0;
+				todaySAR		= 0;
+				prevSAR			= 0;
+				reverseBar		= 0;
+				reverseValue	= 0;
+				prevBar			= 0;
+				afIncreased		= false;
 			}
 			else if (State == State.DataLoaded)
 			{
@@ -94,6 +96,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 					todaySARSeries		= new Series<double>(this);
 					xpSeries			= new Series<double>(this);
 				}
+
+				high	= Input is NinjaScriptBase ? Input : High;
+				low		= Input is NinjaScriptBase ? Input : Low;
 			}
 		}
 
@@ -105,13 +110,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (CurrentBar == 3)
 			{
 				// Determine initial position
-				longPosition = High[0] > High[1];
-				xp = longPosition ? MAX(High, CurrentBar)[0] : MIN(Low, CurrentBar)[0];
-				af = Acceleration;
-				Value[0] = xp + (longPosition ? -1 : 1) * ((MAX(High, CurrentBar)[0] - MIN(Low, CurrentBar)[0]) * af);
+				longPosition	= high[0] > high[1];
+				xp				= longPosition ? MAX(high, CurrentBar)[0] : MIN(low, CurrentBar)[0];
+				af				= Acceleration;
+				Value[0]		= xp + (longPosition ? -1 : 1) * ((MAX(high, CurrentBar)[0] - MIN(low, CurrentBar)[0]) * af);
 				return;
 			}
-			else if (BarsArray[0].BarsType.IsRemoveLastBarSupported && CurrentBar < prevBar)
+			if (BarsArray[0].BarsType.IsRemoveLastBarSupported && CurrentBar < prevBar)
 			{
 				af				= afSeries[0];
 				afIncreased		= afIncreasedSeries[0];
@@ -137,13 +142,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 				{
 					if (longPosition)
 					{
-						if (todaySAR > Low[x])
-							todaySAR = Low[x];
+						if (todaySAR > low[x])
+							todaySAR = low[x];
 					}
 					else
 					{
-						if (todaySAR < High[x])
-							todaySAR = High[x];
+						if (todaySAR < high[x])
+							todaySAR = high[x];
 					}
 				}
 
@@ -151,7 +156,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				if (longPosition)
 				{
 					// Process a new SAR value only on a new bar or if SAR value was penetrated.
-					if (prevBar != CurrentBar || Low[0] < prevSAR)
+					if (prevBar != CurrentBar || low[0] < prevSAR)
 					{
 						Value[0] = todaySAR;
 						prevSAR = todaySAR;
@@ -159,9 +164,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 					else
 						Value[0] = prevSAR;
 
-					if (High[0] > xp)
+					if (high[0] > xp)
 					{
-						xp = High[0];
+						xp = high[0];
 						AfIncrease();
 					}
 				}
@@ -170,7 +175,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				else if (!longPosition)
 				{
 					// Process a new SAR value only on a new bar or if SAR value was penetrated.
-					if (prevBar != CurrentBar || High[0] > prevSAR)
+					if (prevBar != CurrentBar || high[0] > prevSAR)
 					{
 						Value[0] = todaySAR;
 						prevSAR = todaySAR;
@@ -178,9 +183,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 					else
 						Value[0] = prevSAR;
 
-					if (Low[0] < xp)
+					if (low[0] < xp)
 					{
-						xp = Low[0];
+						xp = low[0];
 						AfIncrease();
 					}
 				}
@@ -190,22 +195,22 @@ namespace NinjaTrader.NinjaScript.Indicators
 			else
 			{
 				// Only set new xp values. No increasing af since this is the first bar.
-				if (longPosition && High[0] > xp)
-					xp = High[0];
-				else if (!longPosition && Low[0] < xp)
-					xp = Low[0];
+				if (longPosition && high[0] > xp)
+					xp = high[0];
+				else if (!longPosition && low[0] < xp)
+					xp = low[0];
 
 				Value[0] = prevSAR;
 
 				// SAR = SAR[1] + af * (xp - SAR[1])
-				todaySAR = TodaySAR(longPosition ? Math.Min(reverseValue, Low[0]) : Math.Max(reverseValue, High[0]));
+				todaySAR = TodaySAR(longPosition ? Math.Min(reverseValue, low[0]) : Math.Max(reverseValue, high[0]));
 			}
 
 			prevBar = CurrentBar;
 
 			// Reverse position
-			if ((longPosition && (Low[0] < todaySAR || Low[1] < todaySAR))
-				|| (!longPosition && (High[0] > todaySAR || High[1] > todaySAR)))
+			if ((longPosition && (low[0] < todaySAR || low[1] < todaySAR))
+				|| (!longPosition && (high[0] > todaySAR || high[1] > todaySAR)))
 				Value[0] = Reverse();
 
 			if (BarsArray[0].BarsType.IsRemoveLastBarSupported)
@@ -228,45 +233,45 @@ namespace NinjaTrader.NinjaScript.Indicators
 		{
 			if (!afIncreased)
 			{
-				af = Math.Min(AccelerationMax, af + AccelerationStep);
-				afIncreased = true;
+				af			= Math.Min(AccelerationMax, af + AccelerationStep);
+				afIncreased	= true;
 			}
 		}
 
 		// Additional rule. SAR for today can't be placed inside the bar of day - 1 or day - 2.
-		private double TodaySAR(double todaySAR)
+		private double TodaySAR(double tSAR)
 		{
 			if (longPosition)
 			{
-				double lowestSAR = Math.Min(Math.Min(todaySAR, Low[0]), Low[1]);
-				if (Low[0] > lowestSAR)
-					todaySAR = lowestSAR;
+				double lowestSAR = Math.Min(Math.Min(tSAR, low[0]), low[1]);
+				if (low[0] > lowestSAR)
+					tSAR = lowestSAR;
 			}
 			else
 			{
-				double highestSAR = Math.Max(Math.Max(todaySAR, High[0]), High[1]);
-				if (High[0] < highestSAR)
-					todaySAR = highestSAR;
+				double highestSAR = Math.Max(Math.Max(tSAR, high[0]), high[1]);
+				if (high[0] < highestSAR)
+					tSAR = highestSAR;
 			}
-			return todaySAR;
+			return tSAR;
 		}
 
 		private double Reverse()
 		{
-			double todaySAR = xp;
+			double tSAR = xp;
 
-			if ((longPosition && prevSAR > Low[0]) || (!longPosition && prevSAR < High[0]) || prevBar != CurrentBar)
+			if ((longPosition && prevSAR > low[0]) || (!longPosition && prevSAR < high[0]) || prevBar != CurrentBar)
 			{
-				longPosition = !longPosition;
-				reverseBar = CurrentBar;
-				reverseValue = xp;
-				af = Acceleration;
-				xp = longPosition ? High[0] : Low[0];
-				prevSAR = todaySAR;
+				longPosition	= !longPosition;
+				reverseBar		= CurrentBar;
+				reverseValue	= xp;
+				af				= Acceleration;
+				xp				= longPosition ? high[0] : low[0];
+				prevSAR			= tSAR;
 			}
 			else
-				todaySAR = prevSAR;
-			return todaySAR;
+				tSAR = prevSAR;
+			return tSAR;
 		}
 		#endregion
 

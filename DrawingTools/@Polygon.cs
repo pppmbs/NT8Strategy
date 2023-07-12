@@ -1,13 +1,15 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -103,22 +105,56 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		public Stroke OutlineStroke							{ get; set; }
 
 		// There always must be a ChartAnchor in here or Polygon won't even start up
-		public override IEnumerable<ChartAnchor> Anchors	{ get { return ChartAnchors == null || ChartAnchors.Count == 0 ? new ChartAnchor[] { StartAnchor } : ChartAnchors.ToArray(); } }
+		public override IEnumerable<ChartAnchor> Anchors	{ get { return ChartAnchors == null || ChartAnchors.Count == 0 ? new[] { StartAnchor } : ChartAnchors.ToArray(); } }
 
 		public override bool SupportsAlerts					{ get { return true; } }
 		#endregion
-		
-		public override void CopyTo(NinjaScript ninjascript)
+
+		public override void CopyTo(NinjaScript ninjaScript)
 		{
-			base.CopyTo(ninjascript);
-			
-			Polygon p = ninjascript as Polygon;
-			if (p != null && ChartAnchors != null)
+			base.CopyTo(ninjaScript);
+
+			PathTool p = ninjaScript as PathTool;
+
+			if (p != null)
 			{
-				p.ChartAnchors.Clear();
-				// We have to deep copy our List of Chart Anchors
-				foreach(ChartAnchor ca in ChartAnchors)
-					p.ChartAnchors.Add(ca.Clone() as ChartAnchor);
+				if (ChartAnchors != null)
+				{
+					p.ChartAnchors.Clear();
+					// We have to deep copy our List of Chart Anchors
+					foreach (ChartAnchor ca in ChartAnchors)
+						p.ChartAnchors.Add(ca.Clone() as ChartAnchor);
+				}
+			}
+			else // might be in different assembly after compillation
+			{
+				Type			newInstType			= ninjaScript.GetType();
+				PropertyInfo	anchorsPropertyInfo	= newInstType.GetProperty("ChartAnchors");
+
+				if (anchorsPropertyInfo == null)
+					return;
+
+				IList newAnchors = anchorsPropertyInfo.GetValue(ninjaScript) as IList;
+
+				if (newAnchors == null)
+					return;
+
+				// Since new instance could be past set defaults, clear any existing
+				newAnchors.Clear();
+
+				foreach (ChartAnchor ca in ChartAnchors)
+				{
+					try
+					{
+						ChartAnchor newInstance = ca.Clone() as ChartAnchor;
+
+						if (newInstance == null)
+							continue;
+
+						newAnchors.Add(newInstance);
+					}
+					catch { }
+				}
 			}
 		}
 
@@ -226,7 +262,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			else
 			{
 				Point[] points = new Point[ChartAnchors.Count];
-				for (int i = 0; i < points.Count(); i++)
+				for (int i = 0; i < points.Length; i++)
 					points[i] = ChartAnchors[i].GetPoint(chartControl, chartPanel, chartScale);
 				return points;
 			}
@@ -262,11 +298,11 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 				Point[] points = new Point[ChartAnchors.Count + 1];
 
-				for (int i = 0; i < points.Count(); i++)
+				for (int i = 0; i < points.Length; i++)
 					if (i < ChartAnchors.Count)
 						points[i] = ChartAnchors[i].GetPoint(chartControl, chartPanel, chartScale);
 
-				points[points.Count() - 1] = centroid;
+				points[points.Length - 1] = centroid;
 
 				return points;
 			}
@@ -553,12 +589,13 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			int anchor3BarsAgo, DateTime anchor3Time, double anchor3Y, int anchor4BarsAgo, DateTime anchor4Time, double anchor4Y,
 			int anchor5BarsAgo, DateTime anchor5Time, double anchor5Y, int anchor6BarsAgo, DateTime anchor6Time, double anchor6Y)
 		{
-			List<ChartAnchor> chartAnchors = new List<ChartAnchor>();
-
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor1BarsAgo, anchor1Time, anchor1Y));
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor2BarsAgo, anchor2Time, anchor2Y));
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor3BarsAgo, anchor3Time, anchor3Y));
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor4BarsAgo, anchor4Time, anchor4Y));
+			List<ChartAnchor> chartAnchors = new List<ChartAnchor>
+			{
+				DrawingTool.CreateChartAnchor(owner, anchor1BarsAgo, anchor1Time, anchor1Y),
+				DrawingTool.CreateChartAnchor(owner, anchor2BarsAgo, anchor2Time, anchor2Y),
+				DrawingTool.CreateChartAnchor(owner, anchor3BarsAgo, anchor3Time, anchor3Y),
+				DrawingTool.CreateChartAnchor(owner, anchor4BarsAgo, anchor4Time, anchor4Y)
+			};
 
 			if (anchor5BarsAgo != int.MinValue || anchor5Time != DateTime.MinValue)
 				chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor5BarsAgo, anchor5Time, anchor5Y));

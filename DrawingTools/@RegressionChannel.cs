@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -41,15 +41,19 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				return propertyDescriptorCollection;
 
 			PropertyDescriptorCollection adjusted = new PropertyDescriptorCollection(null);
-			foreach (PropertyDescriptor thisDescriptor in propertyDescriptorCollection)
-			{
-				// as we loop through, if the item is the item we are looking for, we don't add the original but substitute a new property which sets it to read only
-				if (thisDescriptor.Name == "StandardDeviationUpperDistance" || thisDescriptor.Name == "StandardDeviationLowerDistance")
-					adjusted.Add(new PropertyDescriptorExtended(thisDescriptor, o => value, null, new Attribute[] { new ReadOnlyAttribute(true) }));
-				// but if not the item we are looking for add the original to the return collection
-				else
-					adjusted.Add(thisDescriptor);
-			}
+			if (propertyDescriptorCollection != null)
+				foreach (PropertyDescriptor thisDescriptor in propertyDescriptorCollection)
+				{
+					// as we loop through, if the item is the item we are looking for, we don't add the original but substitute a new property which sets it to read only
+					if (thisDescriptor.Name == "StandardDeviationUpperDistance" ||
+					    thisDescriptor.Name == "StandardDeviationLowerDistance")
+						adjusted.Add(new PropertyDescriptorExtended(thisDescriptor, o => value, null,
+							new Attribute[] { new ReadOnlyAttribute(true) }));
+					// but if not the item we are looking for add the original to the return collection
+					else
+						adjusted.Add(thisDescriptor);
+				}
+
 			return adjusted;
 		}
 	}
@@ -69,6 +73,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			StandardDeviation
 		}
 
+		private ChartControl	cControl;
+		private ChartScale		cScale;
 		private ChartAnchor		editingAnchor;
 
 		public override IEnumerable<ChartAnchor> Anchors { get { return new[] { StartAnchor, EndAnchor }; } }
@@ -119,7 +125,12 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 		public double[] CalculateRegressionPriceValues(Bars baseBars, int startIndex, int endIndex)
 		{
-			double middleStartPrice, middleEndPrice, upperStartPrice, upperEndPrice, lowerStartPrice, lowerEndPrice = 0;
+			double middleStartPrice;
+			double middleEndPrice;
+			double upperStartPrice;
+			double upperEndPrice;
+			double lowerStartPrice;
+			double lowerEndPrice;
 
 			if (startIndex == endIndex)
 			{
@@ -130,7 +141,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				lowerStartPrice = GetBarPrice(baseBars, endIndex);
 				lowerEndPrice = GetBarPrice(baseBars, endIndex);
 
-				return new double[] {
+				return new[] {
 				upperStartPrice,
 				upperEndPrice,
 				middleStartPrice,
@@ -141,13 +152,13 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			}
 
 			// ignore actual positions and just count bars
-			int beginIndex		=			 (startIndex < endIndex) ? startIndex : endIndex;
+			int beginIndex		=			 startIndex < endIndex ? startIndex : endIndex;
 
 			int barsTotal					= Math.Abs(endIndex - startIndex) + 1;
 			double sumX						= barsTotal * (barsTotal - 1) * 0.5;
 			double divisor					= sumX * sumX - barsTotal * barsTotal * (barsTotal - 1d) * (2d * barsTotal - 1) / 6d;
 
-			double sumXY					= 0;
+			double sumXy					= 0;
 			double sumY						= 0;
 
 			for (int count = 0; count < barsTotal; count++)
@@ -157,12 +168,12 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				if (idx < baseBars.Count)
 				{
 					double priceValue = GetBarPrice(baseBars, idx);
-					sumXY += count * priceValue;
+					sumXy += count * priceValue;
 					sumY += priceValue;
 				}
 			}
 
-			double slope					= (barsTotal * sumXY - sumX * sumY) / divisor;
+			double slope					= (barsTotal * sumXy - sumX * sumY) / divisor;
 			double intercept				= (sumY - slope * sumX) / barsTotal;
 
 			double sumResiduals				= 0;
@@ -271,7 +282,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				}
 			}
 
-			return new double[] {
+			return new[] {
 				upperStartPrice,
 				upperEndPrice,
 				middleStartPrice,
@@ -322,7 +333,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				case PriceType.Open:		return barObject.GetOpen(barIndex);
 				case PriceType.Median:		return (barObject.GetHigh(barIndex) + barObject.GetLow(barIndex)) / 2;
 				case PriceType.Typical:		return (barObject.GetHigh(barIndex) + barObject.GetLow(barIndex) + barObject.GetClose(barIndex)) / 3;
-				case PriceType.Weighted:	return (barObject.GetHigh(barIndex) + barObject.GetLow(barIndex) + (barObject.GetClose(barIndex) * 2)) / 4;
+				case PriceType.Weighted:	return (barObject.GetHigh(barIndex) + barObject.GetLow(barIndex) + barObject.GetClose(barIndex) * 2) / 4;
 				default:					return barObject.GetClose(barIndex);
 			}
 		}
@@ -491,15 +502,27 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			Point		startPoint	= regressionPoints[2];
 			Point		endPoint	= regressionPoints[3];
 
+			if (startPoint.X > endPoint.X)
+			{
+				Point tmp	= startPoint;
+				startPoint	= endPoint;
+				endPoint	= tmp;
+			}
+
 			// we dont want to update start point in place or else that can screw up getting extended end point,
 			// if getting extended left ends up right where end point is, in that case same point is returned
-			Point finalStartPoint = startPoint;
-			Point finalEndPoint = endPoint;
+			Point finalStartPoint	= startPoint;
+			Point finalEndPoint		= endPoint;
+
 			// take into account extended left/right
+
+			ChartAnchor leftAnchor	= StartAnchor.Time < EndAnchor.Time ? StartAnchor : EndAnchor;
+			ChartAnchor rightAnchor	= StartAnchor.Time < EndAnchor.Time ? EndAnchor : StartAnchor;
+
 			if (ExtendLeft)
-				finalStartPoint =  GetExtendedPoint(chartControl, chartControl.ChartPanels[PanelIndex], chartScale, EndAnchor, StartAnchor);
+				finalStartPoint =  GetExtendedPoint(chartControl, chartControl.ChartPanels[PanelIndex], chartScale, rightAnchor, leftAnchor);
 			if (ExtendRight)
-				finalEndPoint =  GetExtendedPoint(chartControl, chartControl.ChartPanels[PanelIndex], chartScale, StartAnchor, EndAnchor);
+				finalEndPoint =  GetExtendedPoint(chartControl, chartControl.ChartPanels[PanelIndex], chartScale, leftAnchor, rightAnchor);
 
 			DateTime startTime	= chartControl.GetTimeByX((int) finalStartPoint.X);
 			DateTime endTime	= chartControl.GetTimeByX((int) finalEndPoint.X);
@@ -510,8 +533,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				return true;
 
 			// crossthrough
-			if ((endTime < firstTimeOnChart && startTime > lastTimeOnChart) ||
-				(startTime < firstTimeOnChart && endTime > lastTimeOnChart))
+			if (endTime < firstTimeOnChart && startTime > lastTimeOnChart ||
+				startTime < firstTimeOnChart && endTime > lastTimeOnChart)
 				return true;
 			return false;
 		}
@@ -527,11 +550,11 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			MinValue = double.MaxValue;
 			MaxValue = double.MinValue;
 
-			if (!this.IsVisible)
+			if (!IsVisible)
 				return;
 
-			MinValue = (StartAnchor.Price > EndAnchor.Price) ? StartAnchor.Price : EndAnchor.Price;
-			MaxValue = (StartAnchor.Price > EndAnchor.Price) ? EndAnchor.Price : StartAnchor.Price;
+			MinValue = StartAnchor.Price > EndAnchor.Price ? StartAnchor.Price : EndAnchor.Price;
+			MaxValue = StartAnchor.Price > EndAnchor.Price ? EndAnchor.Price : StartAnchor.Price;
 		}
 
 		public override void OnMouseDown(ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale, ChartAnchor dataPoint)
@@ -583,7 +606,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			Bars		baseBars	= GetAttachedToChartBars().Bars;
 
 			DateTime	barMinTime	= baseBars.GetTime(0);
-			DateTime barMaxTime = DateTime.MinValue;
+			DateTime	barMaxTime;
 			if (baseBars.BarsPeriod.BarsPeriodType == BarsPeriodType.Day
 				|| baseBars.BarsPeriod.BarsPeriodType == BarsPeriodType.Week
 				|| baseBars.BarsPeriod.BarsPeriodType == BarsPeriodType.Month
@@ -593,8 +616,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				barMaxTime = baseBars.GetTime(baseBars.Count - 1);
 
 			// use local variables for start and end anchor with the start anchor representing the lowest X value
-			ChartAnchor startAnchor = (StartAnchor.Time < EndAnchor.Time) ? StartAnchor : EndAnchor;
-			ChartAnchor endAnchor	= (StartAnchor.Time < EndAnchor.Time) ? EndAnchor : StartAnchor;
+			ChartAnchor startAnchor = StartAnchor.Time < EndAnchor.Time ? StartAnchor : EndAnchor;
+			ChartAnchor endAnchor	= StartAnchor.Time < EndAnchor.Time ? EndAnchor : StartAnchor;
 			DateTime desiredAnchorTime = dataPoint.Time;//chartControl.GetTimeByX((int) point.X);
 
 			if (DrawingState == DrawingState.Building)
@@ -654,8 +677,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			editingAnchor = null;
 		}
 
-		private ChartControl cControl;
-		private ChartScale cScale;
 		public override void OnRender(ChartControl chartControl, ChartScale chartScale)
 		{
 			// save chartControl and chartScale for use in OnBarsChanged
@@ -738,7 +759,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 		private void SetAnchorsToRegression(ChartControl chartControl, ChartScale chartScale)
 		{
-			ChartPanel chartPanel		= chartControl.ChartPanels[chartScale.PanelIndex];
 			Point[] regressionPoints	= CreateRegressionPoints(chartControl, chartScale);
 
 			StartAnchor.UpdateYFromDevicePoint(regressionPoints[2], chartScale);
@@ -758,7 +778,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				throw new ArgumentException("owner");
 
 			if (string.IsNullOrWhiteSpace(tag))
-				throw new ArgumentException("tag cant be null or empty", "tag");
+				throw new ArgumentException(@"tag cant be null or empty", "tag");
 
 			if (isGlobal && tag[0] != GlobalDrawingToolManager.GlobalDrawingToolTagPrefix)
 				tag = GlobalDrawingToolManager.GlobalDrawingToolTagPrefix + tag;
@@ -795,18 +815,15 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				Brush middleBrush2Use	= middleBrush ?? upperBrush;
 				Brush lowerBrush2Use	= lowerBrush ?? upperBrush;
 
-				Stroke upperStroke = new Stroke(upperBrush);
-				upperStroke.DashStyleHelper = upperDashStyle;
+				Stroke upperStroke = new Stroke(upperBrush) { DashStyleHelper = upperDashStyle };
 				if (upperWidth != null)
 					upperStroke.Width = upperWidth.Value;
 
-				Stroke midStroke = new Stroke(middleBrush2Use);
-				midStroke.DashStyleHelper = middleDashStyle;
+				Stroke midStroke = new Stroke(middleBrush2Use) { DashStyleHelper = middleDashStyle };
 				if (middleWidth != null)
 					midStroke.Width = middleWidth.Value;
 
-				Stroke lowerStroke = new Stroke(lowerBrush2Use);
-				lowerStroke.DashStyleHelper = lowerDashStyle;
+				Stroke lowerStroke = new Stroke(lowerBrush2Use) { DashStyleHelper = lowerDashStyle };
 				if (lowerWidth != null)
 					lowerStroke.Width = lowerWidth.Value;
 

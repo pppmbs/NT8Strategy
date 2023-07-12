@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -51,7 +51,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		private				ChartAnchor 				editingTopAnchor; 
 		private				ChartAnchor 				editingBottomAnchor;
 		private				ChartAnchor 				editingRightAnchor;
-		private				ChartAnchor					lastMouseMoveDataPoint	= null;
+		private				ChartAnchor					lastMouseMoveDataPoint;
 		private				ResizeMode					resizeMode;
 		
 		[XmlIgnore] 
@@ -1341,7 +1341,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		public static Triangle Triangle(NinjaScriptBase owner,string tag, bool isAutoScale, int startBarsAgo, double startY, int middleBarsAgo, double middleY, 
 			int endBarsAgo, double endY, Brush brush, Brush areaBrush, int areaOpacity)
 		{
-			return TriangleCore(owner, false, tag, startBarsAgo, middleBarsAgo, endBarsAgo, Core.Globals.MinDate, Core.Globals.MinDate,
+			return TriangleCore(owner, isAutoScale, tag, startBarsAgo, middleBarsAgo, endBarsAgo, Core.Globals.MinDate, Core.Globals.MinDate,
 				Core.Globals.MinDate, startY, middleY, endY, brush, areaBrush, areaOpacity, false, null);
 		}
 
@@ -1364,7 +1364,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		public static Triangle Triangle(NinjaScriptBase owner,string tag, bool isAutoScale, DateTime startTime, double startY,
 			DateTime midTime, double middleY, DateTime endTime, double endY, Brush brush, Brush areaBrush, int areaOpacity)
 		{
-			return TriangleCore(owner, false, tag, int.MinValue, int.MinValue, int.MinValue, 
+			return TriangleCore(owner, isAutoScale, tag, int.MinValue, int.MinValue, int.MinValue, 
 				startTime, midTime, endTime, startY, middleY, endY, brush, areaBrush, areaOpacity, false, null);
 		}
 
@@ -1412,7 +1412,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			int endBarsAgo, double endY, Brush brush, Brush areaBrush, int areaOpacity, bool drawOnPricePanel)
 		{
 			return DrawingTool.DrawToggledPricePanel(owner, drawOnPricePanel, () =>
-				TriangleCore(owner, false, tag, startBarsAgo, middleBarsAgo, endBarsAgo, Core.Globals.MinDate, Core.Globals.MinDate,
+				TriangleCore(owner, isAutoScale, tag, startBarsAgo, middleBarsAgo, endBarsAgo, Core.Globals.MinDate, Core.Globals.MinDate,
 					Core.Globals.MinDate, startY, middleY, endY, brush, areaBrush, areaOpacity, false, null));
 		}
 
@@ -1438,7 +1438,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			int areaOpacity, bool drawOnPricePanel)
 		{
 			return DrawingTool.DrawToggledPricePanel(owner, drawOnPricePanel, () =>
-				TriangleCore(owner, false, tag, int.MinValue, int.MinValue, int.MinValue, 
+				TriangleCore(owner, isAutoScale, tag, int.MinValue, int.MinValue, int.MinValue, 
 					startTime, midTime, endTime, startY, middleY, endY, brush, areaBrush, areaOpacity, false, null));
 		}
 
@@ -1478,7 +1478,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		/// <param name="templateName">The name of the drawing tool template the object will use to determine various visual properties</param>
 		/// <returns></returns>
 		public static Triangle Triangle(NinjaScriptBase owner, string tag, DateTime startTime, double startY, DateTime middleTime, double middleY, 
-			DateTime endTime, double endY,  bool isGlobal, string templateName)
+			DateTime endTime, double endY, bool isGlobal, string templateName)
 		{
 			return TriangleCore(owner, false, tag, int.MinValue, int.MinValue, int.MinValue, startTime, middleTime,
 				endTime, startY, middleY, endY, null, null, -1, isGlobal, templateName);

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -117,27 +117,46 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 		public override bool SupportsAlerts { get { return true; } }
 
-		public override void OnCalculateMinMax()
+		private ChartAnchor Anchor45(ChartAnchor starAnchort, ChartAnchor endAnchor, ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale)
 		{
-			MinValue = double.MaxValue;
-			MaxValue = double.MinValue;
+			if (!Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
+				return endAnchor;
 
-			if (!IsVisible)
-				return;
+			Point	startPoint	= starAnchort.GetPoint(chartControl, chartPanel, chartScale);
+			Point	endPoint	= endAnchor.GetPoint(chartControl, chartPanel, chartScale);
 
-			// make sure to set good min/max values on single click lines as well, in case anchor left in editing
-			if (LineType == ChartLineType.HorizontalLine)
-				MinValue = MaxValue = Anchors.First().Price;
-			else if (LineType != ChartLineType.VerticalLine)
+			double	diffX		= endPoint.X - startPoint.X;
+			double	diffY		= endPoint.Y - startPoint.Y;
+
+			double	length		= Math.Sqrt(diffX * diffX + diffY * diffY);
+
+			double	angle		= Math.Atan2(diffY, diffX);
+
+			double step			= Math.PI / 8;
+			double targetAngle	= 0;
+
+			if (angle > Math.PI - step || angle < -Math.PI + step)	targetAngle = Math.PI;
+			else if (angle > Math.PI - step * 3)					targetAngle = Math.PI - step * 2;
+			else if (angle > Math.PI - step * 5)					targetAngle = Math.PI - step * 4;
+			else if (angle > Math.PI - step * 7)					targetAngle = Math.PI - step * 6;
+			else if (angle < -Math.PI + step * 3)					targetAngle = -Math.PI + step * 2;
+			else if (angle < -Math.PI + step * 5)					targetAngle = -Math.PI + step * 4;
+			else if (angle < -Math.PI + step * 7)					targetAngle = -Math.PI + step * 6;
+
+			Point		targetPoint = new Point(startPoint.X + Math.Cos(targetAngle) * length, startPoint.Y + Math.Sin(targetAngle) * length);
+			ChartAnchor	ret			= new ChartAnchor();
+
+			ret.UpdateFromPoint(targetPoint, chartControl, chartScale);
+
+			if (startPoint.X == targetPoint.X)
 			{
-				// return min/max values only if something has been actually drawn
-				if (Anchors.Any(a => !a.IsEditing))
-					foreach (ChartAnchor anchor in Anchors)
-					{
-						MinValue = Math.Min(anchor.Price, MinValue);
-						MaxValue = Math.Max(anchor.Price, MaxValue);
-					}
+				ret.Time		= starAnchort.Time;
+				ret.SlotIndex	=starAnchort.SlotIndex;
 			}
+			else if (startPoint.Y == targetPoint.Y)
+				ret.Price = starAnchort.Price;
+
+			return ret;
 		}
 
 		public override Cursor GetCursor(ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale, Point point)
@@ -198,8 +217,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		{
 			yield return new AlertConditionItem
 			{
-				Name = Custom.Resource.NinjaScriptDrawingToolLine,
-				ShouldOnlyDisplayName = true
+				Name					= Custom.Resource.NinjaScriptDrawingToolLine,
+				ShouldOnlyDisplayName	= true
 			};
 		}
 
@@ -250,29 +269,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 							return v.Value < lineVal;
 						};
 						return MathHelper.DidPredicateCross(values, predicate);
-				}
-				return false;
-			}
-
-			if (LineType == ChartLineType.VerticalLine)
-			{
-				// time comparison only make sense here
-				if (values[0].ValueType == ChartAlertValueType.StaticValue)
-					return false;
-
-				DateTime barTime = values[0].Time;
-				if (barTime == Core.Globals.MinDate || barTime == Core.Globals.MaxDate)
-					return false;
-
-				DateTime lineTime = StartAnchor.Time;
-				switch (condition)
-				{
-					case Condition.Greater:			return barTime > lineTime;
-					case Condition.GreaterEqual:	return barTime >= lineTime;
-					case Condition.Less:			return barTime < lineTime;
-					case Condition.LessEqual:		return barTime <= lineTime;
-					case Condition.NotEqual:		return barTime != lineTime;
-					case Condition.Equals:			return barTime == lineTime;
 				}
 				return false;
 			}
@@ -409,6 +405,29 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			return true;
 		}
 
+		public override void OnCalculateMinMax()
+		{
+			MinValue = double.MaxValue;
+			MaxValue = double.MinValue;
+
+			if (!IsVisible)
+				return;
+
+			// make sure to set good min/max values on single click lines as well, in case anchor left in editing
+			if (LineType == ChartLineType.HorizontalLine)
+				MinValue = MaxValue = Anchors.First().Price;
+			else if (LineType != ChartLineType.VerticalLine)
+			{
+				// return min/max values only if something has been actually drawn
+				if (Anchors.Any(a => !a.IsEditing))
+					foreach (ChartAnchor anchor in Anchors)
+					{
+						MinValue = Math.Min(anchor.Price, MinValue);
+						MaxValue = Math.Max(anchor.Price, MaxValue);
+					}
+			}
+		}
+
 		public override void OnMouseDown(ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale, ChartAnchor dataPoint)
 		{
 			switch (DrawingState)
@@ -477,19 +496,24 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			if (IsLocked && DrawingState != DrawingState.Building)
 				return;
 
+			IgnoresSnapping = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
 			if (DrawingState == DrawingState.Building)
 			{
 				// start anchor will not be editing here because we start building as soon as user clicks, which
 				// plops down a start anchor right away
 				if (EndAnchor.IsEditing)
-					dataPoint.CopyDataValues(EndAnchor);
+					Anchor45(StartAnchor, dataPoint, chartControl, chartPanel, chartScale).CopyDataValues(EndAnchor);
 			}
 			else if (DrawingState == DrawingState.Editing && editingAnchor != null)
 			{
 				// if its a line with two anchors, update both x/y at once
 				if (LineType != ChartLineType.HorizontalLine && LineType != ChartLineType.VerticalLine)
-					dataPoint.CopyDataValues(editingAnchor);
-				else  if (LineType != ChartLineType.VerticalLine)
+				{
+					ChartAnchor startAnchor = editingAnchor == StartAnchor ? EndAnchor : StartAnchor;
+					Anchor45(startAnchor, dataPoint, chartControl, chartPanel, chartScale).CopyDataValues(editingAnchor);
+				}
+				else if (LineType != ChartLineType.VerticalLine)
 				{
 					// horizontal line only needs Y value updated
 					editingAnchor.Price = dataPoint.Price;
@@ -681,6 +705,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				StartAnchor.IsYPropertyVisible		= false;
 			}
 		}
+
+		public override bool SupportsAlerts	{ get { return false; } }
 	}
 
 	/// <summary>

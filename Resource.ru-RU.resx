@@ -150,6 +150,12 @@
   <data name="AskLineStroke" xml:space="preserve">
     <value>Линия Ask</value>
   </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>{0} об авторских правах &lt;sup&gt;©&lt;/sup&gt; . Все права защищены. NinjaTrader и логотип NinjaTrader. Рег. США Пат. amp; Тм. Выкл.</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>ПОЛНОЕ РАСКРЫТИЕ РИСКА: Торговля фьючерсами и форекс содержит существенный риск и не для каждого инвестора. Инвестор может потенциально потерять все или больше, чем первоначальные инвестиции. Рисковый капитал - это деньги, которые могут быть потеряны, не ставя под угрозу финансовую безопасность или образ жизни. Для торговли должен использоваться только рисковый капитал, и только те, у кого достаточно рисковый капитал, должны рассматривать торговлю. Прошлые показатели не обязательно свидетельствуют о будущих результатах.</value>
+  </data>
   <data name="BandPct" xml:space="preserve">
     <value>Band процент</value>
   </data>
@@ -618,6 +624,24 @@
   <data name="LastLineStroke" xml:space="preserve">
     <value>Линия Last</value>
   </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>Расположение легенды</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>Внизу Слева</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>Внизу Справа</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>Нетрудоспособный</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>Вверху Слева</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>Вверху Справа</value>
+  </data>
   <data name="Length" xml:space="preserve">
     <value>Длина</value>
   </data>
@@ -647,6 +671,12 @@
   </data>
   <data name="LowerLow" xml:space="preserve">
     <value>Более низкий low</value>
+  </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>КУБОВЫЙ:</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>Адрес электронной почты получателя копии. Разделите несколько адресов с помощью ', или ';'</value>
   </data>
   <data name="MailServiceMailAddress" xml:space="preserve">
     <value>Адрес электронной почты</value>
@@ -3102,6 +3132,9 @@
   <data name="TextFont" xml:space="preserve">
     <value>Цвет шрифта</value>
   </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>Выберите шрифт, стиль, размер для отображения на графике</value>
+  </data>
   <data name="TextPosition_BottomLeft" xml:space="preserve">
     <value>Внизу Слева</value>
   </data>
@@ -3129,6 +3162,9 @@
   <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
     <value>Линия текущего тренда</value>
   </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>Индикатор TrendLines не виден в анализаторе стратегий</value>
+  </data>
   <data name="TrendLinesTrendLineBroken" xml:space="preserve">
     <value>{0} сломан</value>
   </data>
@@ -3146,6 +3182,15 @@
   </data>
   <data name="TRIXSignal" xml:space="preserve">
     <value>Сигнал</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>Учетная запись успешно авторизована</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>Вы успешно авторизовали {0} для доступа к вашей учетной записи Twitter.</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>Вы можете закрыть это окно и вернуться к {0}.</value>
   </data>
   <data name="TwitterServiceName" xml:space="preserve">
     <value>Twitter</value>

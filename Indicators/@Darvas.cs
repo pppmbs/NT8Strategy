@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -147,12 +147,10 @@ namespace NinjaTrader.NinjaScript.Indicators
 				// Draw with today
 				if (boxBottom == double.MaxValue)
 				{
-					Print(boxTop);
 					Upper[0] = boxTop;
 				}
 				else
 				{
-					Print(boxTop + " " + boxBottom);
 					Upper[0] = boxTop;
 					Lower[0] = boxBottom;
 				}

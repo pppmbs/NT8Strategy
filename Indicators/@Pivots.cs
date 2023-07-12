@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -98,6 +98,10 @@ namespace NinjaTrader.NinjaScript.Indicators
 			}
 			else if (State == State.Historical)
 			{
+
+				if (BarsArray == null || BarsArray.Length < 2)
+				return;
+
 				if (priorDayHlc == HLCCalculationMode.DailyBars && BarsArray[1].DayCount <= 0)
 				{
 					Draw.TextFixed(this, "NinjaScriptInfo", NinjaTrader.Custom.Resource.PiviotsDailyDataError, TextPosition.BottomRight);

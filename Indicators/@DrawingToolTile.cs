@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <ninjatrader@ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <ninjatrader@ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations

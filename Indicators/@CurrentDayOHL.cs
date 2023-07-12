@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -32,19 +32,19 @@ namespace NinjaTrader.NinjaScript.Indicators
 	/// </summary>
 	public class CurrentDayOHL : Indicator
 	{
-		private DateTime				currentDate			=	Core.Globals.MinDate;
-		private double					currentOpen			=	double.MinValue;
-		private double					currentHigh			=	double.MinValue;
-		private double					currentLow			=	double.MaxValue;
-		private DateTime				lastDate			= 	Core.Globals.MinDate;
-		private Data.SessionIterator	sessionIterator;
+		private DateTime			currentDate			=	Core.Globals.MinDate;
+		private double				currentOpen			=	double.MinValue;
+		private double				currentHigh			=	double.MinValue;
+		private double				currentLow			=	double.MaxValue;
+		private DateTime			lastDate			= 	Core.Globals.MinDate;
+		private SessionIterator		sessionIterator;
 
 		protected override void OnStateChange()
 		{
 			if (State == State.SetDefaults)
 			{
-				Description					= NinjaTrader.Custom.Resource.NinjaScriptIndicatorDescriptionCurrentDayOHL;
-				Name						= NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameCurrentDayOHL;
+				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionCurrentDayOHL;
+				Name						= Custom.Resource.NinjaScriptIndicatorNameCurrentDayOHL;
 				IsAutoScale					= false;
 				DrawOnPricePanel			= false;
 				IsOverlay					= true;
@@ -54,9 +54,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 				ShowOpen					= true;
 				BarsRequiredToPlot			= 0;
 
-				AddPlot(new Stroke(Brushes.Goldenrod,	DashStyleHelper.Dash, 2), PlotStyle.Square, NinjaTrader.Custom.Resource.CurrentDayOHLOpen);
-				AddPlot(new Stroke(Brushes.SeaGreen,	DashStyleHelper.Dash, 2), PlotStyle.Square, NinjaTrader.Custom.Resource.CurrentDayOHLHigh);
-				AddPlot(new Stroke(Brushes.Red,			DashStyleHelper.Dash, 2), PlotStyle.Square, NinjaTrader.Custom.Resource.CurrentDayOHLLow);
+				AddPlot(new Stroke(Brushes.Goldenrod,	DashStyleHelper.Dash, 2), PlotStyle.Square, Custom.Resource.CurrentDayOHLOpen);
+				AddPlot(new Stroke(Brushes.SeaGreen,	DashStyleHelper.Dash, 2), PlotStyle.Square, Custom.Resource.CurrentDayOHLHigh);
+				AddPlot(new Stroke(Brushes.Red,			DashStyleHelper.Dash, 2), PlotStyle.Square, Custom.Resource.CurrentDayOHLLow);
 			}
 			else if (State == State.Configure)
 			{
@@ -141,6 +141,11 @@ namespace NinjaTrader.NinjaScript.Indicators
 		public bool ShowOpen
 		{ get; set; }
 		#endregion
+		
+		public override string FormatPriceMarker(double price)
+		{
+			return Instrument.MasterInstrument.FormatPrice(price);
+		}
 	}
 }
 

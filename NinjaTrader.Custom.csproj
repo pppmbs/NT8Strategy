@@ -45,6 +45,33 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
     <LangVersion>5</LangVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\NinjaTrader.Custom.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <LangVersion>5</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;CODE_ANALYSIS</DefineConstants>
+    <DocumentationFile>bin\Release\NinjaTrader.Custom.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <LangVersion>5</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -69,22 +96,22 @@
       <HintPath>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF\UIAutomationProvider.dll</HintPath>
     </Reference>
     <Reference Include="InfragisticsWPF4.DataPresenter.v15.1">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\InfragisticsWPF4.DataPresenter.v15.1.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\InfragisticsWPF4.DataPresenter.v15.1.dll</HintPath>
     </Reference>
     <Reference Include="Infralution.Localization.Wpf">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\Infralution.Localization.Wpf.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\Infralution.Localization.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="NinjaTrader.Core">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\NinjaTrader.Core.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\NinjaTrader.Core.dll</HintPath>
     </Reference>
     <Reference Include="NinjaTrader.Gui">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\NinjaTrader.Gui.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\NinjaTrader.Gui.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\SharpDX.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct2D1">
-      <HintPath>C:\Program Files (x86)\NinjaTrader 8\bin64\SharpDX.Direct2D1.dll</HintPath>
+      <HintPath>C:\Program Files\NinjaTrader 8\bin\SharpDX.Direct2D1.dll</HintPath>
     </Reference>
     <Reference Include="NinjaTrader.Vendor">
       <HintPath>C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Vendor.dll</HintPath>
@@ -376,51 +403,59 @@
     <Compile Include="SuperDomColumns\%40Volume.cs" />
     <Compile Include="AddOns\AddOnFramework.cs" />
     <Compile Include="Strategies\%40%40AfterLunchBollingerStrategy.cs" />
-    <Compile Include="Strategies\%40%40AiTradeStrategy.cs" />
-    <Compile Include="Strategies\%40%40CombinedManualStrategy.cs" />
-    <Compile Include="Strategies\%40%40ContinuationStrategy.cs" />
-    <Compile Include="Strategies\%40%40DoubleReversalStrategy.cs" />
-    <Compile Include="Strategies\%40%40PullbackStrategy.cs" />
-    <Compile Include="Strategies\%40%40ReversalStrategy.cs" />
     <Compile Include="Strategies\%40%40AGG5.cs" />
+    <Compile Include="Strategies\%40%40AGG5Bar.cs" />
+    <Compile Include="Strategies\%40%40AGG5BarLiveTrading.cs" />
     <Compile Include="Strategies\%40%40AGG5BarRepeat.cs" />
     <Compile Include="Strategies\%40%40AGG5MixIndicator.cs" />
     <Compile Include="Strategies\%40%40AGG5Mixture.cs" />
     <Compile Include="Strategies\%40%40AGG5TickSoftdeck.cs" />
+    <Compile Include="Strategies\%40%40AGG6Bar.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyDrawdown.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdown.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001Limit.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3002.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3002Limit.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyMod.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyPeak.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyThreshold.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVarPeak.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVIX.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarLiveTrading.cs" />
+    <Compile Include="Strategies\%40%40AGG6BarPlus.cs" />
+    <Compile Include="Strategies\%40%40AiTradeStrategy.cs" />
+    <Compile Include="Strategies\%40%40CombinedManualStrategy.cs" />
     <Compile Include="Strategies\%40%40CombinedStrategy.cs" />
+    <Compile Include="Strategies\%40%40ContinuationStrategy.cs" />
+    <Compile Include="Strategies\%40%40DoubleReversalStrategy.cs" />
+    <Compile Include="Strategies\%40%40HongFeiTest.cs" />
     <Compile Include="Strategies\%40%40ProfitChaseStopTrailExitOrdersExample.cs" />
     <Compile Include="Strategies\%40%40ProfitChaseStopTrailSetMethodsExample.cs" />
     <Compile Include="Strategies\%40%40ProfitChaseStopTrailUnmanagedExample.cs" />
     <Compile Include="Strategies\%40%40ProfitChasingCombined.cs" />
     <Compile Include="Strategies\%40%40ProfitChasingReversal.cs" />
-    <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
-    <Compile Include="Strategies\%40%40AGG5BarLiveTrading.cs" />
-    <Compile Include="Strategies\%40%40AGG6Bar.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarLiveTrading.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarPlus.cs" />
-    <Compile Include="Strategies\%40%40AGG5Bar.cs" />
+    <Compile Include="Strategies\%40%40PullbackStrategy.cs" />
+    <Compile Include="Strategies\%40%40ReversalStrategy.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLive3001.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLive3002.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveArtistaAITrader3001.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveArtistaAITrader3002.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveArtistaT63001.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveArtistaT63002.cs" />
+    <Compile Include="Strategies\SP500EminiLiveLowTickT63001.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveNoTickT63001.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveNoTickT63002.cs" />
     <Compile Include="Strategies\CaptureNTData.cs" />
     <Compile Include="Strategies\Sample.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyDrawdown.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdown.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyMod.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVarPeak.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyPeak.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyThreshold.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyVolatilityDrawdown.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyVIX.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3002.cs" />
-    <Compile Include="Strategies\SP500EminiLive3001.cs" />
-    <Compile Include="Strategies\SP500EminiLive3002.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3001Limit.cs" />
-    <Compile Include="Strategies\%40%40AGG6BarDailyMonthlyDrawdownLive3002Limit.cs" />
-    <Compile Include="Strategies\AGG6BarDailyMonthlyDrawdownLive3001Test.cs" />
-    <Compile Include="Strategies\SP500EminiLive3003.cs" />
-    <Compile Include="Strategies\SP500EminiLive3004.cs" />
-    <Compile Include="Strategies\%40%40HongFeiTest.cs" />
-    <Compile Include="Strategies\SP500EminiLiveArtistaT63001.cs" />
-    <Compile Include="Strategies\SP500EminiLiveArtistaT63002.cs" />
+    <Compile Include="Strategies\SP500EminiLiveNoTickAITrader3001.cs" />
+    <Compile Include="Strategies\SP500EminiLiveNoTickAITrader3002.cs" />
+    <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
+    <Compile Include="Strategies\SP500EminiLiveNoTickAITrader3003.cs" />
+    <Compile Include="Strategies\SP500EminiLiveNoTickAITrader3004.cs" />
+    <Compile Include="Strategies\SP500EminiBackTest3333.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
@@ -460,6 +495,11 @@
       <DependentUpon>Resource.resx</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resource.it-IT.resx">
+      <CustomToolNamespace>NinjaTrader.Custom</CustomToolNamespace>
+      <SubType>Designer</SubType>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resource.ko-KR.resx">
       <CustomToolNamespace>NinjaTrader.Custom</CustomToolNamespace>
       <SubType>Designer</SubType>
       <DependentUpon>Resource.resx</DependentUpon>

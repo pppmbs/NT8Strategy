@@ -150,6 +150,12 @@
   <data name="AskLineStroke" xml:space="preserve">
     <value>Línea Ask</value>
   </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>Derechos de autor &lt;sup&gt;©&lt;/sup&gt; {0}. Todos los derechos reservados. NinjaTrader y el logotipo de NinjaTrader. Reg. U.S. Pat. amp; Tm. Apagado.</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>DIVULGACIÓN COMPLETA DEL RIESGO: El comercio de futuros y divisas contiene un riesgo sustancial y no es para todos los inversores. Un inversor podría perder potencialmente todo o más que la inversión inicial. El capital de riesgo es dinero que se puede perder sin poner en peligro la seguridad financiera o el estilo de vida. Solo se debe utilizar capital de riesgo para la negociación y solo aquellos con suficiente capital de riesgo deben considerar la negociación. El rendimiento pasado no es necesariamente indicativo de resultados futuros.</value>
+  </data>
   <data name="BandPct" xml:space="preserve">
     <value>Banda de porcentaje</value>
   </data>
@@ -618,6 +624,24 @@
   <data name="LastLineStroke" xml:space="preserve">
     <value>Última línea</value>
   </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>Ubicación de la leyenda</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>Izquierda inferior</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>Derecha inferior</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>Deshabilitado</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>Izquierda superior</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>Derecha superior</value>
+  </data>
   <data name="Length" xml:space="preserve">
     <value>Longitud</value>
   </data>
@@ -647,6 +671,12 @@
   </data>
   <data name="LowerLow" xml:space="preserve">
     <value>Baja inferior</value>
+  </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>CC:</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>La dirección de correo electrónico del destinatario de la copia al carbón. Separe varias direcciones con '', o ';'</value>
   </data>
   <data name="MailServiceMailAddress" xml:space="preserve">
     <value>Dirección de correo electrónico</value>
@@ -3102,6 +3132,9 @@
   <data name="TextFont" xml:space="preserve">
     <value>Fuente del texto</value>
   </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>Seleccione la fuente, el estilo y el tamaño para mostrar en el gráfico</value>
+  </data>
   <data name="TextPosition_BottomLeft" xml:space="preserve">
     <value>Izquierda inferior</value>
   </data>
@@ -3129,6 +3162,9 @@
   <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
     <value>Línea de tendencia actual</value>
   </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>El indicador TrendLines no es visible con Strategy Analyzer</value>
+  </data>
   <data name="TrendLinesTrendLineBroken" xml:space="preserve">
     <value>{0} roto</value>
   </data>
@@ -3146,6 +3182,15 @@
   </data>
   <data name="TRIXSignal" xml:space="preserve">
     <value>Señal</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>Cuenta autorizada correctamente</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>Has autorizado correctamente a {0} a acceder a tu cuenta de Twitter.</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>Puede cerrar esta ventana y volver a {0}.</value>
   </data>
   <data name="TwitterServiceName" xml:space="preserve">
     <value>Twitter</value>

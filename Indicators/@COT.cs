@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -22,6 +22,9 @@ using NinjaTrader.Data;
 using NinjaTrader.NinjaScript;
 using NinjaTrader.Core.FloatingPoint;
 using NinjaTrader.NinjaScript.DrawingTools;
+using SharpDX;
+using SharpDX.DirectWrite;
+
 #endregion
 
 // This namespace holds indicators in this folder and is required. Do not change it.
@@ -33,8 +36,22 @@ namespace NinjaTrader.NinjaScript.Indicators
 	[TypeConverter("NinjaTrader.NinjaScript.Indicators.COTTypeConverter")]
 	public class COT : Indicator
 	{
-		private		bool			backCalculated;
-		private		CotReport[]		reports;
+		private		bool					backCalculated;
+		private		CotReport[]				reports;
+		private		TextFormat				textFormat;
+		private		Gui.Tools.SimpleFont	font;
+
+		private Vector2 GetPosition(TextLayout textLayout, int pos)
+		{
+			switch (LegendLocation)
+			{
+				case LegendLocation.TopLeft		: return new Vector2(8, ChartPanel.Y + 12 + (pos + 1) * textLayout.Metrics.Height);
+				case LegendLocation.TopRight	: return new Vector2(ChartPanel.W - 8 - textLayout.Metrics.Width, ChartPanel.Y + 12 + (pos + 1) * textLayout.Metrics.Height);
+				case LegendLocation.BottomLeft	: return new Vector2(8, ChartPanel.Y + (float)ChartPanel.H - (Number + 1 - pos) * textLayout.Metrics.Height);
+				case LegendLocation.BottomRight	: return new Vector2(ChartPanel.W - 8 - textLayout.Metrics.Width, ChartPanel.Y + (float)ChartPanel.H - (Number + 1 - pos) * textLayout.Metrics.Height);
+			}
+			return new Vector2(-1,-1);
+		}
 
 		protected override void OnStateChange()
 		{
@@ -43,7 +60,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionCOT;
 				Name						= Custom.Resource.NinjaScriptIndicatorNameCOT;
 				IsSuspendedWhileInactive	= true;
-				Number						= 4;
+				Number						= 3;
+				LegendLocation				= LegendLocation.TopLeft;
 
 				CotReport1					= new CotReport { ReportType = CotReportType.Futures, Field = CotReportField.NoncommercialNet };
 				CotReport2					= new CotReport { ReportType = CotReportType.Futures, Field = CotReportField.CommercialNet };
@@ -97,6 +115,28 @@ namespace NinjaTrader.NinjaScript.Indicators
 					Values[i][0] = value;
 			}
 			backCalculated = true;
+		}
+
+		protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
+		{
+			base.OnRender(chartControl, chartScale);
+			if (!backCalculated || LegendLocation == LegendLocation.Disabled)
+				return;
+
+			if (font == null || !font.Equals(chartControl.Properties.LabelFont) || textFormat == null || textFormat.IsDisposed)
+			{
+				if (textFormat != null && !textFormat.IsDisposed)
+					textFormat.Dispose();
+				font		= chartControl.Properties.LabelFont;
+				textFormat	= font.ToDirectWriteTextFormat();
+			}
+
+			for (int i = 0; i < Number; i++)
+			{
+				TextLayout d = new TextLayout(Core.Globals.DirectWriteFactory, Core.Globals.ToLocalizedObject(reports[i].Field, Core.Globals.GeneralOptions.CurrentUICulture), textFormat, ChartPanel.W, textFormat.FontSize);
+				RenderTarget.DrawTextLayout(GetPosition(d, i), d, Plots[i].BrushDX);
+				d.Dispose();
+			}
 		}
 
 		#region Properties
@@ -153,6 +193,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 		[XmlIgnore]
 		public CotReport CotReport5 {  get; set; }
 
+		[Display(ResourceType = typeof(Custom.Resource), Name = "LegendLocation", GroupName = "NinjaScriptParameters", Order = 6)]
+		public LegendLocation LegendLocation { get; set; }
+
 		[Browsable(false)]
 		public int Cot1Serialize
 		{
@@ -189,6 +232,16 @@ namespace NinjaTrader.NinjaScript.Indicators
 		}
 
 		#endregion
+	}
+
+	[TypeConverter("NinjaTrader.Custom.ResourceEnumConverter")]
+	public enum LegendLocation
+	{
+		Disabled,
+		TopLeft,
+		TopRight,
+		BottomLeft,
+		BottomRight
 	}
 
 	public class COTTypeConverter : IndicatorBaseConverter

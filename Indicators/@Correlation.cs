@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -70,7 +70,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (SessionIterator == null || CurrentBars[0] < Period || CurrentBars[1] < Period)
 				return;
 
-			if (Bars.BarsType.IsIntraday && !SessionIterator.IsInSession(Times[0][0], false, true))
+			if (Bars.BarsType.IsIntraday && !SessionIterator.IsInSession(Times[0][0], true, true))
 				return;
 
 			avg0 = SMA(BarsArray[0], Period)[0];

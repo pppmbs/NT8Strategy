@@ -150,6 +150,12 @@
   <data name="AskLineStroke" xml:space="preserve">
     <value>Ask Linie</value>
   </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>Urheberrecht &lt;sup&gt;©&lt;/sup&gt; {0}. Alle Rechte vorbehalten. NinjaTrader und das NinjaTrader Logo. U.S. Pat. amp; Tm. Aus.</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>VOLLSTÄNDIGE RISIKOOFFENLEGUNG: Der Handel mit Futures und Forex birgt ein erhebliches Risiko und ist nicht für jeden Anleger geeignet. Ein Investor könnte möglicherweise alles oder mehr als die ursprüngliche Investition verlieren. Risikokapital ist Geld, das verloren gehen kann, ohne die finanzielle Sicherheit oder den Lebensstil zu gefährden. Für den Handel sollte nur Risikokapital verwendet werden, und nur Personen mit ausreichendem Risikokapital sollten den Handel in Betracht ziehen. Die Wertentwicklung in der Vergangenheit ist nicht unbedingt ein Indikator für zukünftige Ergebnisse.</value>
+  </data>
   <data name="BandPct" xml:space="preserve">
     <value>Band Prozent</value>
   </data>
@@ -618,6 +624,24 @@
   <data name="LastLineStroke" xml:space="preserve">
     <value>Linie Letzter Kurs</value>
   </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>Legendenstandort</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>Unten Links</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>Unten Rechts</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>Arbeitsunfähig</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>Oben Links</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>Oben Rechts</value>
+  </data>
   <data name="Length" xml:space="preserve">
     <value>Länge</value>
   </data>
@@ -647,6 +671,12 @@
   </data>
   <data name="LowerLow" xml:space="preserve">
     <value>Tieferes Tief</value>
+  </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>CC:</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>Die E-Mail-Adresse Ihres Kopierempfängers. Trennen Sie mehrere Adressen durch ',' oder ';'</value>
   </data>
   <data name="MailServiceMailAddress" xml:space="preserve">
     <value>Email Adresse</value>
@@ -3102,6 +3132,9 @@
   <data name="TextFont" xml:space="preserve">
     <value>Schrift Text</value>
   </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>Wählen Sie Schriftart, Stil und Größe aus, die im Diagramm angezeigt werden sollen</value>
+  </data>
   <data name="TextPosition_BottomLeft" xml:space="preserve">
     <value>Unten Links</value>
   </data>
@@ -3129,6 +3162,9 @@
   <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
     <value>Aktuelle Trendlinie</value>
   </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>TrendLines-Indikator ist mit Strategy Analyzer nicht sichtbar</value>
+  </data>
   <data name="TrendLinesTrendLineBroken" xml:space="preserve">
     <value>{0} gebrochen</value>
   </data>
@@ -3146,6 +3182,15 @@
   </data>
   <data name="TRIXSignal" xml:space="preserve">
     <value>Signal</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>Konto erfolgreich autorisiert</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>Du hast {0} erfolgreich autorisiert, auf deinen Twitter Account zuzugreifen.</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>Sie können dieses Fenster schließen und zu {0} zurückkehren.</value>
   </data>
   <data name="TwitterServiceName" xml:space="preserve">
     <value>Twitter</value>

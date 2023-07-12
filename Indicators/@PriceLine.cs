@@ -1,5 +1,5 @@
 ﻿//
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -57,21 +57,21 @@ namespace NinjaTrader.NinjaScript.Indicators
 			double tmpMin = double.MaxValue;
 			double tmpMax = double.MinValue;
 			
-			if (ShowAskLine && Values[0].IsValidDataPointAt(Values[0].Count - 1))
+			if (Values[0].Count > 0 && ShowAskLine && Values[0].IsValidDataPointAt(Values[0].Count - 1))
 			{
 				double askTmp = Values[0].GetValueAt(Values[0].Count - 1);
 				tmpMin = Math.Min(tmpMin, askTmp);
 				tmpMax = Math.Max(tmpMax, askTmp);
 			}
 			
-			if (ShowBidLine && Values[1].IsValidDataPointAt(Values[1].Count - 1))
+			if (Values[1].Count > 0 && ShowBidLine && Values[1].IsValidDataPointAt(Values[1].Count - 1))
 			{
 				double bidTmp = Values[1].GetValueAt(Values[1].Count - 1);
 				tmpMin = Math.Min(tmpMin, bidTmp);
 				tmpMax = Math.Max(tmpMax, bidTmp);
 			}
 			
-			if (ShowLastLine && Values[2].IsValidDataPointAt(Values[2].Count - 1))
+			if (Values[2].Count > 0 && ShowLastLine && Values[2].IsValidDataPointAt(Values[2].Count - 1))
 			{
 				double lastTmp = Values[2].GetValueAt(Values[2].Count - 1);
 				tmpMin = Math.Min(tmpMin, lastTmp);
@@ -100,7 +100,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			ChartPanel	panel 	= chartControl.ChartPanels[chartScale.PanelIndex];
 			float 		endX 	= panel.X + panel.W;
 			
-			if (ShowAskLine && Values[0].IsValidDataPointAt(Values[0].Count - 1))
+			if (Values[0].Count > 0 && ShowAskLine && Values[0].IsValidDataPointAt(Values[0].Count - 1))
 			{
 				float startX 	= Convert.ToSingle(panel.X + panel.W * (1 - AskLineLength / 100.0));
 				float y 		= chartScale.GetYByValue(Values[0].GetValueAt(Values[0].Count - 1));
@@ -108,7 +108,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				RenderTarget.DrawLine(new SharpDX.Vector2(startX, y), new SharpDX.Vector2(endX, y), AskStroke.BrushDX, AskStroke.Width, AskStroke.StrokeStyle);
 			}
 			
-			if (ShowBidLine && Values[1].IsValidDataPointAt(Values[1].Count - 1))
+			if (Values[1].Count > 0 && ShowBidLine && Values[1].IsValidDataPointAt(Values[1].Count - 1))
 			{
 				float startX 	= Convert.ToSingle(panel.X + panel.W * (1 - BidLineLength / 100.0));
 				float y 		= chartScale.GetYByValue(Values[1].GetValueAt(Values[1].Count - 1));
@@ -116,7 +116,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				RenderTarget.DrawLine(new SharpDX.Vector2(startX, y), new SharpDX.Vector2(endX, y), BidStroke.BrushDX, BidStroke.Width, BidStroke.StrokeStyle);
 			}
 			
-			if (ShowLastLine && Values[2].IsValidDataPointAt(Values[2].Count - 1))
+			if (Values[2].Count > 0 && ShowLastLine && Values[2].IsValidDataPointAt(Values[2].Count - 1))
 			{
 				float startX 	= Convert.ToSingle(panel.X + panel.W * (1 - LastLineLength / 100.0));
 				float y 		= chartScale.GetYByValue(Values[2].GetValueAt(Values[2].Count - 1));

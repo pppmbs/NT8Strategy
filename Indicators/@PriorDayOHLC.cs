@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -177,6 +177,11 @@ namespace NinjaTrader.NinjaScript.Indicators
 		public bool ShowOpen
 		{ get; set; }
 		#endregion
+		
+		public override string FormatPriceMarker(double price)
+		{
+			return Instrument.MasterInstrument.FormatPrice(price);
+		}
 	}
 }
 

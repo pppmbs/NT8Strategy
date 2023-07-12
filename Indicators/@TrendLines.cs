@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -69,6 +69,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 			{
 				swing		= Swing(Input, Strength);
 				trendLines	= new TrendQueue(this, NumberOfTrendLines);
+				if (ChartPanel == null)
+					Draw.TextFixed(this, "TrendLinesStrategyAnalyzer", Custom.Resource.TrendLinesNotVisible, TextPosition.BottomRight);
 			}
 		}
 
@@ -181,6 +183,10 @@ namespace NinjaTrader.NinjaScript.Indicators
 		#region Helpers
 		private void AutoScalePerRay(Ray ray, ref double minValue, ref double maxValue)
 		{
+			// Do not do anything if there is no Ray (Strategy Analyzer chart)
+			if (ray == null)
+				return;
+
 			int startIdx = ChartBars.GetBarIdxByTime(ChartControl, ray.StartAnchor.Time);
 
 			if (startIdx >= ChartBars.FromIndex - Displacement && startIdx <= ChartBars.ToIndex - Displacement)

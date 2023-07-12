@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -402,8 +402,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				case ValueUnit.Price	: yValueString = chartBars.Bars.Instrument.MasterInstrument.FormatPrice(yDiffPrice); break;
 				case ValueUnit.Currency	: 
 					yValueString = AttachedTo.Instrument.MasterInstrument.InstrumentType == InstrumentType.Forex
-						? Core.Globals.FormatCurrency((int)Math.Abs(yDiffTicks) * Account.All[0].ForexLotSize * (AttachedTo.Instrument.MasterInstrument.TickSize * AttachedTo.Instrument.MasterInstrument.PointValue))
-						: Core.Globals.FormatCurrency((int)Math.Abs(yDiffTicks) * (AttachedTo.Instrument.MasterInstrument.TickSize * AttachedTo.Instrument.MasterInstrument.PointValue)); 
+						? Core.Globals.FormatCurrency((int)(yDiffTicks) * Account.All[0].ForexLotSize * (AttachedTo.Instrument.MasterInstrument.TickSize * AttachedTo.Instrument.MasterInstrument.PointValue))
+						: Core.Globals.FormatCurrency((int)(yDiffTicks) * (AttachedTo.Instrument.MasterInstrument.TickSize * AttachedTo.Instrument.MasterInstrument.PointValue)); 
 					break;
 				case ValueUnit.Percent	: yValueString = (yDiffPrice / AttachedTo.Instrument.MasterInstrument.RoundToTickSize(StartAnchor.Price)).ToString("P", Core.Globals.GeneralOptions.CurrentCulture); break;
 				case ValueUnit.Ticks	: yValueString = yDiffTicks.ToString("F0"); break;

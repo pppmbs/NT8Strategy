@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 		private TEMA	tema;
 		private TMA		tma;
 		private WMA		wma;
+		private double envelopePercentage;
+		private int period;
 
 		protected override void OnStateChange()
 		{
@@ -58,7 +61,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			else if (State == State.DataLoaded)
 			{
 				ema		= EMA(Inputs[0], Period);
-				hma		= HMA(Inputs[0], Period);
+				hma		= HMA(Inputs[0], Math.Max(2, Period));
 				sma		= SMA(Inputs[0], Period);
 				tma		= TMA(Inputs[0], Period);
 				tema	= TEMA(Inputs[0], Period);
@@ -109,45 +112,105 @@ namespace NinjaTrader.NinjaScript.Indicators
 		}
 
 		#region Properties
+
 		[Range(0.01, int.MaxValue), NinjaScriptProperty]
-		[Display(ResourceType = typeof(Custom.Resource), Name = "EnvelopePercentage", GroupName = "NinjaScriptParameters", Order = 0)]
+		[Display(ResourceType = typeof(Custom.Resource), Name = "EnvelopePercentage",
+			GroupName = "NinjaScriptParameters", Order = 0)]
 		public double EnvelopePercentage
-		{ get; set; }
+		{
+			get { return envelopePercentage; }
+			set { envelopePercentage = value; }
+		}
 
 		[Browsable(false)]
-		[XmlIgnore()]
-		public Series<double> Lower
-		{
-			get { return Values[2]; }
-		}
+		[XmlIgnore]
+		public Series<double> Lower { get { return Values[2]; } }
 
 		[Range(1, 6), NinjaScriptProperty]
 		[Display(ResourceType = typeof(Custom.Resource), Name = "MAType", GroupName = "NinjaScriptParameters", Order = 1)]
-		public int MAType
-		{ get; set; }
+		[RefreshProperties(RefreshProperties.All)]
+		[TypeConverter(typeof(MovingAverageEnumConverter))] // Converts the int to string values
+		[PropertyEditor("NinjaTrader.Gui.Tools.StringStandardValuesEditorKey")] // Create the combo box on the property grid
+		public int MAType { get; set; }
 
 		[Browsable(false)]
-		[XmlIgnore()]
-		public Series<double> Middle
-		{
-			get { return Values[1]; }
-		}
+		[XmlIgnore]
+		public Series<double> Middle { get { return Values[1]; } }
 
 		[Range(1, int.MaxValue), NinjaScriptProperty]
 		[Display(ResourceType = typeof(Custom.Resource), Name = "Period", GroupName = "NinjaScriptParameters", Order = 2)]
 		public int Period
-		{ get; set; }
+		{
+			get { return MAType != 2 ? period : Math.Max(2, period); }
+			set { period = MAType != 2 ? value : Math.Max(2, value); }
+		}
 
 		[Browsable(false)]
-		[XmlIgnore()]
-		public Series<double> Upper
-		{
-			get { return Values[0]; }
-		}
+		[XmlIgnore]
+		public Series<double> Upper { get { return Values[0]; } }
 		#endregion
 	}
-}
 
+	#region MovingAverageEnumConverter
+	public class MovingAverageEnumConverter : TypeConverter
+	{
+		// Set the values to appear in the combo box
+		public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+		{
+			List<string> values = new List<string>() { "EMA", "HMA", "SMA", "TMA", "TEMA", "WMA" };
+
+			return new StandardValuesCollection(values);
+		}
+
+		// map the value from string to int type
+		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+		{
+			int mATypeValue = 3;
+
+			switch (value.ToString())
+			{
+				case "EMA": mATypeValue = 1; break;
+				case "HMA": mATypeValue = 2; break;
+				case "SMA": mATypeValue = 3; break;
+				case "TMA": mATypeValue = 4; break;
+				case "TEMA": mATypeValue = 5; break;
+				case "WMA": mATypeValue = 6; break;
+			}
+			return mATypeValue;
+		}
+
+		// map the int type to string
+		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+		{
+			string mATypeString = "SMA";
+
+			switch (value.ToString())
+			{
+				case "1": mATypeString = "EMA"; break;
+				case "2": mATypeString = "HMA"; break;
+				case "3": mATypeString = "SMA"; break;
+				case "4": mATypeString = "TMA"; break;
+				case "5": mATypeString = "TEMA"; break;
+				case "6": mATypeString = "WMA"; break;
+			}
+			return mATypeString;
+		}
+
+		// required interface members needed to compile
+		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+		{ return true; }
+
+		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+		{ return true; }
+
+		public override bool GetStandardValuesExclusive(ITypeDescriptorContext context)
+		{ return true; }
+
+		public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+		{ return true; }
+	}
+	#endregion
+}
 #region NinjaScript generated code. Neither change nor remove.
 
 namespace NinjaTrader.NinjaScript.Indicators

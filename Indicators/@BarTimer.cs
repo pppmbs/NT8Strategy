@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -56,7 +56,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			}
 			else if (State == State.Realtime)
 			{
-				if (timer == null)
+				if (timer == null && IsVisible)
 				{
 					if (Bars.BarsType.IsTimeBased && Bars.BarsType.IsIntraday)
 					{
@@ -122,7 +122,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 		{
 			return ChartControl != null
 					&& Bars != null
-					&& Bars.Instrument.MarketData != null;
+					&& Bars.Instrument.MarketData != null
+					&& IsVisible;
 		}
 
 		private void OnTimerTick(object sender, EventArgs e)

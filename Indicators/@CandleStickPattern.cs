@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -236,11 +236,12 @@ namespace NinjaTrader.NinjaScript.Indicators
 						CandleOutlineBrushes[1] = downBrush;
 						DrawText("Upide Tasuki Gap", 1, MIN(Low, 3)[0], -20);
 						break;
+
 					}
-				
+
 				if (ShowAlerts)
 					Alert("myAlert", Priority.Low, string.Format("Pattern(s) found: {0} {1} on {2} {3} {4} Chart", numPatternsFound, Pattern, 
-						Instrument.FullName, BarsPeriod.Value, BarsPeriod.BarsPeriodType), "Alert3.wav", 10, Brushes.DimGray, Brushes.DimGray);
+						Instrument.FullName, BarsPeriod.Value, BarsPeriod.BarsPeriodType), "Alert3.wav", 10, Brushes.Transparent, textBrush);
 			}
 			
 			if (ShowPatternCount)
@@ -262,25 +263,25 @@ namespace NinjaTrader.NinjaScript.Indicators
 		}
 
 		[NinjaScriptProperty]
-		[Display(ResourceType = typeof(Custom.Resource), Name = "SelectPattern", Description = "Choose a pattern to detect", GroupName = "NinjaScriptGeneral", Order = 1)]
+		[Display(ResourceType = typeof(Custom.Resource), Name = "SelectPattern", Description = "SelectPatternDescription", GroupName = "NinjaScriptGeneral", Order = 1)]
 		public ChartPattern Pattern
 		{ get; set; }
 
-		[Display(ResourceType = typeof(Custom.Resource), Name = "SendAlerts", Description = "Set true to send alert message to Alerts window", GroupName = "NinjaScriptGeneral", Order = 2)]
+		[Display(ResourceType = typeof(Custom.Resource), Name = "SendAlerts", Description = "SendAlertsDescription", GroupName = "NinjaScriptGeneral", Order = 2)]
 		public bool ShowAlerts
 		{ get; set; }
 
-		[Display(ResourceType = typeof(Custom.Resource), Name = "ShowPatternCount", Description = "Set true to display on chart the count of patterns found", GroupName = "NinjaScriptGeneral", Order = 3)]
+		[Display(ResourceType = typeof(Custom.Resource), Name = "ShowPatternCount", Description = "ShowPatternCountDescription", GroupName = "NinjaScriptGeneral", Order = 3)]
 		public bool ShowPatternCount
 		{ get; set; }
 
-		[Display(ResourceType = typeof(Custom.Resource), Name = "TextFont", Description = "select font, style, size to display on chart", GroupName = "NinjaScriptGeneral", Order = 4)]
+		[Display(ResourceType = typeof(Custom.Resource), Name = "TextFont", Description = "TextFontDescription", GroupName = "NinjaScriptGeneral", Order = 4)]
 		public Gui.Tools.SimpleFont TextFont
 		{ get; set; }
 
 		[NinjaScriptProperty]
 		[Range(0, int.MaxValue)]
-		[Display(ResourceType = typeof(Custom.Resource), Name = "TrendStrength", Description = "Number of bars required to define a trend when a pattern requires a prevailing trend. \nA value of zero will disable trend requirement.",
+		[Display(ResourceType = typeof(Custom.Resource), Name = "TrendStrength", Description = "TrendStrengthDescription",
 		GroupName = "NinjaScriptGeneral", Order = 5)]
 		public int TrendStrength
 		{ get; set; }
@@ -309,7 +310,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (ninjaScript.CurrentBar < trendStrength || ninjaScript.CurrentBar < 2)
 				return false;
 
-			if (max == null && trendStrength > 0 && pattern == ChartPattern.HangingMan)
+			if (max == null && trendStrength > 0 && (pattern == ChartPattern.HangingMan || pattern == ChartPattern.InvertedHammer))
 			{
 				max = new Indicators.MAX();
 				max.Period = trendStrength;
@@ -341,7 +342,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				}
 			}
 
-			if (min == null && trendStrength > 0 && (pattern == ChartPattern.Hammer || pattern == ChartPattern.InvertedHammer))
+			if (min == null && trendStrength > 0 && pattern == ChartPattern.Hammer)
 			{
 				min = new MIN();
 				min.Period = trendStrength;
@@ -456,18 +457,18 @@ namespace NinjaTrader.NinjaScript.Indicators
 
                     if (upTrendStartBarsAgo > 0 && upTrendEndBarsAgo > 0 && upTrendStartBarsAgo < downTrendStartBarsAgo)
                     {
-                        isInDownTrend 	= false;
-                        isInUpTrend 	= true;
+                        isInDownTrend = false;
+                        isInUpTrend = true;
                     }
                     else if (downTrendStartBarsAgo > 0 && downTrendEndBarsAgo > 0 && upTrendStartBarsAgo > downTrendStartBarsAgo)
                     {
-                        isInDownTrend 	= true;
-                        isInUpTrend 	= false;
+                        isInDownTrend = true;
+                        isInUpTrend = false;
                     }
                     else
                     {
-                        isInDownTrend 	= false;
-                        isInUpTrend 	= false;
+                        isInDownTrend = false;
+                        isInUpTrend = false;
                     }
                 }
             }
@@ -498,7 +499,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.High[0] - n.Close[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
 					case ChartPattern.HangingMan:			found = isInUpTrend && (max == null ? true : max[0] == n.High[0]) && n.Low[0] < n.Open[0] - 5 * n.TickSize 
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.High[0] - n.Close[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
-					case ChartPattern.InvertedHammer:		found = isInDownTrend && (min == null ? true : min[0] == n.Low[0]) && n.High[0] > n.Open[0] + 5 * n.TickSize 
+					case ChartPattern.InvertedHammer:		found = isInUpTrend && (max == null ? true : max[0] == n.High[0]) && n.High[0] > n.Open[0] + 5 * n.TickSize 
 																	&& Math.Abs(n.Open[0] - n.Close[0]) < (0.10 * (n.High[0] - n.Low[0])) && (n.Close[0] - n.Low[0]) < (0.25 * (n.High[0] - n.Low[0])); break;
 					case ChartPattern.MorningStar:			found = n.Close[2] < n.Open[2] && n.Close[1] < n.Close[2] && n.Open[0] > (Math.Abs((n.Close[1] - n.Open[1]) / 2) + n.Open[1]) && n.Close[0] > n.Open[0]; break;
 					case ChartPattern.PiercingLine:			found = isInDownTrend && n.Open[0] < n.Low[1] && n.Close[1] < n.Open[1] && n.Close[0] > n.Open[0] && n.Close[0] >= n.Close[1] + (n.Open[1] - n.Close[1]) / 2 && n.Close[0] <= n.Open[1]; break;

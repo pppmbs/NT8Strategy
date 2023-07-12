@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -40,13 +40,14 @@ namespace NinjaTrader.NinjaScript.Indicators
 		{
 			if (State == State.SetDefaults)
 			{
-				Description					= NinjaTrader.Custom.Resource.NinjaScriptIndicatorDescriptionBOP;
-				Name						= NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameBOP;
+				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionBOP;
+				Name						= Custom.Resource.NinjaScriptIndicatorNameBOP;
 				IsSuspendedWhileInactive	= true;
 				Smooth 						= 14;
 				IsOverlay					= false;
 
-				AddPlot(new Stroke(Brushes.DodgerBlue, 2), PlotStyle.Bar, NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameBOP);
+				AddPlot(new Stroke(Brushes.DodgerBlue, 2), PlotStyle.Bar, Custom.Resource.NinjaScriptIndicatorNameBOP);
+				AddLine(Brushes.DarkGray, 0, Custom.Resource.NinjaScriptIndicatorZeroLine);
 			}
 			else if (State == State.DataLoaded)
 			{

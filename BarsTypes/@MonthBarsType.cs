@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -46,15 +46,45 @@ namespace NinjaTrader.NinjaScript.BarsTypes
 
 		protected override void OnDataPoint(Bars bars, double open, double high, double low, double close, DateTime time, long volume, bool isBar, double bid, double ask)
 		{
+			if (SessionIterator == null)
+				SessionIterator = new SessionIterator(bars);
+
 			if (bars.Count == 0)
-				AddBar(bars, open, high, low, close, TimeToBarTime(time, bars.BarsPeriod.Value), volume);
-			else if (time.Month <= bars.LastBarTime.Month && time.Year == bars.LastBarTime.Year || time.Year < bars.LastBarTime.Year)
 			{
-				if (high.ApproxCompare(bars.GetHigh(bars.Count - 1)) != 0 || low.ApproxCompare(bars.GetLow(bars.Count - 1)) != 0 || close.ApproxCompare(bars.GetClose(bars.Count - 1)) != 0 || volume > 0)
-					UpdateBar(bars, high, low, close, bars.LastBarTime, volume);
+				if (isBar || bars.TradingHours.Sessions.Count == 0)
+					AddBar(bars, open, high, low, close, TimeToBarTime(time, bars.BarsPeriod.Value), volume);
+				else
+				{
+					SessionIterator.CalculateTradingDay(time, false);
+					AddBar(bars, open, high, low, close, TimeToBarTime(SessionIterator.ActualTradingDayExchange, bars.BarsPeriod.Value), volume);
+				}
 			}
 			else
-				AddBar(bars, open, high, low, close, TimeToBarTime(time, bars.BarsPeriod.Value), volume);
+			{
+				DateTime barTime;
+				if (isBar)
+					barTime = time.Date;
+				else
+				{
+					if (SessionIterator.IsNewSession(time, false))
+					{
+						SessionIterator.CalculateTradingDay(time, false);
+						barTime = SessionIterator.ActualTradingDayExchange;
+						if (barTime < bars.LastBarTime.Date)
+							barTime = bars.LastBarTime.Date; // Make sure timestamps are ascending
+					}
+					else
+						barTime = bars.LastBarTime.Date; // Make sure timestamps are ascending
+				}
+
+				if (barTime.Month <= bars.LastBarTime.Month && barTime.Year == bars.LastBarTime.Year || barTime.Year < bars.LastBarTime.Year)
+				{
+					if (high.ApproxCompare(bars.GetHigh(bars.Count - 1)) != 0 || low.ApproxCompare(bars.GetLow(bars.Count - 1)) != 0 || close.ApproxCompare(bars.GetClose(bars.Count - 1)) != 0 || volume > 0)
+						UpdateBar(bars, high, low, close, bars.LastBarTime, volume);
+				}
+				else
+					AddBar(bars, open, high, low, close, TimeToBarTime(barTime, bars.BarsPeriod.Value), volume);
+			}
 		}
 
 		protected override void OnStateChange()

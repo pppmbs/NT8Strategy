@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -24,10 +24,10 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 	{
 		private double		columnWidth;
 		private double		currentEditingPrice	= -1.0;
-		private FontFamily	fontFamily;	
+		private FontFamily	fontFamily;
 		private double		gridHeight;
 		private int			gridIndex;
-		private Pen			gridPen;		
+		private Pen			gridPen;
 		private double		halfPenWidth;
 		private TextBox		tbNotes;
 		private Typeface	typeFace;
@@ -122,6 +122,9 @@ namespace NinjaTrader.NinjaScript.SuperDomColumns
 					halfPenWidth		= gridPen.Thickness * 0.5;
 				}
 			}
+
+			if (gridPen == null)
+				return;
 
 			columnWidth				= renderWidth;
 			gridHeight				= -gridPen.Thickness;

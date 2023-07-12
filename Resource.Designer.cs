@@ -160,6 +160,24 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copyright &lt;sup&gt;©&lt;/sup&gt; {0}. All rights reserved. NinjaTrader and the NinjaTrader logo. Reg. U.S. Pat. &amp;amp; Tm. Off..
+        /// </summary>
+        public static string AuthDisclosureText1 {
+            get {
+                return ResourceManager.GetString("AuthDisclosureText1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FULL RISK DISCLOSURE: Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones financial security or lifestyle. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results..
+        /// </summary>
+        public static string AuthDisclosureText2 {
+            get {
+                return ResourceManager.GetString("AuthDisclosureText2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Band percent.
         /// </summary>
         public static string BandPct {
@@ -1564,6 +1582,60 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Legend location.
+        /// </summary>
+        public static string LegendLocation {
+            get {
+                return ResourceManager.GetString("LegendLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bottom left.
+        /// </summary>
+        public static string LegendLocation_BottomLeft {
+            get {
+                return ResourceManager.GetString("LegendLocation_BottomLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bottom right.
+        /// </summary>
+        public static string LegendLocation_BottomRight {
+            get {
+                return ResourceManager.GetString("LegendLocation_BottomRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disabled.
+        /// </summary>
+        public static string LegendLocation_Disabled {
+            get {
+                return ResourceManager.GetString("LegendLocation_Disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top left.
+        /// </summary>
+        public static string LegendLocation_TopLeft {
+            get {
+                return ResourceManager.GetString("LegendLocation_TopLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Top right.
+        /// </summary>
+        public static string LegendLocation_TopRight {
+            get {
+                return ResourceManager.GetString("LegendLocation_TopRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Length.
         /// </summary>
         public static string Length {
@@ -1650,6 +1722,24 @@ namespace NinjaTrader.Custom {
         public static string LowerLow {
             get {
                 return ResourceManager.GetString("LowerLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CC:.
+        /// </summary>
+        public static string MailCcAddress {
+            get {
+                return ResourceManager.GetString("MailCcAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The email address of your carbon copy recipient. Separate multiple addresses with &apos;,&apos; or &apos;;&apos;.
+        /// </summary>
+        public static string MailCcAddressDescription {
+            get {
+                return ResourceManager.GetString("MailCcAddressDescription", resourceCulture);
             }
         }
         
@@ -9016,6 +9106,15 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select font, style, size to display on chart.
+        /// </summary>
+        public static string TextFontDescription {
+            get {
+                return ResourceManager.GetString("TextFontDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bottom left.
         /// </summary>
         public static string TextPosition_BottomLeft {
@@ -9097,6 +9196,15 @@ namespace NinjaTrader.Custom {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TrendLines indicator is not visible with Strategy Analyzer.
+        /// </summary>
+        public static string TrendLinesNotVisible {
+            get {
+                return ResourceManager.GetString("TrendLinesNotVisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} broken.
         /// </summary>
         public static string TrendLinesTrendLineBroken {
@@ -9147,6 +9255,33 @@ namespace NinjaTrader.Custom {
         public static string TRIXSignal {
             get {
                 return ResourceManager.GetString("TRIXSignal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account Successfully Authorized.
+        /// </summary>
+        public static string TwitterAuthHeader {
+            get {
+                return ResourceManager.GetString("TwitterAuthHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have successfully authorized {0} to access your Twitter account..
+        /// </summary>
+        public static string TwitterAuthText1 {
+            get {
+                return ResourceManager.GetString("TwitterAuthText1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You may close this window and return to {0}..
+        /// </summary>
+        public static string TwitterAuthText2 {
+            get {
+                return ResourceManager.GetString("TwitterAuthText2", resourceCulture);
             }
         }
         

@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -68,7 +68,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			{
 				if (ChartAnchors == null || ChartAnchors.Count == 0)
 					return new ChartAnchor { DisplayName = Custom.Resource.NinjaScriptDrawingToolAnchorStart, IsEditing = true, DrawingTool = this };
-				else return ChartAnchors[0];
+				return ChartAnchors[0];
 			}
 			set
 			{
@@ -86,21 +86,54 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		// There always must be a ChartAnchor in here or Path won't even start up
 		public override IEnumerable<ChartAnchor> Anchors
 		{
-			get { return ChartAnchors == null || ChartAnchors.Count == 0 ? new ChartAnchor[] { StartAnchor } : ChartAnchors.ToArray(); }
+			get { return ChartAnchors == null || ChartAnchors.Count == 0 ? new[] { StartAnchor } : ChartAnchors.ToArray(); }
 		}
 
-		public override void CopyTo(NinjaScript ninjascript)
+		public override void CopyTo(NinjaScript ninjaScript)
 		{
-			base.CopyTo(ninjascript);
+			base.CopyTo(ninjaScript);
 
-			PathTool p = ninjascript as PathTool;
+			PathTool p = ninjaScript as PathTool;
 
-			if (p != null && ChartAnchors != null)
+			if (p != null)
 			{
-				p.ChartAnchors.Clear();
-				// We have to deep copy our List of Chart Anchors
+				if (ChartAnchors != null)
+				{
+					p.ChartAnchors.Clear();
+					// We have to deep copy our List of Chart Anchors
+					foreach (ChartAnchor ca in ChartAnchors)
+						p.ChartAnchors.Add(ca.Clone() as ChartAnchor);
+				}
+			}
+			else // might be in different assembly after compillation
+			{
+				Type			newInstType			= ninjaScript.GetType();
+				PropertyInfo	anchorsPropertyInfo = newInstType.GetProperty("ChartAnchors");
+
+				if (anchorsPropertyInfo == null)
+					return;
+
+				IList newAnchors = anchorsPropertyInfo.GetValue(ninjaScript) as IList;
+
+				if (newAnchors == null)
+					return;
+
+				// Since new instance could be past set defaults, clear any existing
+				newAnchors.Clear();
+
 				foreach (ChartAnchor ca in ChartAnchors)
-					p.ChartAnchors.Add(ca.Clone() as ChartAnchor);
+				{
+					try
+					{
+						ChartAnchor newInstance = ca.Clone() as ChartAnchor;
+
+						if (newInstance == null)
+							continue;
+
+						newAnchors.Add(newInstance);
+					}
+					catch { }
+				}
 			}
 		}
 
@@ -200,7 +233,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			ChartPanel	chartPanel	= chartControl.ChartPanels[PanelIndex];
 			Point[]		points		= new Point[ChartAnchors.Count];
 
-			for (int i = 0; i < points.Count(); i++)
+			for (int i = 0; i < points.Length; i++)
 				points[i] = ChartAnchors[i].GetPoint(chartControl, chartPanel, chartScale);
 
 			return points;
@@ -216,7 +249,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			return new[] { Condition.Less, Condition.LessEqual, Condition.Equals, Condition.Greater, Condition.GreaterEqual, Condition.NotEqual, Condition.CrossAbove, Condition.CrossBelow };
 		}
 		
-		public override object Icon { get { return Gui.Tools.Icons.DrawPath; } }
+		public override object Icon { get { return Icons.DrawPath; } }
 
 		public override bool IsAlertConditionTrue(AlertConditionItem conditionItem, Condition condition, ChartAlertValue[] values, ChartControl chartControl, ChartScale chartScale)
 		{
@@ -601,15 +634,15 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		public object AssemblyClone(Type t)
 		{
 			Assembly a				= t.Assembly;
-			object PathToolSegment	= a.CreateInstance(t.FullName);
+			object pathToolSegment	= a.CreateInstance(t.FullName);
 
 			foreach (PropertyInfo p in t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
 			{
 				if (p.CanWrite)
-					p.SetValue(PathToolSegment, this.GetType().GetProperty(p.Name).GetValue(this), null);
+					p.SetValue(pathToolSegment, GetType().GetProperty(p.Name).GetValue(this), null);
 			}
 
-			return PathToolSegment;
+			return pathToolSegment;
 		}
 
 		public virtual object Clone()
@@ -671,7 +704,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			{
 				try
 				{
-					object newInstance = oldPathToolSegment.AssemblyClone(Core.Globals.AssemblyRegistry.GetType(typeof(PathToolSegment).FullName));
+					object newInstance = oldPathToolSegment.AssemblyClone(ninjaScript.GetType().Assembly.GetType(typeof(PathToolSegment).FullName));
 
 					if (newInstance == null)
 						continue;
@@ -738,11 +771,12 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			int anchor3BarsAgo, DateTime anchor3Time, double anchor3Y, int anchor4BarsAgo, DateTime anchor4Time, double anchor4Y,
 			int anchor5BarsAgo, DateTime anchor5Time, double anchor5Y)
 		{
-			List<ChartAnchor> chartAnchors = new List<ChartAnchor>();
-
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor1BarsAgo, anchor1Time, anchor1Y));
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor2BarsAgo, anchor2Time, anchor2Y));
-			chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor3BarsAgo, anchor3Time, anchor3Y));
+			List<ChartAnchor> chartAnchors = new List<ChartAnchor>
+			{
+				DrawingTool.CreateChartAnchor(owner, anchor1BarsAgo, anchor1Time, anchor1Y),
+				DrawingTool.CreateChartAnchor(owner, anchor2BarsAgo, anchor2Time, anchor2Y),
+				DrawingTool.CreateChartAnchor(owner, anchor3BarsAgo, anchor3Time, anchor3Y)
+			};
 
 			if (anchor4BarsAgo != int.MinValue || anchor4Time != DateTime.MinValue)
 				chartAnchors.Add(DrawingTool.CreateChartAnchor(owner, anchor4BarsAgo, anchor4Time, anchor4Y));

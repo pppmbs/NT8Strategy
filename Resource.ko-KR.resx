@@ -1,0 +1,3282 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Acceleration" xml:space="preserve">
+    <value>가속</value>
+  </data>
+  <data name="AccelerationMax" xml:space="preserve">
+    <value>최대 가속</value>
+  </data>
+  <data name="AccelerationStep" xml:space="preserve">
+    <value>가속 단계</value>
+  </data>
+  <data name="ADLAD" xml:space="preserve">
+    <value>기원 후</value>
+  </data>
+  <data name="AlertOnBreak" xml:space="preserve">
+    <value>휴식 시 알림</value>
+  </data>
+  <data name="AlertOnBreakSound" xml:space="preserve">
+    <value>브레이크 소리 경고</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_ModifiedSchiff" xml:space="preserve">
+    <value>수정된 쉬프</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_Schiff" xml:space="preserve">
+    <value>쉬프</value>
+  </data>
+  <data name="AndrewsPitchforkCalculationMethod_StandardPitchfork" xml:space="preserve">
+    <value>기준</value>
+  </data>
+  <data name="AskLineLength" xml:space="preserve">
+    <value>질문 선 길이(차트의 %)</value>
+  </data>
+  <data name="AskLineStroke" xml:space="preserve">
+    <value>질문 라인</value>
+  </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>Copyright &lt;sup&gt;©&lt;/sup&gt; {0}. All rights reserved. NinjaTrader 및 NinjaTrader 로고. Reg. U.S. Pat. &amp;amp; Tm. Off.</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>전체 위험 공개: 선물 및 외환 거래에는 상당한 위험이 포함되어 있으며 모든 투자자에게 해당되는 것은 아닙니다. 투자자는 잠재적으로 초기 투자액의 전부 또는 그 이상을 잃을 수 있습니다. 위험 자본은 재정적 안정이나 생활 방식을 위태롭게 하지 않고 손실될 수 있는 돈입니다. 거래에는 위험자본만 사용해야 하며 위험자본이 충분한 사람만 거래를 고려해야 합니다. 과거의 성과가 반드시 미래의 결과를 나타내는 것은 아닙니다.</value>
+  </data>
+  <data name="BandPct" xml:space="preserve">
+    <value>밴드 퍼센트</value>
+  </data>
+  <data name="BarCount" xml:space="preserve">
+    <value>바 수</value>
+  </data>
+  <data name="BarDown" xml:space="preserve">
+    <value>바 다운</value>
+  </data>
+  <data name="BarSpacing" xml:space="preserve">
+    <value>바 간격</value>
+  </data>
+  <data name="BarsPeriodType" xml:space="preserve">
+    <value>막대 기간 유형</value>
+  </data>
+  <data name="BarsPeriodTypeNameDay" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="BarsPeriodTypeNameHeikenAshi" xml:space="preserve">
+    <value>하이켄 아시</value>
+  </data>
+  <data name="BarsPeriodTypeNameKagi" xml:space="preserve">
+    <value>카기</value>
+  </data>
+  <data name="BarsPeriodTypeNameLineBreak" xml:space="preserve">
+    <value>줄 바꿈</value>
+  </data>
+  <data name="BarsPeriodTypeNameMinute" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="BarsPeriodTypeNameMonth" xml:space="preserve">
+    <value>월</value>
+  </data>
+  <data name="BarsPeriodTypeNamePointAndFigure" xml:space="preserve">
+    <value>점과 그림</value>
+  </data>
+  <data name="BarsPeriodTypeNameRange" xml:space="preserve">
+    <value>범위</value>
+  </data>
+  <data name="BarsPeriodTypeNameRenko" xml:space="preserve">
+    <value>렌코</value>
+  </data>
+  <data name="BarsPeriodTypeNameSecond" xml:space="preserve">
+    <value>두번째</value>
+  </data>
+  <data name="BarsPeriodTypeNameTick" xml:space="preserve">
+    <value>진드기</value>
+  </data>
+  <data name="BarsPeriodTypeNameVolume" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="BarsPeriodTypeNameWeek" xml:space="preserve">
+    <value>주</value>
+  </data>
+  <data name="BarsPeriodTypeNameYear" xml:space="preserve">
+    <value>년도</value>
+  </data>
+  <data name="BarsPeriodValue" xml:space="preserve">
+    <value>막대 기간 값</value>
+  </data>
+  <data name="BarTimerDisconnectedError" xml:space="preserve">
+    <value>현재 데이터 제공업체와의 연결이 끊어져 바 타이머가 비활성화되었습니다.</value>
+  </data>
+  <data name="BarTimerSessionTimeError" xml:space="preserve">
+    <value>현재 시간이 세션 시간 또는 차트 종료 날짜를 벗어났기 때문에 막대 타이머가 비활성화되었습니다.</value>
+  </data>
+  <data name="BarTimerTimeBasedError" xml:space="preserve">
+    <value>바 타이머는 일중 시간 기반 간격에서만 작동합니다.</value>
+  </data>
+  <data name="BarTimerTimeRemaining" xml:space="preserve">
+    <value>남은 시간 = </value>
+  </data>
+  <data name="BarTimerWaitingOnDataError" xml:space="preserve">
+    <value>시작하기 전에 실시간 데이터를 기다리는 BarTimer</value>
+  </data>
+  <data name="BarUp" xml:space="preserve">
+    <value>바 업</value>
+  </data>
+  <data name="BasePeriod" xml:space="preserve">
+    <value>기준 기간</value>
+  </data>
+  <data name="BidLineLength" xml:space="preserve">
+    <value>입찰가 선 길이(차트의 %)</value>
+  </data>
+  <data name="BidLineStroke" xml:space="preserve">
+    <value>입찰 라인</value>
+  </data>
+  <data name="BlockTradeSize" xml:space="preserve">
+    <value>대량매매 규모</value>
+  </data>
+  <data name="BollingerLowerBand" xml:space="preserve">
+    <value>하단 밴드</value>
+  </data>
+  <data name="BollingerMiddleBand" xml:space="preserve">
+    <value>중간 밴드</value>
+  </data>
+  <data name="BollingerUpperBand" xml:space="preserve">
+    <value>상단 밴드</value>
+  </data>
+  <data name="BuySellPressureBuyPressure" xml:space="preserve">
+    <value>구매 압력</value>
+  </data>
+  <data name="BuySellPressureSellPressure" xml:space="preserve">
+    <value>매도 압력</value>
+  </data>
+  <data name="BuySellVolumeBuys" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="BuySellVolumeSells" xml:space="preserve">
+    <value>판매</value>
+  </data>
+  <data name="CandlestickPatternFound" xml:space="preserve">
+    <value>패턴 발견</value>
+  </data>
+  <data name="CCILevel1" xml:space="preserve">
+    <value>레벨 1</value>
+  </data>
+  <data name="CCILevel2" xml:space="preserve">
+    <value>2 단계</value>
+  </data>
+  <data name="CCILevelMinus1" xml:space="preserve">
+    <value>레벨 1</value>
+  </data>
+  <data name="CCILevelMinus2" xml:space="preserve">
+    <value>2 단계</value>
+  </data>
+  <data name="ChartSpan_Day" xml:space="preserve">
+    <value>1 일</value>
+  </data>
+  <data name="ChartSpan_Min1" xml:space="preserve">
+    <value>1 분</value>
+  </data>
+  <data name="ChartSpan_Min15" xml:space="preserve">
+    <value>15 분</value>
+  </data>
+  <data name="ChartSpan_Min240" xml:space="preserve">
+    <value>240분</value>
+  </data>
+  <data name="ChartSpan_Min30" xml:space="preserve">
+    <value>30 분</value>
+  </data>
+  <data name="ChartSpan_Min5" xml:space="preserve">
+    <value>5 분</value>
+  </data>
+  <data name="ChartSpan_Min60" xml:space="preserve">
+    <value>60분</value>
+  </data>
+  <data name="ChartSpan_Month" xml:space="preserve">
+    <value>1 개월</value>
+  </data>
+  <data name="ChartSpan_Week" xml:space="preserve">
+    <value>일주</value>
+  </data>
+  <data name="ChartSpan_Year" xml:space="preserve">
+    <value>일년</value>
+  </data>
+  <data name="ConstantLines1" xml:space="preserve">
+    <value>1행</value>
+  </data>
+  <data name="ConstantLines2" xml:space="preserve">
+    <value>2행</value>
+  </data>
+  <data name="ConstantLines3" xml:space="preserve">
+    <value>3행</value>
+  </data>
+  <data name="ConstantLines4" xml:space="preserve">
+    <value>4행</value>
+  </data>
+  <data name="COT1" xml:space="preserve">
+    <value>유아용 침대 1</value>
+  </data>
+  <data name="COT2" xml:space="preserve">
+    <value>유아용 침대 2</value>
+  </data>
+  <data name="COT3" xml:space="preserve">
+    <value>유아용 침대 3</value>
+  </data>
+  <data name="COT4" xml:space="preserve">
+    <value>유아용 침대 4</value>
+  </data>
+  <data name="COT5" xml:space="preserve">
+    <value>유아용 침대 5</value>
+  </data>
+  <data name="CotDataError" xml:space="preserve">
+    <value>COT 데이터는 이 기기에서 지원되지 않습니다.</value>
+  </data>
+  <data name="CotDataStillDownloading" xml:space="preserve">
+    <value>COT 데이터는 아직 다운로드 중입니다. 잠시 후 표시기를 새로고침하세요.</value>
+  </data>
+  <data name="CotDataWarning" xml:space="preserve">
+    <value>최신 데이터를 받으려면 옵션에서 "시작 시 COT 데이터 다운로드"를 활성화해야 합니다.</value>
+  </data>
+  <data name="CountDown" xml:space="preserve">
+    <value>카운트 다운</value>
+  </data>
+  <data name="CountType_Trades" xml:space="preserve">
+    <value>거래</value>
+  </data>
+  <data name="CountType_Volume" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="CurrentDayOHLError" xml:space="preserve">
+    <value>CurrentDayOHL은 일중 간격에서만 작동합니다.</value>
+  </data>
+  <data name="CurrentDayOHLHigh" xml:space="preserve">
+    <value>현재 최고</value>
+  </data>
+  <data name="CurrentDayOHLLow" xml:space="preserve">
+    <value>현재 낮은</value>
+  </data>
+  <data name="CurrentDayOHLOpen" xml:space="preserve">
+    <value>현재 오픈</value>
+  </data>
+  <data name="CustomWindowAddOnBuyMarket" xml:space="preserve">
+    <value>시장 구매</value>
+  </data>
+  <data name="CustomWindowAddOnSellMarket" xml:space="preserve">
+    <value>판매 시장</value>
+  </data>
+  <data name="CustomWindowSampleDescription" xml:space="preserve">
+    <value>사용자 정의 창 설명</value>
+  </data>
+  <data name="CustomWindowSampleName" xml:space="preserve">
+    <value>사용자 정의 창 샘플</value>
+  </data>
+  <data name="DataBarsTypeDaily" xml:space="preserve">
+    <value>일일</value>
+  </data>
+  <data name="DataBarsTypeDay" xml:space="preserve">
+    <value>{0} 일</value>
+  </data>
+  <data name="DataBarsTypeMinute" xml:space="preserve">
+    <value>{0} 분 {1}</value>
+  </data>
+  <data name="DataBarsTypeMonth" xml:space="preserve">
+    <value>{0} 월</value>
+  </data>
+  <data name="DataBarsTypeMonthly" xml:space="preserve">
+    <value>월간 간행물</value>
+  </data>
+  <data name="DataBarsTypePointAndFigure" xml:space="preserve">
+    <value>{0} 점과 도형</value>
+  </data>
+  <data name="DataBarsTypeRange" xml:space="preserve">
+    <value>{0} 범위 {1}</value>
+  </data>
+  <data name="DataBarsTypeRenko" xml:space="preserve">
+    <value>{0} 렌코</value>
+  </data>
+  <data name="DataBarsTypeSecond" xml:space="preserve">
+    <value>{0} 초</value>
+  </data>
+  <data name="DataBarsTypeTick" xml:space="preserve">
+    <value>{0} 체크 {1}</value>
+  </data>
+  <data name="DataBarsTypeVolume" xml:space="preserve">
+    <value>{0} 볼륨 {1}</value>
+  </data>
+  <data name="DataBarsTypeWeek" xml:space="preserve">
+    <value>{0} 주</value>
+  </data>
+  <data name="DataBarsTypeWeekly" xml:space="preserve">
+    <value>주간</value>
+  </data>
+  <data name="DataBarsTypeYear" xml:space="preserve">
+    <value>{0} 년</value>
+  </data>
+  <data name="DataBarsTypeYearly" xml:space="preserve">
+    <value>매년</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>날</value>
+  </data>
+  <data name="DeviationType" xml:space="preserve">
+    <value>편차 유형</value>
+  </data>
+  <data name="DeviationValue" xml:space="preserve">
+    <value>편차 값</value>
+  </data>
+  <data name="DMMinusDI" xml:space="preserve">
+    <value>-DI</value>
+  </data>
+  <data name="DMPlusDI" xml:space="preserve">
+    <value>+DI</value>
+  </data>
+  <data name="DonchianChannelMean" xml:space="preserve">
+    <value>평균</value>
+  </data>
+  <data name="DownBarColor" xml:space="preserve">
+    <value>다운 바 색상</value>
+  </data>
+  <data name="DrawingToolIndicatorDescription" xml:space="preserve">
+    <value>그리기 도구 타일 표시기는 가장 일반적으로 사용되는 그리기 도구에 빠르게 액세스할 수 있도록 사용자 지정할 수 있는 부동 타일을 차트에 추가하는 기능을 추가합니다.</value>
+  </data>
+  <data name="DrawingToolIndicatorName" xml:space="preserve">
+    <value>그리기 도구 타일</value>
+  </data>
+  <data name="DrawLines" xml:space="preserve">
+    <value>선을 그리다</value>
+  </data>
+  <data name="EMA1" xml:space="preserve">
+    <value>EMA1 기간</value>
+  </data>
+  <data name="EMA2" xml:space="preserve">
+    <value>EMA2 기간</value>
+  </data>
+  <data name="EmailSignature" xml:space="preserve">
+    <value> NinjaTrader가 보낸</value>
+  </data>
+  <data name="EnvelopePercentage" xml:space="preserve">
+    <value>봉투 비율</value>
+  </data>
+  <data name="FacebookServiceName" xml:space="preserve">
+    <value>페이스북</value>
+  </data>
+  <data name="FacebookSignature" xml:space="preserve">
+    <value>NinjaTrader가 보낸</value>
+  </data>
+  <data name="Fast" xml:space="preserve">
+    <value>빠른</value>
+  </data>
+  <data name="FastLimit" xml:space="preserve">
+    <value>빠른 제한</value>
+  </data>
+  <data name="FastPeriod" xml:space="preserve">
+    <value>빠른 기간</value>
+  </data>
+  <data name="FibonacciTextAlignment_ExtremeLeft" xml:space="preserve">
+    <value>극좌</value>
+  </data>
+  <data name="FibonacciTextAlignment_ExtremeRight" xml:space="preserve">
+    <value>극우</value>
+  </data>
+  <data name="FibonacciTextAlignment_Left" xml:space="preserve">
+    <value>왼쪽</value>
+  </data>
+  <data name="FibonacciTextAlignment_Off" xml:space="preserve">
+    <value>끄다</value>
+  </data>
+  <data name="FibonacciTextAlignment_Right" xml:space="preserve">
+    <value>오른쪽</value>
+  </data>
+  <data name="FileFilterAnyLoadingDialog" xml:space="preserve">
+    <value>어느 (*.*)</value>
+  </data>
+  <data name="FileFilterAnyWinForms" xml:space="preserve">
+    <value>임의(*.*)|*.*</value>
+  </data>
+  <data name="FileName" xml:space="preserve">
+    <value>파일 이름</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>폰트</value>
+  </data>
+  <data name="Forecast" xml:space="preserve">
+    <value>예측</value>
+  </data>
+  <data name="GannFanDirection_DownLeft" xml:space="preserve">
+    <value>왼쪽 아래</value>
+  </data>
+  <data name="GannFanDirection_DownRight" xml:space="preserve">
+    <value>오른쪽 아래</value>
+  </data>
+  <data name="GannFanDirection_UpLeft" xml:space="preserve">
+    <value>왼쪽 위로</value>
+  </data>
+  <data name="GannFanDirection_UpRight" xml:space="preserve">
+    <value>오른쪽 위로</value>
+  </data>
+  <data name="GuiAuthorize" xml:space="preserve">
+    <value>승인</value>
+  </data>
+  <data name="GuiChartStyleDojiBrush" xml:space="preserve">
+    <value>도지 바의 색상</value>
+  </data>
+  <data name="HigherHigh" xml:space="preserve">
+    <value>더 높게</value>
+  </data>
+  <data name="HigherLow" xml:space="preserve">
+    <value>높음 낮음</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Currency" xml:space="preserve">
+    <value>통화</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Percent" xml:space="preserve">
+    <value>퍼센트</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Pips" xml:space="preserve">
+    <value>핍</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Price" xml:space="preserve">
+    <value>가격</value>
+  </data>
+  <data name="HighlightVerticalRangeUnit_Ticks" xml:space="preserve">
+    <value>진드기</value>
+  </data>
+  <data name="HLCCalculationMode" xml:space="preserve">
+    <value>HLC 계산 모드</value>
+  </data>
+  <data name="HLCCalculationMode_CalcFromIntradayData" xml:space="preserve">
+    <value>일중 데이터에서 계산</value>
+  </data>
+  <data name="HLCCalculationMode_DailyBars" xml:space="preserve">
+    <value>일일 바 사용</value>
+  </data>
+  <data name="HLCCalculationMode_UserDefinedValues" xml:space="preserve">
+    <value>사용자 정의 값 사용</value>
+  </data>
+  <data name="HLCCalculationModeDescription" xml:space="preserve">
+    <value>전날 HLC 값 계산 방법.</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>수입</value>
+  </data>
+  <data name="ImportTypeNinjaTraderBeginningOfBar" xml:space="preserve">
+    <value>NinjaTrader(바 타임스탬프의 시작)</value>
+  </data>
+  <data name="ImportTypeNinjaTraderDateTimeFormatError" xml:space="preserve">
+    <value>{0} {1} 행의 날짜/시간 형식 오류: {2} : ' {3} '</value>
+  </data>
+  <data name="ImportTypeNinjaTraderEndOfBar" xml:space="preserve">
+    <value>NinjaTrader(바 타임스탬프 끝)</value>
+  </data>
+  <data name="ImportTypeNinjaTraderFieldSeparatorNotIdentified" xml:space="preserve">
+    <value>{0} : 가져오기 필드 구분자를 식별할 수 없습니다.</value>
+  </data>
+  <data name="ImportTypeNinjaTraderFormatError" xml:space="preserve">
+    <value>{0} {1} 행의 형식 오류: {2} : ' {3} '</value>
+  </data>
+  <data name="ImportTypeNinjaTraderInstrumentNotSupported" xml:space="preserve">
+    <value>{0} ' 파일을 가져올 수 없습니다. 기기가 저장소에서 지원되지 않습니다.</value>
+  </data>
+  <data name="ImportTypeNinjaTraderNumericPriceFormatError" xml:space="preserve">
+    <value>{0} : 숫자 가격 형식이 지원되지 않습니다.</value>
+  </data>
+  <data name="ImportTypeNinjaTraderUnableReadData" xml:space="preserve">
+    <value>{0} ' 파일에서 데이터를 읽을 수 없음 {1}</value>
+  </data>
+  <data name="ImportTypeNinjaTraderUnexpectedFieldNumber" xml:space="preserve">
+    <value>{0} {1} ' 줄에 예기치 않은 필드 수가 3, 5 또는 6이어야 합니다.</value>
+  </data>
+  <data name="ImportTypeTickData" xml:space="preserve">
+    <value>틱 데이터, LLC</value>
+  </data>
+  <data name="IncrementalPeriod" xml:space="preserve">
+    <value>증분 기간</value>
+  </data>
+  <data name="Intermediate" xml:space="preserve">
+    <value>중급</value>
+  </data>
+  <data name="Interval" xml:space="preserve">
+    <value>간격</value>
+  </data>
+  <data name="KeltnerChannelMidline" xml:space="preserve">
+    <value>정중선</value>
+  </data>
+  <data name="KeyReversalPlot0" xml:space="preserve">
+    <value>플롯 0</value>
+  </data>
+  <data name="LastLineLength" xml:space="preserve">
+    <value>마지막 줄 길이(차트의 %)</value>
+  </data>
+  <data name="LastLineStroke" xml:space="preserve">
+    <value>마지막 줄</value>
+  </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>범례 위치</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>왼쪽 하단</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>오른쪽 하단</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>장애가있는</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>왼쪽 상단</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>맨 위 오른쪽</value>
+  </data>
+  <data name="Length" xml:space="preserve">
+    <value>길이</value>
+  </data>
+  <data name="Line1Value" xml:space="preserve">
+    <value>라인 1 값</value>
+  </data>
+  <data name="Line2Value" xml:space="preserve">
+    <value>라인 2 값</value>
+  </data>
+  <data name="Line3Value" xml:space="preserve">
+    <value>3행 값</value>
+  </data>
+  <data name="Line4Value" xml:space="preserve">
+    <value>4행 값</value>
+  </data>
+  <data name="LineColor" xml:space="preserve">
+    <value>선 색상</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>짐</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="LowerHigh" xml:space="preserve">
+    <value>낮은 높은</value>
+  </data>
+  <data name="LowerLow" xml:space="preserve">
+    <value>낮은 낮은</value>
+  </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>참조:</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>카본 카피 수신자의 이메일 주소. ',' 또는 ';'로 여러 주소를 구분하십시오.</value>
+  </data>
+  <data name="MailServiceMailAddress" xml:space="preserve">
+    <value>이메일 주소</value>
+  </data>
+  <data name="MailServiceName" xml:space="preserve">
+    <value>이메일</value>
+  </data>
+  <data name="MailServicePort" xml:space="preserve">
+    <value>연결 - 포트</value>
+  </data>
+  <data name="MailServiceSenderDisplayName" xml:space="preserve">
+    <value>이름에서</value>
+  </data>
+  <data name="MailServiceServer" xml:space="preserve">
+    <value>연결 - 서버</value>
+  </data>
+  <data name="MailServiceSSL" xml:space="preserve">
+    <value>연결 - SSL</value>
+  </data>
+  <data name="MailSubject" xml:space="preserve">
+    <value>주제:</value>
+  </data>
+  <data name="MailSubjectDescription" xml:space="preserve">
+    <value>이메일 메시지의 제목</value>
+  </data>
+  <data name="MailToAddress" xml:space="preserve">
+    <value>NS:</value>
+  </data>
+  <data name="MailToAddressDescription" xml:space="preserve">
+    <value>받는 사람의 이메일 주소입니다. ',' 또는 ';'로 여러 주소를 구분하십시오.</value>
+  </data>
+  <data name="MAMAFAMA" xml:space="preserve">
+    <value>파마</value>
+  </data>
+  <data name="MAPeriod" xml:space="preserve">
+    <value>이동 평균 기간</value>
+  </data>
+  <data name="MAType" xml:space="preserve">
+    <value>이동 평균 유형</value>
+  </data>
+  <data name="MovingAverage" xml:space="preserve">
+    <value>이동 평균</value>
+  </data>
+  <data name="MovingAverageRibbonPlot1" xml:space="preserve">
+    <value>이동 평균 1</value>
+  </data>
+  <data name="MovingAverageRibbonPlot2" xml:space="preserve">
+    <value>이동 평균 2</value>
+  </data>
+  <data name="MovingAverageRibbonPlot3" xml:space="preserve">
+    <value>이동 평균 3</value>
+  </data>
+  <data name="MovingAverageRibbonPlot4" xml:space="preserve">
+    <value>이동 평균 4</value>
+  </data>
+  <data name="MovingAverageRibbonPlot5" xml:space="preserve">
+    <value>이동 평균 5</value>
+  </data>
+  <data name="MovingAverageRibbonPlot6" xml:space="preserve">
+    <value>이동 평균 6</value>
+  </data>
+  <data name="MovingAverageRibbonPlot7" xml:space="preserve">
+    <value>이동 평균 7</value>
+  </data>
+  <data name="MovingAverageRibbonPlot8" xml:space="preserve">
+    <value>이동 평균 8</value>
+  </data>
+  <data name="NBarsDownTrigger" xml:space="preserve">
+    <value>방아쇠</value>
+  </data>
+  <data name="NegativeColor" xml:space="preserve">
+    <value>네거티브 컬러</value>
+  </data>
+  <data name="NetChangePosition_BottomLeft" xml:space="preserve">
+    <value>왼쪽 하단</value>
+  </data>
+  <data name="NetChangePosition_BottomRight" xml:space="preserve">
+    <value>오른쪽 하단</value>
+  </data>
+  <data name="NetChangePosition_TopLeft" xml:space="preserve">
+    <value>왼쪽 상단</value>
+  </data>
+  <data name="NetChangePosition_TopRight" xml:space="preserve">
+    <value>맨 위 오른쪽</value>
+  </data>
+  <data name="NinjaScriptBackground" xml:space="preserve">
+    <value>배경</value>
+  </data>
+  <data name="NinjaScriptBarsTypeDay" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="NinjaScriptBarsTypeHeikenAshi" xml:space="preserve">
+    <value>하이켄 아시</value>
+  </data>
+  <data name="NinjaScriptBarsTypeKagi" xml:space="preserve">
+    <value>카기</value>
+  </data>
+  <data name="NinjaScriptBarsTypeKagiReversal" xml:space="preserve">
+    <value>반전</value>
+  </data>
+  <data name="NinjaScriptBarsTypeLineBreak" xml:space="preserve">
+    <value>줄 바꿈</value>
+  </data>
+  <data name="NinjaScriptBarsTypeLineBreakLineBreaks" xml:space="preserve">
+    <value>줄 바꿈</value>
+  </data>
+  <data name="NinjaScriptBarsTypeMinute" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="NinjaScriptBarsTypeMonth" xml:space="preserve">
+    <value>월</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigure" xml:space="preserve">
+    <value>점과 그림</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigureBoxSize" xml:space="preserve">
+    <value>상자 크기</value>
+  </data>
+  <data name="NinjaScriptBarsTypePointAndFigureReversal" xml:space="preserve">
+    <value>반전</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRange" xml:space="preserve">
+    <value>범위</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRenko" xml:space="preserve">
+    <value>렌코</value>
+  </data>
+  <data name="NinjaScriptBarsTypeRenkoBrickSize" xml:space="preserve">
+    <value>벽돌 크기</value>
+  </data>
+  <data name="NinjaScriptBarsTypeSecond" xml:space="preserve">
+    <value>두번째</value>
+  </data>
+  <data name="NinjaScriptBarsTypeTick" xml:space="preserve">
+    <value>진드기</value>
+  </data>
+  <data name="NinjaScriptBarsTypeVolume" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="NinjaScriptBarsTypeWeek" xml:space="preserve">
+    <value>주</value>
+  </data>
+  <data name="NinjaScriptBorder" xml:space="preserve">
+    <value>국경</value>
+  </data>
+  <data name="NinjaScriptChartStyleBarWidth" xml:space="preserve">
+    <value>바 너비</value>
+  </data>
+  <data name="NinjaScriptChartStyleBox" xml:space="preserve">
+    <value>상자</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxDownBarsColor" xml:space="preserve">
+    <value>다운 바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxDownBarsOutline" xml:space="preserve">
+    <value>다운 바 개요</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxUpBarsColor" xml:space="preserve">
+    <value>바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleBoxUpBarsOutline" xml:space="preserve">
+    <value>위쪽 막대 개요</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleDownBarsColor" xml:space="preserve">
+    <value>다운 바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleOutline" xml:space="preserve">
+    <value>캔들 본체 개요</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandlestick" xml:space="preserve">
+    <value>촛대</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandlestickHollow" xml:space="preserve">
+    <value>중공 촛대</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleUpBarsColor" xml:space="preserve">
+    <value>바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleCandleWick" xml:space="preserve">
+    <value>양초 심지</value>
+  </data>
+  <data name="NinjaScriptChartStyleEquivolume" xml:space="preserve">
+    <value>등량</value>
+  </data>
+  <data name="NinjaScriptChartStyleHeikenAshi" xml:space="preserve">
+    <value>하이켄 아시</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagi" xml:space="preserve">
+    <value>카기선</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagiThickLine" xml:space="preserve">
+    <value>굵은 선</value>
+  </data>
+  <data name="NinjaScriptChartStyleKagiThinLine" xml:space="preserve">
+    <value>가는 선</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnClose" xml:space="preserve">
+    <value>닫기 라인</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnCloseColor" xml:space="preserve">
+    <value>색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineOnCloseWidth" xml:space="preserve">
+    <value>선폭</value>
+  </data>
+  <data name="NinjaScriptChartStyleLineWidth" xml:space="preserve">
+    <value>선폭</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountain" xml:space="preserve">
+    <value>산</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountainColor" xml:space="preserve">
+    <value>색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleMountainOutline" xml:space="preserve">
+    <value>개요</value>
+  </data>
+  <data name="NinjaScriptChartStyleOHLC" xml:space="preserve">
+    <value>OHLC</value>
+  </data>
+  <data name="NinjaScriptChartStyleOhlcDownBarsColor" xml:space="preserve">
+    <value>다운 바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleOhlcUpBarsColor" xml:space="preserve">
+    <value>바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenClose" xml:space="preserve">
+    <value>열기/닫기</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseDownBarsColor" xml:space="preserve">
+    <value>다운 바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseDownBarsOutline" xml:space="preserve">
+    <value>다운 바 개요</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseUpBarsColor" xml:space="preserve">
+    <value>바 색상</value>
+  </data>
+  <data name="NinjaScriptChartStyleOpenCloseUpBarsOutline" xml:space="preserve">
+    <value>위쪽 막대 개요</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigure" xml:space="preserve">
+    <value>점과 그림</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigureDownColor" xml:space="preserve">
+    <value>다운 칼라</value>
+  </data>
+  <data name="NinjaScriptChartStylePointAndFigureUpColor" xml:space="preserve">
+    <value>업 컬러</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchor" xml:space="preserve">
+    <value>닻</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorEnd" xml:space="preserve">
+    <value>끝</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorExtension" xml:space="preserve">
+    <value>확대 </value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorMiddle" xml:space="preserve">
+    <value>가운데</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorStart" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAnchorText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchfork" xml:space="preserve">
+    <value>앤드류 갈퀴</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkCalculationMethod" xml:space="preserve">
+    <value>계산 방법</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkCategoryStrokes" xml:space="preserve">
+    <value>뇌졸중</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkDescription" xml:space="preserve">
+    <value>Andrews 갈퀴 설명</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack" xml:space="preserve">
+    <value>라인을 뒤로 연장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkExtensionStroke" xml:space="preserve">
+    <value>연장선 스트로크</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAndrewsPitchforkRetracement" xml:space="preserve">
+    <value>되돌림</value>
+  </data>
+  <data name="NinjaScriptDrawingToolArc" xml:space="preserve">
+    <value>호</value>
+  </data>
+  <data name="NinjaScriptDrawingToolAreaOpacity" xml:space="preserve">
+    <value>불투명도 - 면적(%)</value>
+  </data>
+  <data name="NinjaScriptDrawingToolArrowLine" xml:space="preserve">
+    <value>화살표 라인</value>
+  </data>
+  <data name="NinjaScriptDrawingToolBackgroundOpacity" xml:space="preserve">
+    <value>배경 불투명도(%)</value>
+  </data>
+  <data name="NinjaScriptDrawingToolEllipse" xml:space="preserve">
+    <value>타원</value>
+  </data>
+  <data name="NinjaScriptDrawingToolExtendedLine" xml:space="preserve">
+    <value>확장 라인</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciCircle" xml:space="preserve">
+    <value>피보나치 원</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciExtensions" xml:space="preserve">
+    <value>피보나치 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciLevelsBaseAnchorLineStroke" xml:space="preserve">
+    <value>닻</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracements" xml:space="preserve">
+    <value>피보나치 되돌림</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsExtendLinesLeft" xml:space="preserve">
+    <value>라인을 왼쪽으로 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsExtendLinesRight" xml:space="preserve">
+    <value>라인을 오른쪽으로 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsTextAlignment" xml:space="preserve">
+    <value>텍스트 정렬</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciRetracementsTextLocation" xml:space="preserve">
+    <value>텍스트 위치</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeCircleDivideTimeSeparately" xml:space="preserve">
+    <value>시간/가격 별도 분할</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeExtensions" xml:space="preserve">
+    <value>피보나치 시간 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolFibonacciTimeExtensionsShowText" xml:space="preserve">
+    <value>텍스트 표시</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFan" xml:space="preserve">
+    <value>간 팬</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanDisplayText" xml:space="preserve">
+    <value>텍스트 표시</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanFanDirection" xml:space="preserve">
+    <value>팬 방향</value>
+  </data>
+  <data name="NinjaScriptDrawingToolGannFanPointsPerBar" xml:space="preserve">
+    <value>바당 포인트</value>
+  </data>
+  <data name="NinjaScriptDrawingToolHorizontalLine" xml:space="preserve">
+    <value>수평선</value>
+  </data>
+  <data name="NinjaScriptDrawingToolLine" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPath" xml:space="preserve">
+    <value>길</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathBegin" xml:space="preserve">
+    <value>경로 시작</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathEnd" xml:space="preserve">
+    <value>경로 끝</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathSegment" xml:space="preserve">
+    <value>분절</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPathShowCount" xml:space="preserve">
+    <value>개수 표시</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPolygon" xml:space="preserve">
+    <value>다각형</value>
+  </data>
+  <data name="NinjaScriptDrawingToolPriceLevelsOpacity" xml:space="preserve">
+    <value>가격 수준 불투명도(%)</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRay" xml:space="preserve">
+    <value>레이</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRectangle" xml:space="preserve">
+    <value>직사각형</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightDirection" xml:space="preserve">
+    <value>방향</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightDirectionStroke" xml:space="preserve">
+    <value>방향 스트로크</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightHorizontalTextFormat" xml:space="preserve">
+    <value>{0} 바 시간: {1}</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightVerticalRangeUnit" xml:space="preserve">
+    <value>수직 범위 단위</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHighlightVerticalTextFormat" xml:space="preserve">
+    <value>범위 값: {0} {1}</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHiglightX" xml:space="preserve">
+    <value>지역 하이라이트 x</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegionHiglightY" xml:space="preserve">
+    <value>지역 하이라이트 y</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannel" xml:space="preserve">
+    <value>회귀 채널</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelLowerChannel" xml:space="preserve">
+    <value>하단 채널</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelLowerChannelColor" xml:space="preserve">
+    <value>하단 채널 색상</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelPriceType" xml:space="preserve">
+    <value>가격 유형</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelRegressionChannel" xml:space="preserve">
+    <value>회귀</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationExtendLeft" xml:space="preserve">
+    <value>왼쪽으로 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationExtendRight" xml:space="preserve">
+    <value>오른쪽으로 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationLowerDistance" xml:space="preserve">
+    <value>하부 채널까지의 거리</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelStandardDeviationUpperDistance" xml:space="preserve">
+    <value>상위 채널까지의 거리</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelType" xml:space="preserve">
+    <value>방법</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelUpperChannel" xml:space="preserve">
+    <value>상부 채널</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRegressionChannelUpperChannelColor" xml:space="preserve">
+    <value>상단 채널 색상</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorEntry" xml:space="preserve">
+    <value>엔트리 앵커</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorLineStroke" xml:space="preserve">
+    <value>닻</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorReward" xml:space="preserve">
+    <value>보상 앵커</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardAnchorRisk" xml:space="preserve">
+    <value>리스크 앵커</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardCategoryColors" xml:space="preserve">
+    <value>그림 물감</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardDescription" xml:space="preserve">
+    <value>사용자 정의 손절매를 기반으로 목표를 자동으로 계산</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeEntry" xml:space="preserve">
+    <value>항목 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeReward" xml:space="preserve">
+    <value>보상 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardLineStrokeRisk" xml:space="preserve">
+    <value>위험 확장</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardName" xml:space="preserve">
+    <value>위험 보상</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRiskRewardRatio" xml:space="preserve">
+    <value>비율</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRuler" xml:space="preserve">
+    <value>자</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerDaysFormat" xml:space="preserve">
+    <value>{0} 일</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerNumberBarsText" xml:space="preserve">
+    <value>막대 #개:</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerTimeText" xml:space="preserve">
+    <value>시간:</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerYValueDisplayUnit" xml:space="preserve">
+    <value>Y 값 표시 단위</value>
+  </data>
+  <data name="NinjaScriptDrawingToolRulerYValueText" xml:space="preserve">
+    <value>Y 값:</value>
+  </data>
+  <data name="NinjaScriptDrawingTools" xml:space="preserve">
+    <value>그리기 도구</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartArrowDownMarkerName" xml:space="preserve">
+    <value>아래쪽 화살표</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartArrowUpMarkerName" xml:space="preserve">
+    <value>위쪽 화살표</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartDiamondMarkerName" xml:space="preserve">
+    <value>다이아몬드</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartDotMarkerName" xml:space="preserve">
+    <value>점</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartSquareMarkerName" xml:space="preserve">
+    <value>정사각형</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartTriangleDownMarkerName" xml:space="preserve">
+    <value>삼각형 아래로</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsChartTriangleUpMarkerName" xml:space="preserve">
+    <value>삼각형 위로</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngleRatioX" xml:space="preserve">
+    <value>비율 시간</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngleRatioY" xml:space="preserve">
+    <value>비율 가격</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAngles" xml:space="preserve">
+    <value>간 각도</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsGannAnglesPrompt" xml:space="preserve">
+    <value>1 간 각도| {0} 간 각도|간 각도 추가..|간 각도 편집...|간 각도 편집...</value>
+  </data>
+  <data name="NinjaScriptDrawingToolShapesAreaBrush" xml:space="preserve">
+    <value>색상 - 면적</value>
+  </data>
+  <data name="NinjaScriptDrawingToolShapesOutlineBrush" xml:space="preserve">
+    <value>색상 - 개요</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelIsVisible" xml:space="preserve">
+    <value>보이는</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelLineStroke" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevels" xml:space="preserve">
+    <value>레벨</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelsPrompt" xml:space="preserve">
+    <value>1 가격 수준| {0} 가격 수준|가격 수준 추가..|가격 수준 편집...|가격 수준 편집...</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelUnset" xml:space="preserve">
+    <value>설정 해제</value>
+  </data>
+  <data name="NinjaScriptDrawingToolsPriceLevelValue" xml:space="preserve">
+    <value>값 (%)</value>
+  </data>
+  <data name="NinjaScriptDrawingToolStroke" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="NinjaScriptDrawingToolText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextAlignment" xml:space="preserve">
+    <value>텍스트 정렬</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextBackBrush" xml:space="preserve">
+    <value>텍스트 배경 브러시</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextBrush" xml:space="preserve">
+    <value>색상 - 글꼴</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFixed" xml:space="preserve">
+    <value>고정 텍스트</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFixedTextPosition" xml:space="preserve">
+    <value>텍스트 위치</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextFont" xml:space="preserve">
+    <value>폰트</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextOutlineStroke" xml:space="preserve">
+    <value>개요</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTextOutlineVisible" xml:space="preserve">
+    <value>개요 - 사용</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTimeCycles" xml:space="preserve">
+    <value>시간 주기</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannel" xml:space="preserve">
+    <value>트렌드 채널</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelDescription" xml:space="preserve">
+    <value>평행선을 사용하여 트렌드 채널을 그립니다.</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelEnd1AnchorDisplayName" xml:space="preserve">
+    <value>트렌드 끝</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelParallelStroke" xml:space="preserve">
+    <value>평행 한</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelStart1AnchorDisplayName" xml:space="preserve">
+    <value>트렌드 시작</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelStart2AnchorDisplayName" xml:space="preserve">
+    <value>평행 한</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTrendChannelTrendStroke" xml:space="preserve">
+    <value>경향</value>
+  </data>
+  <data name="NinjaScriptDrawingToolTriangle" xml:space="preserve">
+    <value>삼각형</value>
+  </data>
+  <data name="NinjaScriptDrawingToolVerticalLine" xml:space="preserve">
+    <value>수직선</value>
+  </data>
+  <data name="NinjaScriptGeneral" xml:space="preserve">
+    <value>일반적인</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerAveragePerformanceOffsetPercent" xml:space="preserve">
+    <value>평균 성능 오프셋(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerConvergenceThreshold" xml:space="preserve">
+    <value>수렴 임계값</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerCrossoverIndex" xml:space="preserve">
+    <value>크로스오버 인덱스</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerCrossoverRatePercent" xml:space="preserve">
+    <value>교차율(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerFastGenerations" xml:space="preserve">
+    <value>빠른 세대</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerGenerations" xml:space="preserve">
+    <value>세대</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerGenerationSize" xml:space="preserve">
+    <value>세대 규모</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMinimumPerformance" xml:space="preserve">
+    <value>최소 성능</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMutationRatePercent" xml:space="preserve">
+    <value>돌연변이율(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerMutationStrengthPercent" xml:space="preserve">
+    <value>돌연변이 강도(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerResetSizePercent" xml:space="preserve">
+    <value>크기 재설정(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerSlowGenerations" xml:space="preserve">
+    <value>느린 세대</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerStabilitySizePercent" xml:space="preserve">
+    <value>안정성 크기(%)</value>
+  </data>
+  <data name="NinjaScriptGeneticOptimizerThresholdGenerations" xml:space="preserve">
+    <value>임계값 생성</value>
+  </data>
+  <data name="NinjaScriptIndicator" xml:space="preserve">
+    <value>지시자</value>
+  </data>
+  <data name="NinjaScriptIndicatorAvg" xml:space="preserve">
+    <value>평균</value>
+  </data>
+  <data name="NinjaScriptIndicatorCount" xml:space="preserve">
+    <value>세다</value>
+  </data>
+  <data name="NinjaScriptIndicatorDefault" xml:space="preserve">
+    <value>기본</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADL" xml:space="preserve">
+    <value>누적/분포(AD) 연구는 해당 기간의 고/저 범위와 관련하여 해당 기간의 마감 위치를 식별하여 상품으로 유입되거나 유출되는 거래량의 양을 정량화하려고 시도합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADX" xml:space="preserve">
+    <value>평균 방향 지수는 시장에 움직임이 있는지 여부뿐만 아니라 지배적인 추세의 강도를 측정합니다. ADX는 0 100의 척도로 측정됩니다. 낮은 ADX 값(일반적으로 20 미만)은 거래량이 적은 비 추세 시장을 나타낼 수 있는 반면 20을 초과하는 교차는 추세의 시작(상승 또는 하락)을 나타낼 수 있습니다. ADX가 40을 넘어 떨어지기 시작하면 현재 추세의 둔화를 나타낼 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionADXR" xml:space="preserve">
+    <value>평균 방향 이동 등급은 ADX의 모멘텀 변화를 수량화합니다. ADX의 두 값(현재 값과 n 기간 이전의 값)을 더한 다음 2로 나누어 계산합니다. 이 추가 스무딩으로 인해 ADXR은 ADX보다 응답성이 약간 떨어집니다. 해석은 ADX와 동일합니다. 값이 높을수록 추세가 강해집니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAPZ" xml:space="preserve">
+    <value>APZ(Adaptive Prize Zone)는 평균 가격 주변의 이중 평활 지수 이동 평균을 기반으로 안정적인 채널을 형성합니다. S/C, 2006년 9월, p.28 참조.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAroon" xml:space="preserve">
+    <value>Aroon Indicator는 Tushar Chande가 개발했습니다. 이것은 두 개의 플롯으로 구성됩니다. 하나는 가장 최근의 x 기간 고점 이후 기간 수를 측정하는 것(Aroon Up)이고 다른 하나는 가장 최근의 x 기간 저점 이후 기간 수를 측정하는 것(Aroon Down)입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionAroonOscillator" xml:space="preserve">
+    <value>Aroon Oscillator는 Aroon 표시기를 기반으로 합니다. Aroon 지표와 마찬가지로 Aroon 오실레이터는 추세의 강도를 측정합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionATR" xml:space="preserve">
+    <value>ATR(Average True Range)은 변동성의 척도입니다. 이것은 Welles Wilder가 저서 '기술적 거래 시스템의 새로운 개념'에서 소개한 이후로 많은 지표 및 거래 시스템의 구성 요소로 사용되었습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBarTimer" xml:space="preserve">
+    <value>시간 기반 막대의 남은 시간을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBlockVolume" xml:space="preserve">
+    <value>블록 거래량은 블록 거래를 감지하고 막대당 발생한 횟수를 표시합니다. 이것은 거래 또는 거래량으로 표시될 수 있습니다. 역사적으로 플롯하려면 과거 틱 데이터가 필요합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBollinger" xml:space="preserve">
+    <value>볼린저 밴드는 이동 평균 위와 아래의 표준 편차 수준으로 표시됩니다. 표준 편차는 변동성의 척도이기 때문에 밴드는 자체 조정됩니다. 변동성이 큰 시장에서는 확대되고 안정기에는 축소됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBOP" xml:space="preserve">
+    <value>힘의 균형 지표는 가격을 극단적인 수준으로 끌어 올릴 수 있는 능력을 평가하여 강세 대 약세의 강도를 측정합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBuySellPressure" xml:space="preserve">
+    <value>현재 매수 또는 매도 압력을 백분율로 나타냅니다. 이것은 틱 바이 틱 표시기입니다. '계산'이 '바 닫기 시'로 설정되어 있으면 표시기 값은 항상 100이 됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionBuySellVolume" xml:space="preserve">
+    <value>호가 이상의 거래와 호가 이하의 거래 사이의 히스토그램 분할 볼륨을 플로팅합니다. Tick Replay를 사용하는 경우 과거 데이터에서만 작동합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCamarillaPivots" xml:space="preserve">
+    <value>Camarilla 피벗은 이전 범위를 곱한 다음 종가에서 더하거나 빼서 잠재적인 지원 및 저항 수준을 생성하는 가격 분석이기도 합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCandlestickPattern" xml:space="preserve">
+    <value>일반적인 촛대 패턴을 감지하여 차트에 표시</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCCI" xml:space="preserve">
+    <value>상품 채널 지수(CCI)는 통계적 평균에서 유가 증권 가격의 변동을 측정합니다. 높은 값은 가격이 평균 가격에 비해 비정상적으로 높다는 것을 나타내고 낮은 값은 가격이 비정상적으로 낮다는 것을 나타냅니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinMoneyFlow" xml:space="preserve">
+    <value>n개의 막대에 대한 자금 흐름의 양을 계산합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinOscillator" xml:space="preserve">
+    <value>두 지수 이동 평균의 차이를 사용하여 누적 분포선의 운동량을 계산합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChaikinVolatility" xml:space="preserve">
+    <value>지수 이동 평균을 사용하여 상품의 현재 범위와 과거 범위 간의 차이를 비교합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionChoppinessIndex" xml:space="preserve">
+    <value>Choppiness 지수는 시장이 고르지 않은지(옆으로 거래) 고르지 않은지(어느 방향으로든 추세 내에서 거래) 결정하도록 설계되었습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCMO" xml:space="preserve">
+    <value>CMO는 상대 강도 지수(RSI) 및 스토캐스틱과 같은 다른 모멘텀 오실레이터와 다릅니다. 모멘텀을 직접 측정하기 위해 계산의 분자에 있는 상승일과 하락일 데이터를 모두 사용합니다. 주로 극단적인 과매수 및 과매도 조건을 찾는 데 사용되는 CMO는 추세를 찾는 데 사용할 수도 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionConstantLines" xml:space="preserve">
+    <value>사용자 정의 값에 선을 그립니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCorrelation" xml:space="preserve">
+    <value>상관 표시기는 데이터 시리즈와 원하는 도구의 상관 관계를 표시합니다. 1에 가까운 값은 같은 방향으로의 움직임을 나타냅니다. -1에 가까운 값은 반대 방향으로의 움직임을 나타냅니다. 0에 가까운 값은 상관 관계가 없음을 나타냅니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCOT" xml:space="preserve">
+    <value>COT 지표는 Commitment Of Traders 보고서의 주간 데이터를 표시하여 미국 선물 시장에서 다양한 참가자의 보유량을 나타냅니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionCurrentDayOHL" xml:space="preserve">
+    <value>현재 날짜에 시작하는 세션의 시가, 고가 및 저가를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDarvas" xml:space="preserve">
+    <value>Darvas 상자는 Nicolas Darvas 책, How I Made $2,000,000 the Stock Market의 페이지에서 가져왔습니다. 상자는 추세를 정규화하는 데 사용됩니다. 주식 가격이 박스 상단을 초과하면 '매수' 신호가 표시됩니다. 주가가 박스 바닥 아래로 떨어지면 '매도' 신호가 표시됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDEMA" xml:space="preserve">
+    <value>이중 지수 이동 평균(DEMA)은 단일 지수 이동 평균과 이중 지수 이동 평균의 조합입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDisparityIndex" xml:space="preserve">
+    <value>격차 지수는 가격과 지수 이동 평균 간의 차이를 측정합니다. 값이 더 크면 강세 모멘텀을 암시할 수 있고, 0보다 작은 값은 약세 모멘텀을 암시할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDM" xml:space="preserve">
+    <value>방향 이동(DM). 이것은 두 방향 이동 표시기 +DI 및 -DI가 추가된 ADX와 동일한 표시기입니다. +DI 및 -DI는 상승 및 하락 모멘텀을 측정합니다. +DI가 -DI를 상향 교차할 때 매수 신호가 생성됩니다. -DI가 +DI를 하방으로 교차하면 매도 신호가 생성됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDMI" xml:space="preserve">
+    <value>방향 이동 지수. 방향 이동 지수는 Welles Wilder의 상대 강도 지수와 매우 유사합니다. 차이점은 DMI가 RSI의 고정 기간과 비교하여 가변 기간(3~30)을 사용한다는 것입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDMIndex" xml:space="preserve">
+    <value>동적 모멘텀 지수는 가변 항 RSI입니다. RSI 기간은 3에서 30까지 다양합니다. 변동 기간은 RSI가 단기 움직임에 더 잘 반응하도록 합니다. 가격 변동성이 클수록 기간은 짧아집니다. RSI와 같은 방식으로 해석되지만 더 일찍 신호를 제공합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDonchianChannel" xml:space="preserve">
+    <value>돈치안 채널. Donchian 채널 표시기는 Richard Donchian이 만들었습니다. 채널을 플롯하기 위해 일정 기간의 최고 최고치와 최저 최저치를 사용합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionDoubleStochastics" xml:space="preserve">
+    <value>Double Stochastics는 William Blau가 개발한 Stochastics 지표의 변형입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionEaseOfMovement" xml:space="preserve">
+    <value>EMV(Ease of Movement) 지표는 주가가 쉽게 움직이는 날을 강조하고, 주식이 움직이기 어려운 날을 최소화합니다. EMV가 0을 넘으면 매수 신호, 0 아래로 교차하면 매도 신호가 발생합니다. EMV가 0 부근에 있으면 작은 가격 움직임 및/또는 높은 거래량이 있습니다. 즉, 가격이 쉽게 움직이지 않습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionEMA" xml:space="preserve">
+    <value>지수 이동 평균은 일정 기간 동안 유가 증권 가격의 평균 가치를 보여주는 지표입니다. 이동 평균을 계산할 때 EMA는 SMA보다 최근 가격에 더 많은 가중치를 적용합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFibonacciPivots" xml:space="preserve">
+    <value>피보나치 피벗은 피보나치 값에 대해 이전 범위를 곱한 다음 이전 고가, 저가 및 종가의 평균에서 더하거나 빼서 잠재적인 지원 및 저항 수준을 생성하는 가격 분석입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFisherTransform" xml:space="preserve">
+    <value>피셔 변환에는 시기 적절하게 발생하는 날카롭고 뚜렷한 전환점이 있습니다. 결과 피크 스윙은 가격 반전을 식별하는 데 사용됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionFOSC" xml:space="preserve">
+    <value>FOSC(Forecast Oscillator)는 Tushar Chande가 대중화한 선형 회귀 기반 지표의 확장입니다. 예측 오실레이터는 예측 가격(x 기간 선형 회귀선에 의해 생성됨)과 실제 가격 간의 백분율 차이를 표시합니다. 오실레이터는 예측 가격이 실제 가격보다 높을 때 0보다 높습니다. 반대로, 아래에 있으면 0보다 작습니다. 드문 경우지만 예측 가격과 실제 가격이 같을 때 오실레이터는 0을 표시합니다. 예측 가격보다 지속적으로 낮은 실제 가격은 더 낮은 가격을 제시합니다. 마찬가지로, 예측 가격보다 지속적으로 높은 실제 가격은 더 높은 가격을 제시합니다. 단기 거래자는 예상 가격보다 높거나 낮은 필요한 기간 동안 더 짧은 기간과 아마도 더 완화된 표준을 사용해야 합니다. 장기 거래자는 예상 가격보다 높거나 낮은 필요한 기간 동안 더 긴 기간과 아마도 더 엄격한 표준을 사용해야 합니다. Chande는 또한 추세 변화에 대한 조기 경고를 생성하기 위해 Forecast Oscillator의 3일 이동 평균 트리거 라인을 표시할 것을 제안합니다. 오실레이터가 트리거 라인 아래로 교차하면 더 낮은 가격이 제안됩니다. 오실레이터가 트리거 라인 위로 교차하면 더 높은 가격이 제안됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionHMA" xml:space="preserve">
+    <value>HMA(Hull Moving Average)는 가중 MA 계산을 사용하여 기존 SMA 지표에 비해 우수한 평활도 및 훨씬 적은 지연을 제공합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKAMA" xml:space="preserve">
+    <value>Perry Kaufman이 개발한 이 표시기는 최소 Fast Length에서 최대 Slow Length 범위의 평활 상수를 수정하기 위해 Efficiency Ratio를 사용하는 EMA입니다. 이 이동 평균은 적응적이기 때문에 다른 MA보다 가격을 더 밀접하게 따르는 경향이 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeltnerChannel" xml:space="preserve">
+    <value>Keltner 채널은 볼린저 밴드와 유사한 지표입니다. 여기에서 중간선은 이전 막대의 고점과 저점 차이의 SMA에 의해 상쇄 및 하한 밴드가 오프셋된 표준 이동 평균입니다. 오프셋 승수 및 SMA 기간을 구성할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeyReversalDown" xml:space="preserve">
+    <value>마지막 n개 막대 중 최고가를 관통한 후 현재 종가가 이전 종가보다 작으면 값 1을 반환합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionKeyReversalUp" xml:space="preserve">
+    <value>마지막 n개 막대 중 가장 낮은 최저점을 관통한 후 현재 종가가 이전 종가보다 크면 값 1을 반환합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinReg" xml:space="preserve">
+    <value>선형 회귀는 유가 증권 가격의 가치를 '예측'하는 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinRegIntercept" xml:space="preserve">
+    <value>선형 회귀 절편은 선형 회귀 추세선의 절편 값을 제공합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionLinRegSlope" xml:space="preserve">
+    <value>선형 회귀 기울기는 선형 회귀 추세선의 기울기 값을 제공합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMACD" xml:space="preserve">
+    <value>MACD(이동 평균 수렴/다이버전스)는 두 가격 이동 평균 간의 관계를 나타내는 모멘텀 추종 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAEnvelopes" xml:space="preserve">
+    <value>이동 평균 주위에 % 봉투를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAMA" xml:space="preserve">
+    <value>MAMA(MESA 적응 이동 평균)는 John Ehlers에 의해 개발되었습니다. 새롭고 독특한 방식으로 가격 변동에 적응합니다. 적응은 Hilbert Transform Discriminator를 기반으로 합니다. 이 방법의 장점은 빠른 공격 평균과 느린 감쇠 평균이 있습니다. MAMA + FAMA(적응 이동 평균 추종) 라인은 주요 시장 반전에서만 교차합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMAX" xml:space="preserve">
+    <value>최대값은 마지막 n개 막대의 최대값을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMcClellanOscillator" xml:space="preserve">
+    <value>McClellan Oscillator는 NYSE 상승 하락 스프레드의 두 지수 이동 평균 간의 차이입니다. 이 표시기는 ADV 및 DECL 색인 데이터가 필요합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMFI" xml:space="preserve">
+    <value>MFI(Money Flow Index)는 증권에 들어오고 나가는 자금의 강도를 측정하는 모멘텀 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMIN" xml:space="preserve">
+    <value>최소값은 마지막 n개 막대의 최소값을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMomentum" xml:space="preserve">
+    <value>모멘텀 지표는 주어진 기간 동안 유가 증권의 가격이 변경된 금액을 측정합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMoneyFlowOscillator" xml:space="preserve">
+    <value>Money Flow Oscillator는 특정 기간 동안의 자금 흐름량을 측정합니다. 플러스 영역으로 이동하면 매수 압력을 나타내고 마이너스 영역으로 이동하면 매도 압력을 나타냅니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionMovingAverageRibbon" xml:space="preserve">
+    <value>이동 평균 리본은 일련의 증가 이동 평균입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNBarsDown" xml:space="preserve">
+    <value>이 표시기는 n개의 연속 하락 막대가 있을 때 1을 반환하고, 그렇지 않으면 0을 반환합니다. 하락 막대는 종가가 시가 아래에 있고 막대가 더 낮은 고점과 더 낮은 저점을 만드는 막대로 정의됩니다. 표시기 옵션을 사용하여 특정 요구 사항을 조정할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNBarsUp" xml:space="preserve">
+    <value>이 표시기는 n개의 연속 막대가 있을 때 1을 반환하고 그렇지 않으면 0을 반환합니다. 상향 막대는 종가가 시가보다 높고 막대가 더 높은 고점과 더 높은 저점을 만드는 막대로 정의됩니다. 표시기 옵션을 사용하여 특정 요구 사항을 조정할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionNetChangeDisplay" xml:space="preserve">
+    <value>차트에 순 변화를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionOBV" xml:space="preserve">
+    <value>OBV(On Balance Volume)는 거래량의 누계입니다. 볼륨이 유가 증권으로 유입되거나 유출되는지 보여줍니다. 유가 증권이 이전 종가보다 높게 마감되면 하루의 모든 거래량이 상승 거래량으로 간주됩니다. 유가 증권이 이전 종가보다 낮게 마감되면 하루의 모든 거래량이 하락 거래량으로 간주됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionParabolicSAR" xml:space="preserve">
+    <value>Stocks and Commodities 잡지 V 11:11(477-479)에 따른 포물선 SAR.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPFE" xml:space="preserve">
+    <value>PFE(Polarized Fractal Efficiency)는 프랙탈 기하학을 사용하여 가격이 얼마나 효율적으로 움직이는지 결정하는 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPivots" xml:space="preserve">
+    <value>피벗(피벗 포인트) 표시기는 이전 세션 또는 이전 세션 그룹의 고가, 저가 및 종가 평균을 표시합니다. 이는 시장 데이터 피드 제공자가 제공한 과거 데이터를 기반으로 합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPPO" xml:space="preserve">
+    <value>PPO(Percentage Price Oscillator)는 백분율로 표시되는 두 개의 이동 평균을 기반으로 합니다. PPO는 더 짧은 MA에서 더 긴 MA를 뺀 다음 그 차이를 더 긴 MA로 나누어 구합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriceLine" xml:space="preserve">
+    <value>차트에 매도, 입찰 및/또는 마지막 라인을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriceOscillator" xml:space="preserve">
+    <value>Price Oscillator 표시기는 유가 증권 가격에 대한 두 이동 평균 간의 변동을 보여줍니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPriorDayOHLC" xml:space="preserve">
+    <value>전날 시작하는 세션의 시가, 고가, 저가 및 종가를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionPsychologicalLine" xml:space="preserve">
+    <value>심리적 선은 지정된 막대 수에 대한 상승 막대 수의 비율입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRange" xml:space="preserve">
+    <value>막대의 범위를 계산합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRangeCounter" xml:space="preserve">
+    <value>막대의 범위 수를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRegressionChannel" xml:space="preserve">
+    <value>선형 회귀는 가격 데이터에 가장 적합한 선을 계산하는 데 사용됩니다. 또한 회귀선에서 가격의 표준 편차를 계산하여 상위 및 하위 밴드를 추가합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRelativeVigorIndex" xml:space="preserve">
+    <value>상대 활력 지수는 상품 종가를 가격대와 비교하여 추세의 강도를 측정합니다. 이는 가격이 상승 추세에서 시가보다 높게 마감되고 하락 추세에서 시가보다 더 낮게 마감되는 경향이 있다는 사실에 기반합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRIND" xml:space="preserve">
+    <value>RIND(범위 표시기)는 일중 범위(고가 - 저가)를 일간(종가 - 이전 종가) 범위와 비교합니다. 일중 범위가 일간 범위보다 크면 범위 표시기가 높은 값이 됩니다. 이것은 현재 추세의 끝을 나타냅니다. 범위 표시기가 낮은 수준에 있으면 새로운 추세가 시작됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionROC" xml:space="preserve">
+    <value>ROC(Rate-of-Change) 표시기는 현재 가격과 x-시간 전 가격 사이의 백분율 변화를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSI" xml:space="preserve">
+    <value>RSI(Relative Strength Index)는 0에서 100 사이의 가격 추종 오실레이터입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSquared" xml:space="preserve">
+    <value>R-제곱 지표는 가격이 선형 회귀선에 얼마나 근접하는지 계산합니다. 지표는 상관 계수의 제곱(수학에서 그리스 문자 rho 또는 r로 표시됨)인 계산에서 이름을 얻습니다. R-제곱의 범위는 0에서 1입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRSS" xml:space="preserve">
+    <value>상대 스프레드 두 이동 평균 간의 스프레드 강도. TASC, 2006년 10월, p. 16.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionRVI" xml:space="preserve">
+    <value>RVI(상대 변동성 지수)는 Donald Dorsey가 모멘텀 기반 지표를 보완하고 확인하기 위해 개발했습니다. 다른 신호를 확인하는 데 사용할 경우 RVI가 50을 초과할 때만 매수하고 RVI가 50 미만일 때만 매도하십시오.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSampleCustomRender" xml:space="preserve">
+    <value>OnRender() 기능을 보여주는 샘플 스크립트</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSMA" xml:space="preserve">
+    <value>SMA(Simple Moving Average)는 일정 기간 동안 유가 증권 가격의 평균 가치를 보여주는 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStdDev" xml:space="preserve">
+    <value>표준 편차는 변동성의 통계적 척도입니다. 표준 편차는 일반적으로 독립형 지표가 아닌 다른 지표의 구성 요소로 사용됩니다. 예를 들어, 볼린저 밴드는 증권의 표준 편차를 이동 평균에 더하여 계산됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStdError" xml:space="preserve">
+    <value>표준 오차는 가격이 선형 회귀선을 중심으로 얼마나 가까운지를 보여줍니다. 가격이 선형 회귀선에 가까울수록 추세가 더 강해집니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochastics" xml:space="preserve">
+    <value>스토캐스틱 오실레이터는 0에서 100까지의 수직 스케일 사이에서 진동하는 두 개의 라인으로 구성됩니다. %K는 메인 라인이며 실선으로 그려집니다. 두 번째는 %D 라인이며 %K의 이동 평균입니다. %D선은 점선으로 그려집니다. 매수/매도 신호 발생기로 사용하여 빠른 움직임이 느린 움직임보다 높을 때 매수하고 느린 움직임 아래에서 빠른 움직임을 보일 때 매도합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochasticsFast" xml:space="preserve">
+    <value>스토캐스틱 오실레이터는 0에서 100까지의 수직 스케일 사이에서 진동하는 두 개의 라인으로 구성됩니다. %K는 메인 라인이며 실선으로 그려집니다. 두 번째는 %D 라인이며 %K의 이동 평균입니다. %D선은 점선으로 그려집니다. 매수/매도 신호 발생기로 사용하여 빠른 움직임이 느린 움직임보다 높을 때 매수하고 느린 움직임 아래에서 빠른 움직임을 보일 때 매도합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionStochRSI" xml:space="preserve">
+    <value>StochRSI는 가격 값을 입력으로 사용하는 대신 StochRSI가 RSI 값을 사용한다는 점을 제외하고는 확률적 측정과 계산이 유사한 오실레이터입니다. StochRSI는 지정된 일 수에 걸쳐 높은 RSI 값과 낮은 RSI 값에 상대적인 RSI의 현재 위치를 계산합니다. Tushar Chande와 Stanley Kroll이 설계한 이 측정의 목적은 RSI의 과매수/과매도 특성에 대한 추가 정보를 제공하는 것입니다. StochRSI 범위는 0.0에서 1.0 사이입니다. 0.8 이상의 값은 일반적으로 과매수 수준을 나타내는 것으로 보이며 0.2 미만의 값은 과매도 상태를 나타내는 것으로 간주됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSUM" xml:space="preserve">
+    <value>Sum은 마지막 n개의 데이터 포인트의 합계를 보여줍니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionSwing" xml:space="preserve">
+    <value>스윙 표시기는 스윙의 고점과 저점을 나타내는 선을 그립니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionT3" xml:space="preserve">
+    <value>T3는 일종의 이동 평균 또는 평활 함수입니다. DEMA를 기반으로 합니다. T3는 DEMA 계산을 취하고 0과 1 사이의 vfactor를 추가합니다. 결과 함수를 GD 또는 일반화된 DEMA라고 합니다. vfactor가 1인 GD는 DEMA와 동일합니다. vfactor가 0인 GD는 지수 이동 평균과 동일합니다. T3는 일반적으로 0.7의 vfactor를 사용합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTEMA" xml:space="preserve">
+    <value>TEMA는 평활화 지표입니다. 그것은 Patrick Mulloy에 의해 설계되었으며 1994년 1월호에 실린 Technical Analysis of Stocks and Commodities 잡지의 기사에 설명되어 있습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTickCounter" xml:space="preserve">
+    <value>막대의 눈금 수를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTMA" xml:space="preserve">
+    <value>TMA(삼각 이동 평균)는 가중 이동 평균입니다. 최신 가격 막대에 더 많은 가중치를 부여하는 WMA에 비해 TMA는 지정된 기간의 중간에 데이터에 더 많은 가중치를 부여합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTrendLines" xml:space="preserve">
+    <value>높은 스윙 뒤에 낮은 높은 스윙이 이어지면 추세선이 자동으로 그려집니다. 낮은 스윙 뒤에 높은 낮은 스윙이 뒤따르면 낮은 추세선이 자동으로 그려집니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTRIX" xml:space="preserve">
+    <value>TRIX(삼중 지수 평균)는 삼중 EMA의 변화율(ROC) 비율을 표시합니다. Trix는 0 값 위아래로 진동합니다. 표시기는 격리하려는 추세 내에서 중요하지 않은 가격 변동을 제거하기 위해 삼중 평활을 적용합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTSF" xml:space="preserve">
+    <value>TSF(시계열 예측)는 주어진 수의 가격 막대에 선형 회귀선을 맞추고 그 선을 따라 미래로 향하여 가격에 대한 가능한 미래 값을 계산합니다. 선형 회귀선은 가능한 모든 주어진 가격대에 가까운 직선입니다. 선형 회귀 표시도 참조하십시오.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionTSI" xml:space="preserve">
+    <value>TSI(True Strength Index)는 William Blau가 개발한 운동량 기반 지표입니다. 추세와 과매수/과매도 조건을 모두 결정하도록 설계된 TSI는 장중 거래 및 장기 거래에 적용됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionUltimateOscillator" xml:space="preserve">
+    <value>Ultimate Oscillator는 서로 다른 기간의 3개 오실레이터의 가중치 합입니다. 일반적인 기간은 7, 14 및 28입니다. Ultimate Oscillator의 값 범위는 0에서 100까지입니다. 값이 70을 초과하면 과매수 상태를 나타내고 30 미만의 값은 과매도 상태를 나타냅니다. 또한 추세를 확인하거나 추세의 끝을 알리기 위해 가격과의 일치/차이를 찾으십시오.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVMA" xml:space="preserve">
+    <value>VMA(Variable Moving Average, VIDYA 또는 Variable Index Dynamic Average라고도 함)는 데이터 시리즈의 변동성에 따라 평활 가중치를 자동으로 조정하는 지수 이동 평균입니다. VMA는 대부분의 이동 평균 문제를 해결합니다. 가격이 추세일 때와 같이 변동성이 낮은 시기에는 추세의 불가피한 중단에 민감하기 위해 이동 평균 기간이 더 짧아야 합니다. 반면, 변동성이 더 큰 비추세 시간에 이동 평균 기간은 고르지 못한 현상을 걸러내기 위해 더 길어야 합니다. VIDYA는 내부 변동성 계산을 위해 CMO 지표를 사용합니다. VMA 및 CMO 기간은 모두 조정 가능합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVOL" xml:space="preserve">
+    <value>거래량은 단순히 지정된 기간(예: 시간, 일, 주, 월 등) 동안 거래된 주식(또는 계약)의 수입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVOLMA" xml:space="preserve">
+    <value>VOLMA(Volume Moving Average)는 거래량의 지수 이동 평균(EMA)을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeCounter" xml:space="preserve">
+    <value>각 막대의 볼륨 수를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeOscillator" xml:space="preserve">
+    <value>볼륨 오실레이터는 볼륨의 빠른 이동 평균과 느린 이동 평균의 차이를 계산하여 볼륨을 측정합니다. 볼륨 오실레이터는 가격 추세의 강점 또는 약점에 대한 통찰력을 제공할 수 있습니다. 양수 값은 현재 추세의 방향으로 가격 활동을 계속 추진하기에 충분한 시장 지원이 있음을 나타냅니다. 음수 값은 지지가 부족하여 가격이 정체되거나 역전될 수 있음을 나타냅니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeProfile" xml:space="preserve">
+    <value>가격별 거래량의 수평 히스토그램을 플로팅합니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeUpDown" xml:space="preserve">
+    <value>현재 막대가 위 또는 아래 막대에 따라 다른 색상으로 볼륨 히스토그램을 색칠하는 VOL(볼륨) 표시기의 변형</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVolumeZones" xml:space="preserve">
+    <value>볼륨 영역은 가격 차트를 오버레이하는 수평 히스토그램을 그립니다. 히스토그램 막대는 차트의 왼쪽에서 시작하여 왼쪽에서 오른쪽으로 늘어납니다. 각 막대의 길이는 가격이 히스토그램 막대의 수직 범위 내에 있는 기간 동안의 모든 거래량 막대의 누적 합계에 의해 결정됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVortex" xml:space="preserve">
+    <value>Vortex 표시기는 추세를 식별하는 데 사용되는 오실레이터입니다. VIPlus 라인이 VIMinus 라인 위로 교차할 때 강세 신호가 트리거됩니다. VIMinus 라인이 VIPlus 라인 위로 교차할 때 약세 신호가 트리거됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVROC" xml:space="preserve">
+    <value>VROC(Volume Rate-of-Change)는 거래량 추세가 위 또는 아래 방향으로 전개되고 있는지 여부를 보여줍니다. ROC 표시기와 유사하지만 대신 볼륨에 적용됩니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionVWMA" xml:space="preserve">
+    <value>VWMA(볼륨 가중 이동 평균)는 지정된 가격 계열 및 기간에 대한 거래량 가중 이동 평균을 반환합니다. VWMA는 단순 이동 평균(SMA)과 유사하지만 데이터의 각 막대는 막대의 볼륨에 의해 가중치가 부여됩니다. VWMA는 지정된 기간 동안 거래량이 가장 많은 날에 더 중요하고 거래량이 가장 적은 날에 가장 중요하지 않습니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionWilliamsR" xml:space="preserve">
+    <value>Williams %R은 추세가 아닌 시장에서 과매수 및 과매도 영역을 식별하도록 설계된 모멘텀 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionWMA" xml:space="preserve">
+    <value>WMA(가중 이동 평균)는 이전과 대조적으로 분석 대상 기간의 보다 최근 부분에 특히 중점을 두고 일정 기간 동안 유가 증권 가격의 평균 값을 표시하는 이동 평균 지표입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionZigZag" xml:space="preserve">
+    <value>지그재그 표시기는 정의된 수준 아래의 변경 사항을 필터링하는 추세선을 보여줍니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDescriptionZLEMA" xml:space="preserve">
+    <value>ZLEMA(Zero-Lag Exponential Moving Average)는 지연을 조정하려고 시도하는 EMA 변형입니다.</value>
+  </data>
+  <data name="NinjaScriptIndicatorDiff" xml:space="preserve">
+    <value>차이</value>
+  </data>
+  <data name="NinjaScriptIndicatorDisparityLine" xml:space="preserve">
+    <value>시차선</value>
+  </data>
+  <data name="NinjaScriptIndicatorDown" xml:space="preserve">
+    <value>아래에</value>
+  </data>
+  <data name="NinjaScriptIndicatorLower" xml:space="preserve">
+    <value>낮추다</value>
+  </data>
+  <data name="NinjaScriptIndicatorMcClellanOscillatorLine" xml:space="preserve">
+    <value>McClellan 오실레이터 라인</value>
+  </data>
+  <data name="NinjaScriptIndicatorMiddle" xml:space="preserve">
+    <value>가운데</value>
+  </data>
+  <data name="NinjaScriptIndicatorMoneyFlowLine" xml:space="preserve">
+    <value>돈 흐름 라인</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADL" xml:space="preserve">
+    <value>ADL</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADX" xml:space="preserve">
+    <value>ADX</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameADXR" xml:space="preserve">
+    <value>ADXR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAPZ" xml:space="preserve">
+    <value>APZ</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAroon" xml:space="preserve">
+    <value>아룬</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameAroonOscillator" xml:space="preserve">
+    <value>아룬 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameATR" xml:space="preserve">
+    <value>ATR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBarTimer" xml:space="preserve">
+    <value>바 타이머</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBlockVolume" xml:space="preserve">
+    <value>블록 볼륨</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBollinger" xml:space="preserve">
+    <value>볼린저</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBOP" xml:space="preserve">
+    <value>밥</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBuySellPressure" xml:space="preserve">
+    <value>매수 매도 압력</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameBuySellVolume" xml:space="preserve">
+    <value>매수 매도량</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCamarillaPivots" xml:space="preserve">
+    <value>카마릴라 피벗</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCandlestickPattern" xml:space="preserve">
+    <value>촛대 패턴</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCCI" xml:space="preserve">
+    <value>CCI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinMoneyFlow" xml:space="preserve">
+    <value>Chaikin 돈 흐름</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinOscillator" xml:space="preserve">
+    <value>체이킨 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChaikinVolatility" xml:space="preserve">
+    <value>체이킨 변동성</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameChoppinessIndex" xml:space="preserve">
+    <value>고르지 못한 지수</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCMO" xml:space="preserve">
+    <value>CMO</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameConstantLines" xml:space="preserve">
+    <value>일정한 선</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCorrelation" xml:space="preserve">
+    <value>상관 관계</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCOT" xml:space="preserve">
+    <value>간이 침대</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameCurrentDayOHL" xml:space="preserve">
+    <value>현재 날짜 OHL</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDarvas" xml:space="preserve">
+    <value>다르바스</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDEMA" xml:space="preserve">
+    <value>데마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDisparityIndex" xml:space="preserve">
+    <value>격차 지수</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDM" xml:space="preserve">
+    <value>디엠</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDMI" xml:space="preserve">
+    <value>DMI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDMIndex" xml:space="preserve">
+    <value>DM 인덱스</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDonchianChannel" xml:space="preserve">
+    <value>돈치안 채널</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameDoubleStochastics" xml:space="preserve">
+    <value>이중 확률론</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameEaseOfMovement" xml:space="preserve">
+    <value>이동 용이성</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameEMA" xml:space="preserve">
+    <value>EMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFibonacciPivots" xml:space="preserve">
+    <value>피보나치 피벗</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFisherTransform" xml:space="preserve">
+    <value>피셔 변환</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameFOSC" xml:space="preserve">
+    <value>FOSC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameHMA" xml:space="preserve">
+    <value>HMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKAMA" xml:space="preserve">
+    <value>카마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKelterChannel" xml:space="preserve">
+    <value>켈트너 채널</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKeyReversalDown" xml:space="preserve">
+    <value>키 반전 다운</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameKeyReversalUp" xml:space="preserve">
+    <value>키 반전</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinReg" xml:space="preserve">
+    <value>린. 등록</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinRegIntercept" xml:space="preserve">
+    <value>린. 등록 가로채다</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameLinRegSlope" xml:space="preserve">
+    <value>린. 등록 경사</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMACD" xml:space="preserve">
+    <value>MACD</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAEnvelopes" xml:space="preserve">
+    <value>MA 봉투</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAMA" xml:space="preserve">
+    <value>엄마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMAX" xml:space="preserve">
+    <value>최대</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMcClellanOscillator" xml:space="preserve">
+    <value>맥클렐런 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMFI" xml:space="preserve">
+    <value>MFI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMIN" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMomentum" xml:space="preserve">
+    <value>기세</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMoneyFlowOscillator" xml:space="preserve">
+    <value>자금 흐름 발진기</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameMovingAverageRibbon" xml:space="preserve">
+    <value>이동 평균 리본</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNBarsDown" xml:space="preserve">
+    <value>N 막대 아래로</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNBarsUp" xml:space="preserve">
+    <value>N 막대 위로</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameNetChangeDisplay" xml:space="preserve">
+    <value>순 변경 표시</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameOBV" xml:space="preserve">
+    <value>OBV</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameParabolicSAR" xml:space="preserve">
+    <value>포물선 SAR</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePFE" xml:space="preserve">
+    <value>PFE</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePivots" xml:space="preserve">
+    <value>피벗</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePPO" xml:space="preserve">
+    <value>PPO</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriceLine" xml:space="preserve">
+    <value>가격선</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriceOscillator" xml:space="preserve">
+    <value>가격 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePriorDayOHLC" xml:space="preserve">
+    <value>전날 OHLC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNamePsychologicalLine" xml:space="preserve">
+    <value>심리선</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRange" xml:space="preserve">
+    <value>범위</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRangeCounter" xml:space="preserve">
+    <value>범위 카운터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRegressionChannel" xml:space="preserve">
+    <value>회귀 채널</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRelativeVigorIndex" xml:space="preserve">
+    <value>상대 활력 지수</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRIND" xml:space="preserve">
+    <value>껍질</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameROC" xml:space="preserve">
+    <value>큰 괴조</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSI" xml:space="preserve">
+    <value>RSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSquared" xml:space="preserve">
+    <value>R 제곱</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRSS" xml:space="preserve">
+    <value>RSS</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameRVI" xml:space="preserve">
+    <value>RVI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSampleCustomRender" xml:space="preserve">
+    <value>샘플 사용자 정의 렌더링</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSMA" xml:space="preserve">
+    <value>SMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStdDev" xml:space="preserve">
+    <value>표준 개발</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStdError" xml:space="preserve">
+    <value>표준 오류</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochastics" xml:space="preserve">
+    <value>확률론</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochasticsFast" xml:space="preserve">
+    <value>스토캐스틱 빠름</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameStochRSI" xml:space="preserve">
+    <value>스토크 RSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSUM" xml:space="preserve">
+    <value>합집합</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameSwing" xml:space="preserve">
+    <value>그네</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameT3" xml:space="preserve">
+    <value>T3</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTEMA" xml:space="preserve">
+    <value>테마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTickCounter" xml:space="preserve">
+    <value>틱 카운터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTMA" xml:space="preserve">
+    <value>TMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTrendLines" xml:space="preserve">
+    <value>추세선</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTRIX" xml:space="preserve">
+    <value>트릭스</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTSF" xml:space="preserve">
+    <value>TSF</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameTSI" xml:space="preserve">
+    <value>TSI</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameUltimateOscillator" xml:space="preserve">
+    <value>얼티밋 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVMA" xml:space="preserve">
+    <value>VMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVOL" xml:space="preserve">
+    <value>볼륨</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVOLMA" xml:space="preserve">
+    <value>볼마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeCounter" xml:space="preserve">
+    <value>볼륨 카운터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeOscillator" xml:space="preserve">
+    <value>볼륨 오실레이터</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeProfile" xml:space="preserve">
+    <value>볼륨 프로필</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumesZones" xml:space="preserve">
+    <value>볼륨 존</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVolumeUpDown" xml:space="preserve">
+    <value>볼륨 업 다운</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVortex" xml:space="preserve">
+    <value>와동</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVROC" xml:space="preserve">
+    <value>VROC</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameVWMA" xml:space="preserve">
+    <value>폭스바겐</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameWilliamsR" xml:space="preserve">
+    <value>윌리엄스 R</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameWMA" xml:space="preserve">
+    <value>WMA</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameZigZag" xml:space="preserve">
+    <value>지그재그</value>
+  </data>
+  <data name="NinjaScriptIndicatorNameZLEMA" xml:space="preserve">
+    <value>즐레마</value>
+  </data>
+  <data name="NinjaScriptIndicatorNeutral" xml:space="preserve">
+    <value>중립적</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverbought" xml:space="preserve">
+    <value>과매수</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverBoughtLine" xml:space="preserve">
+    <value>구매 라인 초과</value>
+  </data>
+  <data name="NinjaScriptIndicatorOversold" xml:space="preserve">
+    <value>과매도</value>
+  </data>
+  <data name="NinjaScriptIndicatorOverSoldLine" xml:space="preserve">
+    <value>판매 라인 초과</value>
+  </data>
+  <data name="NinjaScriptIndicatorRelativeVigorIndex" xml:space="preserve">
+    <value>상대 활력 지수</value>
+  </data>
+  <data name="NinjaScriptIndicatorSignal" xml:space="preserve">
+    <value>신호</value>
+  </data>
+  <data name="NinjaScriptIndicatorUp" xml:space="preserve">
+    <value>위로</value>
+  </data>
+  <data name="NinjaScriptIndicatorUpper" xml:space="preserve">
+    <value>높은</value>
+  </data>
+  <data name="NinjaScriptIndicatorVIMinus" xml:space="preserve">
+    <value>VIMinus</value>
+  </data>
+  <data name="NinjaScriptIndicatorVIPlus" xml:space="preserve">
+    <value>비플러스</value>
+  </data>
+  <data name="NinjaScriptIndicatorVisualGroup" xml:space="preserve">
+    <value>비주얼</value>
+  </data>
+  <data name="NinjaScriptIndicatorZeroLine" xml:space="preserve">
+    <value>제로 라인</value>
+  </data>
+  <data name="NinjaScriptIsVisibleOnlyFocused" xml:space="preserve">
+    <value>초점이 맞을 때만 표시됨</value>
+  </data>
+  <data name="NinjaScriptLine" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="NinjaScriptLines" xml:space="preserve">
+    <value>윤곽</value>
+  </data>
+  <data name="NinjaScriptLoadingData" xml:space="preserve">
+    <value>  데이터 로드 중... {0}</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAskPrice" xml:space="preserve">
+    <value>현재 매도호가</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAskSize" xml:space="preserve">
+    <value>현재 요청 크기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionAverageDailyVolume" xml:space="preserve">
+    <value>평균 일일 거래량</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBeta" xml:space="preserve">
+    <value>시장 전체와 비교하여 유가 증권 또는 포트폴리오의 변동성 또는 체계적인 위험을 측정한 것입니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidAskSpread" xml:space="preserve">
+    <value>현재 매수호가와 매도호가의 차이</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidPrice" xml:space="preserve">
+    <value>현재 입찰가</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionBidSize" xml:space="preserve">
+    <value>현재 입찰 규모</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearHigh" xml:space="preserve">
+    <value>현재 연도의 높은 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearHighDate" xml:space="preserve">
+    <value>현재 연도의 고가가 발생한 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearLow" xml:space="preserve">
+    <value>현재 연도의 저렴한 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCalendarYearLowDate" xml:space="preserve">
+    <value>현재 연도의 저가가 발생한 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionChartMini" xml:space="preserve">
+    <value>이 시장 분석기 열은 입력 속성에 따라 미니 차트를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionChartNetChange" xml:space="preserve">
+    <value>이 시장 분석기 열은 입력 속성에 따라 미니 차트를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionCurrentRatio" xml:space="preserve">
+    <value>유동 자산을 유동 부채로 나눈 값</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyHigh" xml:space="preserve">
+    <value>오늘의 높은</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyLow" xml:space="preserve">
+    <value>오늘 낮음</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDailyVolume" xml:space="preserve">
+    <value>오늘의 볼륨</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDaysUntilRollover" xml:space="preserve">
+    <value>롤오버에서 다음 계약까지 남은 일수를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDescription" xml:space="preserve">
+    <value>악기 설명</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendAmount" xml:space="preserve">
+    <value>배당금</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendPayDate" xml:space="preserve">
+    <value>배당금 지급일</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionDividendYield" xml:space="preserve">
+    <value>기업이 주가에 대해 매년 배당금으로 얼마를 지급하는지를 나타내는 비율. </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionEarningsPerShare" xml:space="preserve">
+    <value>보통주의 각 발행주에 할당된 회사 수익의 일부입니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionFiveYearsGrowthPercentage" xml:space="preserve">
+    <value>5년 성장률</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHigh52Weeks" xml:space="preserve">
+    <value>지난 52주 중 최고</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHigh52WeeksDate" xml:space="preserve">
+    <value>지난 52주의 고가가 발생한 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionHistoricalVolatility" xml:space="preserve">
+    <value>시간 경과에 따른 상품의 실현 변동성</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionInstrument" xml:space="preserve">
+    <value>악기 이름</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastClose" xml:space="preserve">
+    <value>마지막 거래 세션 종료</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastPrice" xml:space="preserve">
+    <value>마지막 거래 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLastSize" xml:space="preserve">
+    <value>마지막 거래 규모</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLow52Weeks" xml:space="preserve">
+    <value>지난 52주 중 최저</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionLow52WeeksDate" xml:space="preserve">
+    <value>지난 52주의 최저가가 발생한 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionMarketCap" xml:space="preserve">
+    <value>시가 총액. 발행된 주식의 총 가치입니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionMarketPrice" xml:space="preserve">
+    <value>현재 가격 및 순 변동</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChange" xml:space="preserve">
+    <value>마지막 종가 대비 현재 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChangeMaxDown" xml:space="preserve">
+    <value>최근 종가 대비 현재 최저가</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNetChangeMaxUp" xml:space="preserve">
+    <value>지난 종가 대비 현재 최고가</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNextYearsEarningsPerShare" xml:space="preserve">
+    <value>예상 주당 순이익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionNotes" xml:space="preserve">
+    <value>사용자 정의 필드. 적용된 메모 열을 두 번 클릭하여 메모를 생성하거나 편집합니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionOpening" xml:space="preserve">
+    <value>현재 거래 세션의 시가</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionOpenInterest" xml:space="preserve">
+    <value>특정 날짜에 마감되거나 인도되지 않은 옵션 및/또는 선물 계약의 총 수</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPercentHeldByInstitutions" xml:space="preserve">
+    <value>기관이 보유한 주식의 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPositionAvgPrice" xml:space="preserve">
+    <value>현재 포지션의 평균 진입 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPositionSize" xml:space="preserve">
+    <value>현재 위치 크기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionPriceEarningsRatio" xml:space="preserve">
+    <value>주당 이익과 비교한 현재 주가.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionProfitLoss" xml:space="preserve">
+    <value>미실현 및 실현 손익의 합계입니다. </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionRealizedProfitLoss" xml:space="preserve">
+    <value>실현 손익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionRevenuePerShare" xml:space="preserve">
+    <value>주가 대비 수익 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionSettlement" xml:space="preserve">
+    <value>오늘의 결제 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionSharesOutstanding" xml:space="preserve">
+    <value>발행주식수</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionShortInterest" xml:space="preserve">
+    <value>투자자가 공매도했지만 아직 덮거나 청산하지 않은 주식의 수량입니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionShortInterestRatio" xml:space="preserve">
+    <value>평균 일일 거래량으로 나눈 공매도</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTimeLastTick" xml:space="preserve">
+    <value>마지막 거래가 발생한 시간</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTradedContracts" xml:space="preserve">
+    <value>오늘의 채워진 계약</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionTSTrend" xml:space="preserve">
+    <value>이 열은 T &amp; S 창에서 사용하는 것과 동일한 색상으로 들어오는 눈금을 나타내는 색상 막대를 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionUnrealizedProfitLoss" xml:space="preserve">
+    <value>현재 위치에 대한 손익. </value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnDescriptionVwap" xml:space="preserve">
+    <value>거래량 가중 평균 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAskPrice" xml:space="preserve">
+    <value>가격을 묻다</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAskSize" xml:space="preserve">
+    <value>사이즈 문의</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameAverageDailyVolume" xml:space="preserve">
+    <value>평균 일일 거래량</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBeta" xml:space="preserve">
+    <value>베타</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidAskSpread" xml:space="preserve">
+    <value>입찰가 스프레드</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidPrice" xml:space="preserve">
+    <value>입찰 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameBidSize" xml:space="preserve">
+    <value>입찰 규모</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearHigh" xml:space="preserve">
+    <value>달력 연도 최고</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearHighDate" xml:space="preserve">
+    <value>달력 연도 최고 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearLow" xml:space="preserve">
+    <value>연간 최저</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCalendarYearLowDate" xml:space="preserve">
+    <value>달력 연도 낮은 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameChartMini" xml:space="preserve">
+    <value>차트 - 미니</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameChartNetChange" xml:space="preserve">
+    <value>차트 - 순 변화</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameCurrentRatio" xml:space="preserve">
+    <value>현재 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyHigh" xml:space="preserve">
+    <value>일일 최고</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyLow" xml:space="preserve">
+    <value>일일 최저</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDailyVolume" xml:space="preserve">
+    <value>일일 거래량</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDaysUntilRollover" xml:space="preserve">
+    <value>롤오버까지의 일수</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDescription" xml:space="preserve">
+    <value>설명</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendAmount" xml:space="preserve">
+    <value>배당금</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendPayDate" xml:space="preserve">
+    <value>배당금 지급일</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameDividendYield" xml:space="preserve">
+    <value>배당수익률</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameEarningsPerShare" xml:space="preserve">
+    <value>주당순이익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameFiveYearsGrowthPercentage" xml:space="preserve">
+    <value>5년 성장률</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHigh52Weeks" xml:space="preserve">
+    <value>높은 52주</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHigh52WeeksDate" xml:space="preserve">
+    <value>높은 52주 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameHistoricalVolatility" xml:space="preserve">
+    <value>역사적 변동성</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameInstrument" xml:space="preserve">
+    <value>악기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastClose" xml:space="preserve">
+    <value>마지막 닫기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastPrice" xml:space="preserve">
+    <value>마지막 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLastSize" xml:space="preserve">
+    <value>마지막 크기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLow52Weeks" xml:space="preserve">
+    <value>낮은 52주</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameLow52WeeksDate" xml:space="preserve">
+    <value>낮은 52주 날짜</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameMarketCap" xml:space="preserve">
+    <value>시가 총액</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameMarketPrice" xml:space="preserve">
+    <value>시장 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChange" xml:space="preserve">
+    <value>순 변화</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChangeMaxDown" xml:space="preserve">
+    <value>순 변경 최대값 감소</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNetChangeMaxUp" xml:space="preserve">
+    <value>최대 순 변경</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNextYearsEarningsPerShare" xml:space="preserve">
+    <value>내년 주당순이익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameNotes" xml:space="preserve">
+    <value>노트</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameOpening" xml:space="preserve">
+    <value>열리는</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameOpenInterest" xml:space="preserve">
+    <value>미결제약정</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePercentHeldByInstitutions" xml:space="preserve">
+    <value>기관 보유 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePositionAvgPrice" xml:space="preserve">
+    <value>평균 게재순위 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePositionSize" xml:space="preserve">
+    <value>위치 크기</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNamePriceEarningsRatio" xml:space="preserve">
+    <value>가격 수익 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameProfitLoss" xml:space="preserve">
+    <value>이익 손실</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameRealizedProfitLoss" xml:space="preserve">
+    <value>실현 손익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameRevenuePerShare" xml:space="preserve">
+    <value>주당 수익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameSettlement" xml:space="preserve">
+    <value>정산 가격</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameSharesOutstanding" xml:space="preserve">
+    <value>발행주식수</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameShortInterest" xml:space="preserve">
+    <value>단기 이자</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameShortInterestRatio" xml:space="preserve">
+    <value>공매도 비율</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTimeLastTick" xml:space="preserve">
+    <value>마지막 틱 시간</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTradedContracts" xml:space="preserve">
+    <value>거래된 계약</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameTSTrend" xml:space="preserve">
+    <value>T&amp;S 트렌드</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameUnrealizedProfitLoss" xml:space="preserve">
+    <value>미실현손익</value>
+  </data>
+  <data name="NinjaScriptMarketAnalyzerColumnNameVwap" xml:space="preserve">
+    <value>VWAP</value>
+  </data>
+  <data name="NinjaScriptNumberOfRows" xml:space="preserve">
+    <value>행</value>
+  </data>
+  <data name="NinjaScriptOnBarCloseError" xml:space="preserve">
+    <value>{0} 은(는) '각 틱마다' 계산을 기대하는 입찰/매도 틱 업데이트에 의존합니다.</value>
+  </data>
+  <data name="NinjaScriptOnPriceChangeError" xml:space="preserve">
+    <value>{0} 은 '각 눈금마다' 또는 '막대 닫을 때' 계산을 예상하는 볼륨 업데이트에 의존합니다.</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfe" xml:space="preserve">
+    <value>최대 평균 유리한 여행</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfeLong" xml:space="preserve">
+    <value>최대 평균 유리한 여행 (긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgMfeShort" xml:space="preserve">
+    <value>최대 평균 유리한 여행 (짧은)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfit" xml:space="preserve">
+    <value>최대 평균 이익</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfitLong" xml:space="preserve">
+    <value>최대 평균 이익 (롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxAvgProfitShort" xml:space="preserve">
+    <value>최대 평균 이익(단기)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfit" xml:space="preserve">
+    <value>최대 순이익</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfitLong" xml:space="preserve">
+    <value>최대 순이익(롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxNetProfitShort" xml:space="preserve">
+    <value>최대 순이익(단기)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitable" xml:space="preserve">
+    <value>최대 수익성 %</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitableLong" xml:space="preserve">
+    <value>최대 수익성 %(장기)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxPercentProfitableShort" xml:space="preserve">
+    <value>최대 수익성 %(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablity" xml:space="preserve">
+    <value>최대 개연성</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablityLong" xml:space="preserve">
+    <value>최대 확률(긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProbablityShort" xml:space="preserve">
+    <value>최대 확률(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactor" xml:space="preserve">
+    <value>최대 이익 요인</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactorLong" xml:space="preserve">
+    <value>최대 이윤율(롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxProfitFactorShort" xml:space="preserve">
+    <value>최대 이익 계수(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2" xml:space="preserve">
+    <value>최대 R^2</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2Long" xml:space="preserve">
+    <value>최대 R^2(긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxR2Short" xml:space="preserve">
+    <value>최대 R^2(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatio" xml:space="preserve">
+    <value>최대 샤프 비율</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatioLong" xml:space="preserve">
+    <value>최대 샤프 비율(롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSharpeRatioShort" xml:space="preserve">
+    <value>최대 샤프 비율(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatio" xml:space="preserve">
+    <value>최대 소르티노 비율</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatioLong" xml:space="preserve">
+    <value>최대 소르티노 비율(롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxSortinoRatioShort" xml:space="preserve">
+    <value>최대 소르티노 비율(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrength" xml:space="preserve">
+    <value>최대 힘</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrengthLong" xml:space="preserve">
+    <value>최대 힘(긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxStrengthShort" xml:space="preserve">
+    <value>최대 힘(짧은)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatio" xml:space="preserve">
+    <value>최대 궤양 비율</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatioLong" xml:space="preserve">
+    <value>최대 궤양 비율(긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxUlcerRatioShort" xml:space="preserve">
+    <value>최대 궤양 비율(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatio" xml:space="preserve">
+    <value>최대 승/패 비율</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatioLong" xml:space="preserve">
+    <value>최대 승패율(롱)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMaxWinLossRatioShort" xml:space="preserve">
+    <value>최대 승/패 비율(짧음)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMae" xml:space="preserve">
+    <value>최소 평균 불리한 여행</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMaeLong" xml:space="preserve">
+    <value>최소 평균 불리한 여행(긴)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinAvgMaeShort" xml:space="preserve">
+    <value>최소 평균 불리한 여행(짧은)</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDown" xml:space="preserve">
+    <value>최소 내리다</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDownLong" xml:space="preserve">
+    <value>최소 (길게) 내리다</value>
+  </data>
+  <data name="NinjaScriptOptimizationFitnessNameMinDrawDownShort" xml:space="preserve">
+    <value>최소 (짧게) 내리다</value>
+  </data>
+  <data name="NinjaScriptOptimizerDefault" xml:space="preserve">
+    <value>기본</value>
+  </data>
+  <data name="NinjaScriptOptimizerGenetic" xml:space="preserve">
+    <value>유전적</value>
+  </data>
+  <data name="NinjaScriptParameters" xml:space="preserve">
+    <value>매개변수</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleATMStrategy" xml:space="preserve">
+    <value>고급 무역 관리 샘플 전략.</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleCustomPerformance" xml:space="preserve">
+    <value>사용자 지정 성능 사용을 보여 주는 샘플</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleFramework" xml:space="preserve">
+    <value>이 전략은 NinjaTrader 개발 프레임워크의 일부 기능을 보여줍니다.</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMACrossOver" xml:space="preserve">
+    <value>단순 이동 평균 교차 전략.</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMultiInstrument" xml:space="preserve">
+    <value>다중 기기 샘플 전략.</value>
+  </data>
+  <data name="NinjaScriptStrategyDescriptionSampleMultiTimeFrame" xml:space="preserve">
+    <value>다중 시간 프레임 샘플 전략.</value>
+  </data>
+  <data name="NinjaScriptStrategyGenerator" xml:space="preserve">
+    <value>전략 생성기</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorCandleStickPatternPrompt" xml:space="preserve">
+    <value>1 캔들 스틱 패턴| {0} 촛대 패턴|촛대 패턴 추가...|촛대 패턴 구성...|촛대 패턴 구성...</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorEntries" xml:space="preserve">
+    <value>입장 조건</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorEntriesOrExits" xml:space="preserve">
+    <value>하나 이상의 진입 주문 종료 조건이 필요했습니다.</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorIndicatorException" xml:space="preserve">
+    <value>표현식 예외: {0} {1}</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorIndicatorsPrompt" xml:space="preserve">
+    <value>1 지표| {0} 표시기|표시기 추가...|표시기 구성...|표시기 구성...</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorPeformance" xml:space="preserve">
+    <value>{0} 성능 = {1}</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorProperties" xml:space="preserve">
+    <value>AI 생성 속성</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorTerminated" xml:space="preserve">
+    <value>{1} 세대에 대한 성능 향상이 없었으므로 {0} 세대 후에 전략 생성기가 종료되었습니다.</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorUseCandleStickPattern" xml:space="preserve">
+    <value>캔들 스틱 패턴</value>
+  </data>
+  <data name="NinjaScriptStrategyGeneratorUseIndicators" xml:space="preserve">
+    <value>지표</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleATMStrategy" xml:space="preserve">
+    <value>샘플 ATM 전략</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleCustomPerformance" xml:space="preserve">
+    <value>샘플 사용자 지정 성능</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleFramework" xml:space="preserve">
+    <value>샘플 프레임워크</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMACrossOver" xml:space="preserve">
+    <value>샘플 MA 크로스오버</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMultiInstrument" xml:space="preserve">
+    <value>샘플 다중 기기</value>
+  </data>
+  <data name="NinjaScriptStrategyNameSampleMultiTimeFrame" xml:space="preserve">
+    <value>샘플 다중 기간</value>
+  </data>
+  <data name="NinjaScriptStrategyParameters" xml:space="preserve">
+    <value>전략 매개변수</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnApq" xml:space="preserve">
+    <value>APQ</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnBaseInitializeBarsPoolError" xml:space="preserve">
+    <value>{0} / {1} '에 대한 막대 시리즈 로드 중 오류 {2}</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionApq" xml:space="preserve">
+    <value>APQ(Approximate Position In Queue) 표시기는 주문에 대한 대기열의 현재 위치를 보수적으로 추정합니다.</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionNotes" xml:space="preserve">
+    <value>메모 열은 SuperDOM에서 직접 가격 포인트에 텍스트 입력을 제공하며 가격 수준별로 메모를 추가하는 데 사용할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionPnl" xml:space="preserve">
+    <value>손익(PnL) 열은 거래에 참여하면 각 가격대의 잠재적 손익을 표시합니다.</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnDescriptionVolume" xml:space="preserve">
+    <value>거래량 열은 과거 틱 데이터를 사용하여 각 가격 수준에서 거래된 계약 수를 표시합니다. 요청 또는 입찰에서 거래가 발생했는지에 따라 막대를 선택적으로 색칠할 수 있습니다.</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnNotes" xml:space="preserve">
+    <value>노트</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnProfitAndLoss" xml:space="preserve">
+    <value>PnL</value>
+  </data>
+  <data name="NinjaScriptSuperDomColumnVolume" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="NinjaScriptTileError" xml:space="preserve">
+    <value>{0} 로드 중 오류: {1}</value>
+  </data>
+  <data name="NinjaScriptYOffset" xml:space="preserve">
+    <value>Y 픽셀 오프셋</value>
+  </data>
+  <data name="NumberOfCotPlots" xml:space="preserve">
+    <value>COT 플롯 수</value>
+  </data>
+  <data name="NumberOfTrendLines" xml:space="preserve">
+    <value>추세선 수</value>
+  </data>
+  <data name="NumStdDev" xml:space="preserve">
+    <value>표준편차의 수</value>
+  </data>
+  <data name="OffsetMultiplier" xml:space="preserve">
+    <value>오프셋 승수</value>
+  </data>
+  <data name="OldTrendsOpacity" xml:space="preserve">
+    <value>오래된 경향 불투명도</value>
+  </data>
+  <data name="Opacity" xml:space="preserve">
+    <value>불투명</value>
+  </data>
+  <data name="PathCapMode_Arrow" xml:space="preserve">
+    <value>화살</value>
+  </data>
+  <data name="PathCapMode_Line" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="PathToolCapMode_Arrow" xml:space="preserve">
+    <value>화살</value>
+  </data>
+  <data name="PathToolCapMode_Line" xml:space="preserve">
+    <value>선</value>
+  </data>
+  <data name="PerformanceMetricSampleCumProfit" xml:space="preserve">
+    <value>샘플 정액. 이익 성과 지표</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>기간</value>
+  </data>
+  <data name="PeriodD" xml:space="preserve">
+    <value>기간 D</value>
+  </data>
+  <data name="PeriodK" xml:space="preserve">
+    <value>K 기간</value>
+  </data>
+  <data name="PeriodQ" xml:space="preserve">
+    <value>Q 기간</value>
+  </data>
+  <data name="PFEZero" xml:space="preserve">
+    <value>영</value>
+  </data>
+  <data name="PiviotsDailyBarsError" xml:space="preserve">
+    <value>피벗에는 인트라데이 또는 데일리 바를 사용해야 합니다.</value>
+  </data>
+  <data name="PiviotsDailyDataError" xml:space="preserve">
+    <value>피벗을 계산하기 위한 일일 데이터가 충분하지 않습니다.</value>
+  </data>
+  <data name="PiviotsInsufficentDataError" xml:space="preserve">
+    <value>피벗을 계산하기 위한 기록 데이터가 충분하지 않습니다. 차트 조회 기간 연장(DaysToLoad, BarsToLoad 또는 시작 날짜)</value>
+  </data>
+  <data name="PiviotsPeriodTypeError" xml:space="preserve">
+    <value>기간 유형은 값이 1인 매일이어야 합니다.</value>
+  </data>
+  <data name="PiviotsWeeklyBarsError" xml:space="preserve">
+    <value>일일 막대는 주간 또는 월간 피벗 범위를 사용해야 합니다.</value>
+  </data>
+  <data name="PivotRange" xml:space="preserve">
+    <value>피벗 범위</value>
+  </data>
+  <data name="PivotRange_Daily" xml:space="preserve">
+    <value>일일</value>
+  </data>
+  <data name="PivotRange_Monthly" xml:space="preserve">
+    <value>월간 간행물</value>
+  </data>
+  <data name="PivotRange_Weekly" xml:space="preserve">
+    <value>주간</value>
+  </data>
+  <data name="PivotsPP" xml:space="preserve">
+    <value>PP</value>
+  </data>
+  <data name="PivotsR1" xml:space="preserve">
+    <value>R1</value>
+  </data>
+  <data name="PivotsR2" xml:space="preserve">
+    <value>R2</value>
+  </data>
+  <data name="PivotsR3" xml:space="preserve">
+    <value>R3</value>
+  </data>
+  <data name="PivotsR4" xml:space="preserve">
+    <value>R4</value>
+  </data>
+  <data name="PivotsS1" xml:space="preserve">
+    <value>S1</value>
+  </data>
+  <data name="PivotsS2" xml:space="preserve">
+    <value>시즌2</value>
+  </data>
+  <data name="PivotsS3" xml:space="preserve">
+    <value>시즌3</value>
+  </data>
+  <data name="PivotsS4" xml:space="preserve">
+    <value>시즌4</value>
+  </data>
+  <data name="PlotCurrentValue" xml:space="preserve">
+    <value>현재 값만 플롯</value>
+  </data>
+  <data name="PositiveColor" xml:space="preserve">
+    <value>긍정적인 색상</value>
+  </data>
+  <data name="PPOSmoothed" xml:space="preserve">
+    <value>부드럽게</value>
+  </data>
+  <data name="PriceLinePlotAsk" xml:space="preserve">
+    <value>질문 라인</value>
+  </data>
+  <data name="PriceLinePlotBid" xml:space="preserve">
+    <value>입찰 라인</value>
+  </data>
+  <data name="PriceLinePlotLast" xml:space="preserve">
+    <value>마지막 줄</value>
+  </data>
+  <data name="PriorDayOHLCClose" xml:space="preserve">
+    <value>이전 마감</value>
+  </data>
+  <data name="PriorDayOHLCHigh" xml:space="preserve">
+    <value>이전 최고</value>
+  </data>
+  <data name="PriorDayOHLCIntradayError" xml:space="preserve">
+    <value>PriorDayOHLC는 일중 간격에서만 작동합니다.</value>
+  </data>
+  <data name="PriorDayOHLCLow" xml:space="preserve">
+    <value>이전 낮은</value>
+  </data>
+  <data name="PriorDayOHLCOpen" xml:space="preserve">
+    <value>사전 오픈</value>
+  </data>
+  <data name="RangeCounterBarError" xml:space="preserve">
+    <value>범위 카운터는 범위 막대에서만 작동합니다.</value>
+  </data>
+  <data name="RangeCounterRemaing" xml:space="preserve">
+    <value>남은 범위 = {0}</value>
+  </data>
+  <data name="RangerCounterCount" xml:space="preserve">
+    <value>범위 수 = {0}</value>
+  </data>
+  <data name="RangeValue" xml:space="preserve">
+    <value>범위 값</value>
+  </data>
+  <data name="RegionHighlightDirection_Horizontal" xml:space="preserve">
+    <value>수평의</value>
+  </data>
+  <data name="RegionHighlightDirection_Vertical" xml:space="preserve">
+    <value>수직의</value>
+  </data>
+  <data name="RegressionChannelType_Segment" xml:space="preserve">
+    <value>분절</value>
+  </data>
+  <data name="RegressionChannelType_StandardDeviation" xml:space="preserve">
+    <value>표준편차 거리</value>
+  </data>
+  <data name="ROCPeriod" xml:space="preserve">
+    <value>변화율 기간</value>
+  </data>
+  <data name="RVISignalLine" xml:space="preserve">
+    <value>신호선</value>
+  </data>
+  <data name="SampleAddOnDescription" xml:space="preserve">
+    <value>샘플 이름 설명</value>
+  </data>
+  <data name="SampleAddOnHiThere" xml:space="preserve">
+    <value>안녕하세요!</value>
+  </data>
+  <data name="SampleAddOnName" xml:space="preserve">
+    <value>샘플 애드온 이름</value>
+  </data>
+  <data name="SampleCumProfit" xml:space="preserve">
+    <value>샘플 누적 이익</value>
+  </data>
+  <data name="SampleCumProfitDescription" xml:space="preserve">
+    <value>맞춤형 성과 지표의 샘플로서의 누적 이익</value>
+  </data>
+  <data name="SampleCustomPlotLowerRightCorner" xml:space="preserve">
+    <value>오른쪽 하단 모서리</value>
+  </data>
+  <data name="SampleCustomPlotUpperLeftCorner" xml:space="preserve">
+    <value>왼쪽 상단 모서리</value>
+  </data>
+  <data name="SelectPattern" xml:space="preserve">
+    <value>패턴 선택</value>
+  </data>
+  <data name="SelectPatternDescription" xml:space="preserve">
+    <value>감지할 패턴 선택</value>
+  </data>
+  <data name="SendAlerts" xml:space="preserve">
+    <value>알림 보내기</value>
+  </data>
+  <data name="SendAlertsDescription" xml:space="preserve">
+    <value>경고 창에 경고 메시지를 보내려면 true로 설정하십시오.</value>
+  </data>
+  <data name="ShareArgsException" xml:space="preserve">
+    <value>인수를 사용하여 OnShare를 호출하는 중에 문제가 발생했습니다. {0}</value>
+  </data>
+  <data name="ShareBadGatewayError" xml:space="preserve">
+    <value>공유 제공자가 잘못된 게이트웨이 오류를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareBadRequestError" xml:space="preserve">
+    <value>공유 제공자가 잘못된 요청 오류를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareException" xml:space="preserve">
+    <value>WebException이 발생했습니다. 상태: ' {0} ' 메시지: ' {1} '</value>
+  </data>
+  <data name="ShareFacebookCouldNotRetrieveUser" xml:space="preserve">
+    <value>사용자를 찾을 수 없습니다</value>
+  </data>
+  <data name="ShareFacebookCouldNotVerifyToken" xml:space="preserve">
+    <value>Facebook이 이 사용자의 토큰을 확인할 수 없습니다.</value>
+  </data>
+  <data name="ShareFacebookNoResult" xml:space="preserve">
+    <value>Facebook에서 응답을 받지 못했습니다.</value>
+  </data>
+  <data name="ShareFacebookPermissionDenied" xml:space="preserve">
+    <value>필요한 Facebook 권한이 사용자에 의해 거부되었습니다.</value>
+  </data>
+  <data name="ShareFacebookScopesNotFound" xml:space="preserve">
+    <value>Facebook 권한을 확인할 수 없습니다.</value>
+  </data>
+  <data name="ShareFacebookSentSuccessfully" xml:space="preserve">
+    <value>{0} - 게시물이 성공적으로 전송되었습니다.</value>
+  </data>
+  <data name="ShareForbidden" xml:space="preserve">
+    <value>공유 제공자가 금지된 메시지를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareGatewayTimeoutError" xml:space="preserve">
+    <value>공유 제공자가 게이트웨이 시간 초과 오류를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareImageNoLongerExists" xml:space="preserve">
+    <value>{0} ' 위치에서 이미지를 찾을 수 없습니다.</value>
+  </data>
+  <data name="ShareInternalServerError" xml:space="preserve">
+    <value>공유 공급자가 내부 서버 오류를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareMailException" xml:space="preserve">
+    <value>메일 메시지를 보내는 동안 오류가 발생했습니다: {0}</value>
+  </data>
+  <data name="ShareMailPreconfiguredAol" xml:space="preserve">
+    <value>AOL</value>
+  </data>
+  <data name="ShareMailPreconfiguredComcast" xml:space="preserve">
+    <value>컴캐스트</value>
+  </data>
+  <data name="ShareMailPreconfiguredGmail" xml:space="preserve">
+    <value>지메일</value>
+  </data>
+  <data name="ShareMailPreconfiguredICloud" xml:space="preserve">
+    <value>아이클라우드</value>
+  </data>
+  <data name="ShareMailPreconfiguredManual" xml:space="preserve">
+    <value>설명서</value>
+  </data>
+  <data name="ShareMailPreconfiguredOutlook" xml:space="preserve">
+    <value>시야</value>
+  </data>
+  <data name="ShareMailPreconfiguredYahoo" xml:space="preserve">
+    <value>야후</value>
+  </data>
+  <data name="ShareMailSendError" xml:space="preserve">
+    <value>메시지를 보내는 동안 오류가 발생했습니다: {0}</value>
+  </data>
+  <data name="ShareMailSentSuccessfully" xml:space="preserve">
+    <value>{0} - 메시지가 성공적으로 전송됨</value>
+  </data>
+  <data name="ShareNonSuccessCode" xml:space="preserve">
+    <value>공유 제공자가 {0} 오류 메시지를 {1} '</value>
+  </data>
+  <data name="ShareNotAuthorized" xml:space="preserve">
+    <value>공유 제공자가 승인되지 않은 메시지를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareServiceParameters" xml:space="preserve">
+    <value>자격증명</value>
+  </data>
+  <data name="ShareServicePassword" xml:space="preserve">
+    <value>비밀번호</value>
+  </data>
+  <data name="ShareServiceSignature" xml:space="preserve">
+    <value>공유 서비스에 예외가 발생했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareServiceUserName" xml:space="preserve">
+    <value>사용자 이름</value>
+  </data>
+  <data name="ShareStockTwitsNoAccount" xml:space="preserve">
+    <value>StockTwits 계정을 확인할 수 없습니다</value>
+  </data>
+  <data name="ShareStockTwitsSentSuccessfully" xml:space="preserve">
+    <value>{0} - 메시지가 성공적으로 전송됨</value>
+  </data>
+  <data name="ShareTextMessageEmail" xml:space="preserve">
+    <value>이메일</value>
+  </data>
+  <data name="ShareTextMessageEmailRequired" xml:space="preserve">
+    <value>이메일 공유 서비스를 통해 문자 메시지를 구성하려면 먼저 이메일 공유 서비스를 설정해야 합니다.</value>
+  </data>
+  <data name="ShareTextMessageErrorOnShare" xml:space="preserve">
+    <value>{0} 이메일 서비스를 통해 메시지를 보내는 동안 오류가 발생했습니다 {1} '</value>
+  </data>
+  <data name="ShareTextMessageMmsAddress" xml:space="preserve">
+    <value>MMS 주소</value>
+  </data>
+  <data name="ShareTextMessageName" xml:space="preserve">
+    <value>이메일을 통한 문자 메시지</value>
+  </data>
+  <data name="ShareTextMessagePhoneNumber" xml:space="preserve">
+    <value>전화번호</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredAtt" xml:space="preserve">
+    <value>AT&amp;T</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredManual" xml:space="preserve">
+    <value>설명서</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredSprint" xml:space="preserve">
+    <value>스프린트</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredTMobile" xml:space="preserve">
+    <value>T 모바일</value>
+  </data>
+  <data name="ShareTextMessagePreconfiguredVerizon" xml:space="preserve">
+    <value>버라이즌</value>
+  </data>
+  <data name="ShareTextMessageSentSuccessfully" xml:space="preserve">
+    <value>{0} - 문자 메시지 전송됨</value>
+  </data>
+  <data name="ShareTextMessageSmsAddress" xml:space="preserve">
+    <value>SMS 주소</value>
+  </data>
+  <data name="ShareTooManyRequests" xml:space="preserve">
+    <value>공유 제공자가 TooManyRequests 메시지를 반환했습니다. ' {0} '</value>
+  </data>
+  <data name="ShareTwitterSentSuccessfully" xml:space="preserve">
+    <value>{0} - 트윗이 성공적으로 전송되었습니다.</value>
+  </data>
+  <data name="ShowAskLine" xml:space="preserve">
+    <value>질문 라인 표시</value>
+  </data>
+  <data name="ShowBidLine" xml:space="preserve">
+    <value>입찰가 표시</value>
+  </data>
+  <data name="ShowClose" xml:space="preserve">
+    <value>닫기 표시</value>
+  </data>
+  <data name="ShowHigh" xml:space="preserve">
+    <value>높은 표시</value>
+  </data>
+  <data name="ShowLastLine" xml:space="preserve">
+    <value>마지막 줄 표시</value>
+  </data>
+  <data name="ShowLow" xml:space="preserve">
+    <value>낮게 표시</value>
+  </data>
+  <data name="ShowOpen" xml:space="preserve">
+    <value>오픈 쇼</value>
+  </data>
+  <data name="ShowPatternCount" xml:space="preserve">
+    <value>패턴 수 표시</value>
+  </data>
+  <data name="ShowPatternCountDescription" xml:space="preserve">
+    <value>발견된 패턴의 수를 차트에 표시하려면 true로 설정하십시오.</value>
+  </data>
+  <data name="ShowPercent" xml:space="preserve">
+    <value>백분율 표시</value>
+  </data>
+  <data name="SignalPeriod" xml:space="preserve">
+    <value>신호 주기</value>
+  </data>
+  <data name="Slow" xml:space="preserve">
+    <value>느린</value>
+  </data>
+  <data name="SlowLimit" xml:space="preserve">
+    <value>느린 한계</value>
+  </data>
+  <data name="SlowPeriod" xml:space="preserve">
+    <value>느린 기간</value>
+  </data>
+  <data name="SmallAreaColor" xml:space="preserve">
+    <value>작은 면적 색상</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>매끄러운</value>
+  </data>
+  <data name="Smoothing" xml:space="preserve">
+    <value>스무딩</value>
+  </data>
+  <data name="StochasticsD" xml:space="preserve">
+    <value>NS</value>
+  </data>
+  <data name="StochasticsK" xml:space="preserve">
+    <value>케이</value>
+  </data>
+  <data name="StockTwitsSentiment" xml:space="preserve">
+    <value>감정:</value>
+  </data>
+  <data name="StockTwitsSentimentDescription" xml:space="preserve">
+    <value>이 메시지에 대해 Bearish, Neutral 또는 Bullish를 선택하십시오.</value>
+  </data>
+  <data name="StockTwitsServiceName" xml:space="preserve">
+    <value>스톡트위츠</value>
+  </data>
+  <data name="StockTwitsSignature" xml:space="preserve">
+    <value> NinjaTrader가 보낸</value>
+  </data>
+  <data name="Strength" xml:space="preserve">
+    <value>힘</value>
+  </data>
+  <data name="SuperDomColumnException" xml:space="preserve">
+    <value>SuperDOM 열 ' {0} ': ' {1} ' 메서드 {2}</value>
+  </data>
+  <data name="SwingHigh" xml:space="preserve">
+    <value>스윙 하이</value>
+  </data>
+  <data name="SwingLow" xml:space="preserve">
+    <value>스윙 로우</value>
+  </data>
+  <data name="SwingSwingHighBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0} .SwingHighBar: barsAgo는 0보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="SwingSwingHighBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0} {1} 까지의 유효한 범위를 벗어났습니다 {2} 이었습니다.</value>
+  </data>
+  <data name="SwingSwingHighBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0} .SwingHighBar: 인스턴스는 1보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="SwingSwingLowBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0} .SwingLowBar: barsAgo는 0보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="SwingSwingLowBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0} {1} 까지의 유효한 범위를 벗어났습니다 {2} 이었습니다.</value>
+  </data>
+  <data name="SwingSwingLowBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0} .SwingLowBar: 인스턴스는 1보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="TCount" xml:space="preserve">
+    <value>T 카운트</value>
+  </data>
+  <data name="TextColor" xml:space="preserve">
+    <value>텍스트 색상</value>
+  </data>
+  <data name="TextFont" xml:space="preserve">
+    <value>텍스트 글꼴</value>
+  </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>차트에 표시할 글꼴, 스타일, 크기 선택</value>
+  </data>
+  <data name="TextPosition_BottomLeft" xml:space="preserve">
+    <value>왼쪽 하단</value>
+  </data>
+  <data name="TextPosition_BottomRight" xml:space="preserve">
+    <value>오른쪽 하단</value>
+  </data>
+  <data name="TextPosition_Center" xml:space="preserve">
+    <value>센터</value>
+  </data>
+  <data name="TextPosition_TopLeft" xml:space="preserve">
+    <value>왼쪽 상단</value>
+  </data>
+  <data name="TextPosition_TopRight" xml:space="preserve">
+    <value>맨 위 오른쪽</value>
+  </data>
+  <data name="TickCounterBarError" xml:space="preserve">
+    <value>틱 카운터는 설정된 틱 수로 만들어진 막대에서만 작동합니다.</value>
+  </data>
+  <data name="TickCounterTickCount" xml:space="preserve">
+    <value>틱 수 = </value>
+  </data>
+  <data name="TickCounterTicksRemaining" xml:space="preserve">
+    <value>남은 틱 = </value>
+  </data>
+  <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
+    <value>현재 추세선</value>
+  </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>전략 분석기에는 추세선 표시등이 표시되지 않습니다.</value>
+  </data>
+  <data name="TrendLinesTrendLineBroken" xml:space="preserve">
+    <value>{0} 고장</value>
+  </data>
+  <data name="TrendLinesTrendLineHigh" xml:space="preserve">
+    <value>추세선 높음</value>
+  </data>
+  <data name="TrendLinesTrendLineLow" xml:space="preserve">
+    <value>추세선 낮음</value>
+  </data>
+  <data name="TrendStrength" xml:space="preserve">
+    <value>추세 강도</value>
+  </data>
+  <data name="TrendStrengthDescription" xml:space="preserve">
+    <value>패턴에 일반적인 추세가 필요한 경우 추세를 정의하는 데 필요한 막대 수입니다. \n값이 0이면 추세 요구 사항이 비활성화됩니다.</value>
+  </data>
+  <data name="TRIXSignal" xml:space="preserve">
+    <value>신호</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>계정이 성공적으로 승인됨</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>{0} 가) 귀하의 Twitter 계정에 액세스할 수 있도록 승인했습니다.</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>이 창을 닫고 {0} 돌아갈 수 있습니다.</value>
+  </data>
+  <data name="TwitterServiceName" xml:space="preserve">
+    <value>트위터</value>
+  </data>
+  <data name="TwitterSignature" xml:space="preserve">
+    <value> #닌자트레이더</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>단위</value>
+  </data>
+  <data name="UpBarColor" xml:space="preserve">
+    <value>업 바 색상</value>
+  </data>
+  <data name="UseHighLow" xml:space="preserve">
+    <value>높음 낮음 사용</value>
+  </data>
+  <data name="UserDefinedClose" xml:space="preserve">
+    <value>사용자 정의 닫기</value>
+  </data>
+  <data name="UserDefinedHigh" xml:space="preserve">
+    <value>사용자 정의 높음</value>
+  </data>
+  <data name="UserDefinedLow" xml:space="preserve">
+    <value>사용자 정의 낮은</value>
+  </data>
+  <data name="VFactor" xml:space="preserve">
+    <value>V 계수</value>
+  </data>
+  <data name="VolatilityPeriod" xml:space="preserve">
+    <value>변동성 기간</value>
+  </data>
+  <data name="VolumeCounterBarError" xml:space="preserve">
+    <value>볼륨 카운터는 볼륨 기반 간격에서만 작동합니다.</value>
+  </data>
+  <data name="VolumeCounterVolumeCount" xml:space="preserve">
+    <value>볼륨 = </value>
+  </data>
+  <data name="VolumeCounterVolumeRemaining" xml:space="preserve">
+    <value>남은 볼륨 = </value>
+  </data>
+  <data name="VolumeDivisor" xml:space="preserve">
+    <value>볼륨 제수</value>
+  </data>
+  <data name="VolumeDown" xml:space="preserve">
+    <value>볼륨 낮추기</value>
+  </data>
+  <data name="VolumeDownColor" xml:space="preserve">
+    <value>볼륨 다운 컬러</value>
+  </data>
+  <data name="VolumeNeutralColor" xml:space="preserve">
+    <value>볼륨 뉴트럴 컬러</value>
+  </data>
+  <data name="VolumeUp" xml:space="preserve">
+    <value>볼륨 높이기</value>
+  </data>
+  <data name="VolumeUpColor" xml:space="preserve">
+    <value>볼륨 업 컬러</value>
+  </data>
+  <data name="VOLVolume" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="Width" xml:space="preserve">
+    <value>너비</value>
+  </data>
+  <data name="WilliamsPercentR" xml:space="preserve">
+    <value>윌리엄스 %R</value>
+  </data>
+  <data name="ZigZagDeviationValueError" xml:space="preserve">
+    <value>"편차 값이 너무 커서 ZigZag에서 값을 그릴 수 없습니다. 줄여주세요."</value>
+  </data>
+  <data name="ZigZagHighBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0} {1} 까지의 유효한 범위를 벗어났습니다. {2}</value>
+  </data>
+  <data name="ZigZagHighBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0} .HighBar: 인스턴스는 1보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="ZigZagLowBarBarsAgoOutOfRange" xml:space="preserve">
+    <value>{0} {1} 까지의 유효한 범위를 벗어났습니다. {2}</value>
+  </data>
+  <data name="ZigZagLowBarInstanceGreaterEqual" xml:space="preserve">
+    <value>{0} .LowBar: 인스턴스는 1보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="ZigZigHighBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0} .HighBar: barsAgo는 0보다 크거나 같아야 하지만 {1}</value>
+  </data>
+  <data name="ZigZigLowBarBarsAgoGreaterEqual" xml:space="preserve">
+    <value>{0} .LowBar: barsAgo는 0보다 크거나 같아야 하지만 {1}</value>
+  </data>
+</root>

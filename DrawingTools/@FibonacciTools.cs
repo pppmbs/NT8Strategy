@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -229,23 +229,23 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			
 			// if we're doing a hit test pass, dont draw price levels at all, we dont want those to count for 
 			// hit testing (match NT7)
-			if (IsInHitTest || PriceLevels == null || !PriceLevels.Any())
+			if (PriceLevels == null || !PriceLevels.Any())
 				return;
 			
 			SetAllPriceLevelsRenderTarget();
 			
-			double xRange 	= Math.Abs(anchorEndPoint.X - anchorStartPoint.X);
-			double yRange 	= Math.Abs(anchorEndPoint.Y - anchorStartPoint.Y);
+			double xRange	= Math.Abs(anchorEndPoint.X - anchorStartPoint.X);
+			double yRange	= Math.Abs(anchorEndPoint.Y - anchorStartPoint.Y);
 			double mainLine	= Math.Sqrt(Math.Pow(xRange, 2) + Math.Pow(yRange, 2));
 
 			SharpDX.Direct2D1.EllipseGeometry lastEllipse = null;
 			
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
 			{
-				float levelFactor 	= (float)priceLevel.Value/100f;
-				float r 			= (float)(levelFactor * mainLine);
-				float xScale 		= (float)(levelFactor * xRange);
-				float yScale 		= (float)(levelFactor * yRange);
+				float levelFactor	= (float)priceLevel.Value/100f;
+				float r				= (float)(levelFactor * mainLine);
+				float xScale		= (float)(levelFactor * xRange);
+				float yScale		= (float)(levelFactor * yRange);
 				
 				// draw ellipse takes center point
 				SharpDX.Vector2						startVec		= new SharpDX.Vector2((float)anchorStartPoint.X, (float)anchorStartPoint.Y);
@@ -253,6 +253,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				SharpDX.Direct2D1.EllipseGeometry	ellipseGeometry	= new SharpDX.Direct2D1.EllipseGeometry(Core.Globals.D2DFactory, ellipse);
 
 				RenderTarget.DrawEllipse(ellipse, priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+
+				if (IsInHitTest)
+					continue;
 
 				Stroke backgroundStroke = new Stroke();
 				priceLevel.Stroke.CopyTo(backgroundStroke);
@@ -272,15 +275,18 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			if (lastEllipse != null && !lastEllipse.IsDisposed)
 				lastEllipse.Dispose();
 
+			if (IsInHitTest)
+				return;
+
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
 			{
 				SharpDX.Vector2 startVec = new SharpDX.Vector2((float)anchorStartPoint.X, (float)anchorStartPoint.Y);
 				float levelFactor 	= (float)priceLevel.Value/100f;
 				float r 			= (float)(levelFactor * mainLine);
 				float yScale 		= (float)(levelFactor * yRange);
-				float textX				= startVec.X;
+				float textX			= startVec.X;
 				float textY;
-				double yVal = StartAnchor.Price + (EndAnchor.Price - StartAnchor.Price) * levelFactor;
+				double yVal			= StartAnchor.Price + (EndAnchor.Price - StartAnchor.Price) * levelFactor;
 
 				if (IsTimePriceDividedSeparately)
 					textY = startVec.Y + yScale;
@@ -589,8 +595,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 						// set it to moving even if locked so we know to change cursor
 						if (GetCursor(chartControl, chartPanel, chartScale, point) != null)
 							DrawingState = DrawingState.Moving;
-						else
-							IsSelected = false;
 					}
 					break;
 			}
@@ -645,7 +649,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			
 			// if we're doing a hit test pass, dont draw price levels at all, we dont want those to count for 
 			// hit testing (match NT7)
-			if (IsInHitTest || PriceLevels == null || !PriceLevels.Any())
+			if (PriceLevels == null || !PriceLevels.Any())
 				return;
 			
 			SetAllPriceLevelsRenderTarget();
@@ -664,6 +668,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				RenderTarget.DrawLine((plp.Item1 + pixelAdjustVec).ToVector2(), (plp.Item2 + pixelAdjustVec).ToVector2(),
 										priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
 
+				if (IsInHitTest)
+					continue;
+
 				if (lastStroke == null)
 					lastStroke = new Stroke();
 				else
@@ -678,6 +685,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				lastStroke.Opacity	= PriceLevelOpacity;
 				lastStartPoint		= plp.Item1 + pixelAdjustVec;
 			}
+
+			if (IsInHitTest)
+				return;
 
 			// Render price text after background colors have rendered so the price text is on top
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null))
@@ -1023,15 +1033,15 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			SharpDX.Direct2D1.Brush	tmpBrush	= IsInHitTest ? chartControl.SelectionBrush : AnchorLineStroke.BrushDX;
 			RenderTarget.DrawLine(endVec, extVector, tmpBrush, AnchorLineStroke.Width, AnchorLineStroke.StrokeStyle);
 	
-			if (PriceLevels == null || !PriceLevels.Any() || IsInHitTest)
+			if (PriceLevels == null || !PriceLevels.Any())
 				return;
 
 			SetAllPriceLevelsRenderTarget();
 
-			double minLevelY = float.MaxValue;
-			double maxLevelY = float.MinValue;
-			Point lastStartPoint = new Point(0, 0);
-			Stroke lastStroke = null;
+			double minLevelY		= float.MaxValue;
+			double maxLevelY		= float.MinValue;
+			Point lastStartPoint	= new Point(0, 0);
+			Stroke lastStroke		= null;
 
 			int count = 0;
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
@@ -1053,41 +1063,36 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				Vector plPixAdjustVec		= new Vector(plPixAdjust, plPixAdjust);
 				
 				// don't hit test on the price level line & text (match NT7 here), but do keep track of the min/max y
-				if (!IsInHitTest)
+				Point startPoint	= adjStartPoint + plPixAdjustVec;
+				Point endPoint		= adjEndPoint + plPixAdjustVec;
+				
+				RenderTarget.DrawLine(startPoint.ToVector2(), endPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+
+				if (lastStroke == null)
+					lastStroke = new Stroke();
+				else if (!IsInHitTest)
 				{
-					Point startPoint = adjStartPoint + plPixAdjustVec;
-					Point endPoint = adjEndPoint + plPixAdjustVec;
-					
-					RenderTarget.DrawLine(startPoint.ToVector2(), endPoint.ToVector2(), 
-											priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+					SharpDX.RectangleF borderBox = new SharpDX.RectangleF((float)lastStartPoint.X, (float)lastStartPoint.Y,
+						(float)(endPoint.X - lastStartPoint.X), (float)(endPoint.Y - lastStartPoint.Y));
 
-					if (lastStroke == null)
-						lastStroke = new Stroke();
-					else
-					{
-						SharpDX.RectangleF borderBox = new SharpDX.RectangleF((float)lastStartPoint.X, (float)lastStartPoint.Y,
-							(float)(endPoint.X - lastStartPoint.X), (float)(endPoint.Y - lastStartPoint.Y));
-
-						RenderTarget.FillRectangle(borderBox, lastStroke.BrushDX);
-					}
-					priceLevel.Stroke.CopyTo(lastStroke);
-					lastStroke.Opacity = PriceLevelOpacity;
-					lastStartPoint = startPoint;
+					RenderTarget.FillRectangle(borderBox, lastStroke.BrushDX);
 				}
-				minLevelY = Math.Min(adjStartPoint.Y, minLevelY);
-				maxLevelY = Math.Max(adjStartPoint.Y, maxLevelY);
+				priceLevel.Stroke.CopyTo(lastStroke);
+				lastStroke.Opacity	= PriceLevelOpacity;
+				lastStartPoint		= startPoint;
+				minLevelY			= Math.Min(adjStartPoint.Y, minLevelY);
+				maxLevelY			= Math.Max(adjStartPoint.Y, maxLevelY);
 				count++;
 			}
 
-			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
-			{
-				if (!IsInHitTest)
+			if (!IsInHitTest)
+				foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
 				{
 					Tuple<Point, Point>	plp		= GetPriceLevelLinePoints(priceLevel, chartControl, chartScale, false);
 					// note these points X will be based on start/end, so move to our extension
 					Vector vecToExtension		= anchorExtensionPoint - anchorStartPoint;
 					Point startTranslatedToExt	= plp.Item1 + vecToExtension;
-				
+					
 					// dont nuke extended X if extend left/right is on
 					double startX 				= IsExtendedLinesLeft ? plp.Item1.X : startTranslatedToExt.X;
 					Point adjStartPoint			= new Point(startX, plp.Item1.Y);
@@ -1099,7 +1104,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					double price			= priceLevel.GetPrice(ExtensionAnchor.Price, totalPriceRange, false);
 					DrawPriceLevelText(chartPanel, chartScale, extMinX, extMaxX, adjStartPoint.Y, price, priceLevel);
 				}
-			}
 
 			// lastly draw the left edge line  at our fib lines line NT7. dont use lines start x here, it will be left edge when
 			// extend left is on which we do not want
@@ -1287,7 +1291,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			
 			// if we're doing a hit test pass, dont draw price levels at all, we dont want those to count for 
 			// hit testing (match NT7)
-			if (IsInHitTest || PriceLevels == null || !PriceLevels.Any())
+			if (PriceLevels == null || !PriceLevels.Any())
 				return;
 			
 			SetAllPriceLevelsRenderTarget();
@@ -1306,6 +1310,10 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				SharpDX.Vector2 startVec	= new SharpDX.Vector2((float)(lineX + levelPixAdjust), chartPanel.Y);
 				SharpDX.Vector2 endVec		= new SharpDX.Vector2((float)(lineX + levelPixAdjust), chartPanel.Y + chartPanel.H);
 				RenderTarget.DrawLine(startVec, endVec, priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
+
+				if (IsInHitTest)
+					continue;
+
 				if (lastStroke == null)
 					lastStroke = new Stroke();
 				else
@@ -1320,11 +1328,14 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 				lastStroke.Opacity = PriceLevelOpacity;
 			}
 
+			if (IsInHitTest)
+				return;
+
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl => pl.Value))
 			{
 				double levelFactor			= priceLevel.Value/100d;
 				double lineX				= anchorStartPoint.X + levelFactor * xRange;
-				double levelPixAdjust = (priceLevel.Stroke.Width % 2.0).ApproxCompare(0) == 0 ? 0.5d : 0d;
+				double levelPixAdjust		= (priceLevel.Stroke.Width % 2.0).ApproxCompare(0) == 0 ? 0.5d : 0d;
 				DrawPriceLevelText(lineX + levelPixAdjust, priceLevel, chartPanel);
 			}
 		}

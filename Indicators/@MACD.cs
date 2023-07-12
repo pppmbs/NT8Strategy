@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -46,26 +46,26 @@ namespace NinjaTrader.NinjaScript.Indicators
 		{
 			if (State == State.SetDefaults)
 			{
-				Description					= NinjaTrader.Custom.Resource.NinjaScriptIndicatorDescriptionMACD;
-				Name						= NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameMACD;
+				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionMACD;
+				Name						= Custom.Resource.NinjaScriptIndicatorNameMACD;
 				Fast						= 12;
 				IsSuspendedWhileInactive	= true;
 				Slow						= 26;
 				Smooth						= 9;
 
-				AddPlot(Brushes.DarkCyan,									NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameMACD);
-				AddPlot(Brushes.Crimson,									NinjaTrader.Custom.Resource.NinjaScriptIndicatorAvg);
-				AddPlot(new Stroke(Brushes.DodgerBlue, 2),	PlotStyle.Bar,	NinjaTrader.Custom.Resource.NinjaScriptIndicatorDiff);
-				AddLine(Brushes.DarkGray,					0,				NinjaTrader.Custom.Resource.NinjaScriptIndicatorZeroLine);
+				AddPlot(Brushes.DarkCyan,									Custom.Resource.NinjaScriptIndicatorNameMACD);
+				AddPlot(Brushes.Crimson,									Custom.Resource.NinjaScriptIndicatorAvg);
+				AddPlot(new Stroke(Brushes.DodgerBlue, 2),	PlotStyle.Bar,	Custom.Resource.NinjaScriptIndicatorDiff);
+				AddLine(Brushes.DarkGray,					0,				Custom.Resource.NinjaScriptIndicatorZeroLine);
 			}
 			else if (State == State.Configure)
 			{
 				constant1	= 2.0 / (1 + Fast);
-				constant2	= (1 - (2.0 / (1 + Fast)));
+				constant2	= 1 - (2.0 / (1 + Fast));
 				constant3	= 2.0 / (1 + Slow);
-				constant4	= (1 - (2.0 / (1 + Slow)));
+				constant4	= 1 - (2.0 / (1 + Slow));
 				constant5	= 2.0 / (1 + Smooth);
-				constant6	= (1 - (2.0 / (1 + Smooth)));
+				constant6	= 1 - (2.0 / (1 + Smooth));
 			}
 			else if (State == State.DataLoaded)
 			{

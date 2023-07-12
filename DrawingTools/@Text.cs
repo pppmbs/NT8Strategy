@@ -1,5 +1,5 @@
 // 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -417,6 +417,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					chartControl.InvalidateVisual();
 					if (chartControl.IsStayInDrawMode)
 						chartControl.TryStartDrawing(GetType().FullName);
+					if (IsGlobalDrawingTool)
+						GlobalDrawingToolManager.RaiseGlobalDrawingObjectChanged(chartControl, Cbi.Operation.Update, this);
 				};
 			}
 			else
@@ -516,7 +518,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		Center,
 		TopLeft,
 		TopRight
-	};
+	}
 
 	/// <summary>
 	/// Represents an interface that exposes information regarding a Text Fixed IDrawingTool.

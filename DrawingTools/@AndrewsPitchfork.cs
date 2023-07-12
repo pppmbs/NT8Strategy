@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -71,7 +71,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		{
 			Gui.Tools.SimpleFont			wpfFont			= panel.ChartControl.Properties.LabelFont ?? new Gui.Tools.SimpleFont();
 			SharpDX.DirectWrite.TextFormat	dxTextFormat	= wpfFont.ToDirectWriteTextFormat();
-			string							str				= string.Format("{0}", (priceLevel.Value / 100).ToString("P"));
+			string							str				= string.Format("{0:P}", priceLevel.Value / 100);
 			SharpDX.DirectWrite.TextLayout	textLayout		= new SharpDX.DirectWrite.TextLayout(Core.Globals.DirectWriteFactory, str, dxTextFormat, panel.H, dxTextFormat.FontSize);
 
 			float	usedFontHeight	= textLayout.Metrics.Height;
@@ -92,7 +92,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			if (textEndPoint.X < minWidth)
 				textEndPoint.X = minWidth; // Set to left side;
 
-			RenderTarget.DrawTextLayout(new SharpDX.Vector2((float)(textEndPoint.X), (float)(textEndPoint.Y)), textLayout,
+			RenderTarget.DrawTextLayout(new SharpDX.Vector2((float)textEndPoint.X, (float)textEndPoint.Y), textLayout,
 				priceLevel.Stroke.BrushDX, SharpDX.Direct2D1.DrawTextOptions.NoSnap);
 
 			dxTextFormat.Dispose();
@@ -127,11 +127,11 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 			foreach (PriceLevel pl in PriceLevels.Where(pl => pl.IsVisible))
 			{
-				double	levelPrice	= (startPrice + ((pl.Value / 100) * totalPriceRange));
+				double	levelPrice	= startPrice + pl.Value / 100 * totalPriceRange;
 				float	pixelY		= chartScale.GetYByValue(levelPrice);
 				float	pixelX		= anchorExtensionPoint.X > anchorEndPoint.X ?
-					(float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (pl.Value / 100)))) :
-					(float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (pl.Value / 100)));
+					(float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (pl.Value / 100))) :
+					(float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (pl.Value / 100));
 
 				Point	startPoint		= new Point(pixelX, pixelY);
 				Point	endPoint		= new Point(startPoint.X + (midPointExtension.X - anchorStartPoint.X), startPoint.Y + (midPointExtension.Y - anchorStartPoint.Y));
@@ -184,7 +184,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					return MathHelper.IsPointAlongVector(point, startAnchorPixelPoint, startToEndVec, cursorSensitivity) ||
 										MathHelper.IsPointAlongVector(point, endAnchorPixelPoint, endToExtVec, cursorSensitivity) ||
 										MathHelper.IsPointAlongVector(point, startAnchorPixelPoint, startToMidVec, cursorSensitivity) ? 
-										(IsLocked ? Cursors.Arrow : Cursors.SizeAll) : null;
+										IsLocked ? Cursors.Arrow : Cursors.SizeAll : null;
 			}
 		}
 
@@ -223,11 +223,11 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			double totalPriceRange	= EndAnchor.Price - ExtensionAnchor.Price;
 			double startPrice		= ExtensionAnchor.Price;
 
-			double levelPrice	= (startPrice + ((priceLevel.Value / 100) * totalPriceRange));
+			double levelPrice	= startPrice + priceLevel.Value / 100 * totalPriceRange;
 			float pixelY		= chartScale.GetYByValue(levelPrice);
 			float pixelX		= anchorExtensionPoint.X > anchorEndPoint.X ? 
-				(float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)))) :
-				(float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)));
+				(float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))) :
+				(float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100));
 
 			Point alertStartPoint	= new Point(pixelX, pixelY);
 			Point endPoint			= new Point(alertStartPoint.X + (midPointExtension.X - anchorStartPoint.X), alertStartPoint.Y + (midPointExtension.Y - anchorStartPoint.Y));
@@ -281,18 +281,29 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		public override bool IsVisibleOnChart(ChartControl chartControl, ChartScale chartScale, DateTime firstTimeOnChart, DateTime lastTimeOnChart)
 		{
 			// First check any of the actual anchors are visible, we are immediately done
+			bool before	= false;
+			bool after	= false;
+
 			foreach (ChartAnchor anchor in Anchors)
 			{
-				if (anchor.IsEditing || anchor.Time >= firstTimeOnChart && anchor.Time <= lastTimeOnChart)
+				if (anchor.IsEditing)
+					return true;
+				if (anchor.Time >= firstTimeOnChart && anchor.Time <= lastTimeOnChart)
+					return true;
+				if (anchor.Time < firstTimeOnChart)
+					before = true;
+				else if (anchor.Time > lastTimeOnChart)
+					after = true;
+				if (before && after)
 					return true;
 			}
 
 			// Calculate extensions and see if they extend into our visible times
-			ChartPanel chartPanel		= chartControl.ChartPanels[PanelIndex];
-			Point anchorStartPoint		= StartAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point anchorEndPoint		= EndAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point anchorExtensionPoint	= ExtensionAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point midPointExtension		= new Point((anchorExtensionPoint.X + anchorEndPoint.X) / 2, (anchorExtensionPoint.Y + anchorEndPoint.Y) / 2);
+			ChartPanel	chartPanel				= chartControl.ChartPanels[PanelIndex];
+			Point		anchorStartPoint		= StartAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point		anchorEndPoint			= EndAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point		anchorExtensionPoint	= ExtensionAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point		midPointExtension		= new Point((anchorExtensionPoint.X + anchorEndPoint.X) / 2, (anchorExtensionPoint.Y + anchorEndPoint.Y) / 2);
 
 			if (CalculationMethod == AndrewsPitchforkCalculationMethod.Schiff)
 				anchorStartPoint = new Point(anchorStartPoint.X, (anchorStartPoint.Y + anchorEndPoint.Y) / 2);
@@ -304,11 +315,11 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null))
 			{
-				double levelPrice	= (startPrice + ((priceLevel.Value / 100) * totalPriceRange));
+				double levelPrice	= startPrice + priceLevel.Value / 100 * totalPriceRange;
 				float pixelY		= chartScale.GetYByValue(levelPrice);
 				float pixelX		= anchorExtensionPoint.X > anchorEndPoint.X ?
-					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)))) : (float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))):
-					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))) : (float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))));
+					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))) : (float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)):
+					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)) : (float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)));
 
 				Point startPoint	= new Point(pixelX, pixelY);
 				Point endPoint		= new Point(startPoint.X + (midPointExtension.X - anchorStartPoint.X), startPoint.Y + (midPointExtension.Y - anchorStartPoint.Y));
@@ -488,15 +499,15 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
 			foreach (PriceLevel priceLevel in PriceLevels.Where(pl => pl.IsVisible && pl.Stroke != null).OrderBy(pl=>pl.Value))
 			{
-				double levelPrice	= (startPrice + ((priceLevel.Value / 100) * totalPriceRange));
+				double levelPrice	= startPrice + priceLevel.Value / 100 * totalPriceRange;
 				float pixelY		= chartScale.GetYByValue(levelPrice);
 				float pixelX		= anchorExtensionPoint.X > anchorEndPoint.X ?
-					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)))) : (float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))):
-					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X + ((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))) : (float)(anchorExtensionPoint.X - (Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))));
+					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100))) : (float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)):
+					priceLevel.Value >= 0 ? (float)(anchorExtensionPoint.X + (anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)) : (float)(anchorExtensionPoint.X - Math.Abs((anchorEndPoint.X - anchorExtensionPoint.X) * (priceLevel.Value / 100)));
 				Point startPoint	= new Point(pixelX, pixelY);
 				Point endPoint		= new Point(startPoint.X + (midPointExtension.X - anchorStartPoint.X), startPoint.Y + (midPointExtension.Y - anchorStartPoint.Y));
 				Point maxLevelPoint	= GetExtendedPoint(startPoint, endPoint);
-				if (priceLevel.Value == 50)
+				if (Math.Abs(priceLevel.Value - 50) < 0.0000000000000001)
 					RenderTarget.DrawLine(IsExtendedLinesBack ? GetExtendedPoint(endPoint, startPoint).ToVector2() : startVec, maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
 				else
 					RenderTarget.DrawLine(IsExtendedLinesBack ? GetExtendedPoint(endPoint, startPoint).ToVector2() : startPoint.ToVector2(), maxLevelPoint.ToVector2(), priceLevel.Stroke.BrushDX, priceLevel.Stroke.Width, priceLevel.Stroke.StrokeStyle);
@@ -509,7 +520,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					SharpDX.Direct2D1.GeometrySink sink = lineGeometry.Open();
 					sink.BeginFigure(lastEndPoint.ToVector2(), SharpDX.Direct2D1.FigureBegin.Filled);
 					// Does the fill color need to fill a corner?  Check and add a point
-					if (lastEndPoint.Y != maxLevelPoint.Y && lastEndPoint.X != maxLevelPoint.X)
+					if (Math.Abs(lastEndPoint.Y - maxLevelPoint.Y) > 0 && Math.Abs(lastEndPoint.X - maxLevelPoint.X) > 0)
 					{
 						double boundaryX;
 						double boundaryY;

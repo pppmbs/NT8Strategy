@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -17,6 +17,7 @@ using System.Xml.Serialization;
 
 namespace NinjaTrader.NinjaScript.ShareServices
 {
+	[TypeConverter("NinjaTrader.NinjaScript.ShareServices.MailTypeConverter")]
 	public class Mail : ShareService, IPreconfiguredProvider
 	{
 		private object icon;
@@ -50,10 +51,16 @@ namespace NinjaTrader.NinjaScript.ShareServices
 					pi.SetValue(ninjaScript, Subject);
 				else if (pi.Name == "ToMailAddress")
 					pi.SetValue(ninjaScript, ToMailAddress);
+				else if (pi.Name == "CcMailAddress")
+					pi.SetValue(ninjaScript, CcMailAddress);
 				else if (pi.Name == "UserName")
 					pi.SetValue(ninjaScript, UserName);
 				else if (pi.Name == "UseSSL")
 					pi.SetValue(ninjaScript, UseSSL);
+				else if (pi.Name == "OAuthToken")
+					pi.SetValue(ninjaScript, OAuthToken);
+				else if (pi.Name == "RefreshToken")
+					pi.SetValue(ninjaScript, RefreshToken);
 			}
 		}
 
@@ -67,11 +74,42 @@ namespace NinjaTrader.NinjaScript.ShareServices
 			}
 		}
 
-		public async override Task OnShare(string text, string imageFilePath)
+		public override async Task OnAuthorizeAccount()
 		{
-			string[] attachmentPaths = null;
-			if (File.Exists(imageFilePath))
-				attachmentPaths = new[] { imageFilePath };
+			#region Gmail Login Dialog
+			// Go through Google OAuth process
+			Tuple<string, string, string> ret = await Gui.Tools.GoogleOAuthHelper.Authorize();
+			if (string.IsNullOrWhiteSpace(ret.Item1) || string.IsNullOrWhiteSpace(ret.Item2) || string.IsNullOrWhiteSpace(ret.Item3))
+			{
+				await Task.FromResult(0);
+				return;
+			}
+
+			FromMailAddress	= ret.Item3;
+			OAuthToken		= ret.Item1;
+			RefreshToken	= ret.Item2;
+			#endregion
+
+			IsConfigured = true;
+			await Task.FromResult(0);
+		}
+
+		public override async Task OnShare(string text, string imageFilePath)
+		{
+			if (IsConfigured && string.Equals(SelectedPreconfiguredSetting, Custom.Resource.ShareMailPreconfiguredGmail))
+			{
+				// In case Google OAuth fails, try refreshing account access, and if that fails re-request authorization
+				if (!await Core.Globals.SendGMail(FromMailAddress, SenderDisplayName, ToMailAddress.Split(',', ';'), CcMailAddress.Split(',', ';'), text, Subject, imageFilePath, OAuthToken))
+				{
+					OAuthToken = (await Gui.Tools.GoogleOAuthHelper.Authorize(RefreshToken)).Item1;
+					if (!await Core.Globals.SendGMail(FromMailAddress, SenderDisplayName, ToMailAddress.Split(',', ';'), CcMailAddress.Split(',', ';'), text, Subject, imageFilePath, OAuthToken))
+					{
+						await OnAuthorizeAccount();
+						await Core.Globals.SendGMail(FromMailAddress, SenderDisplayName, ToMailAddress.Split(',', ';'), CcMailAddress.Split(',', ';'), text, Subject, imageFilePath, OAuthToken);
+					}
+				}
+				return;
+			}
 
 			string mailPassword	= Decrypt(Password);
 			string mailUserName = Decrypt(UserName);
@@ -82,65 +120,11 @@ namespace NinjaTrader.NinjaScript.ShareServices
 				return;
 			}
 
-			List<FileStream>	attachmentStreams	= new List<FileStream>();
-			MailMessage			smtpMail			= new MailMessage
-														{
-															Body		= text,
-															From		= new MailAddress(FromMailAddress, SenderDisplayName),
-															IsBodyHtml	= IsBodyHtml,
-															Subject		= Subject,
-														};
-
-			foreach (string tmp in ToMailAddress.Split(new char[] { ',', ';' }))
-			{
-				MailAddress to;
-				try
-				{
-					to = new MailAddress(tmp);
-					smtpMail.To.Add(to);
-				}
-				catch (FormatException) { continue; }
-			}
-
-			if (!string.IsNullOrEmpty(imageFilePath))
-				foreach (string attachmentPath in attachmentPaths)
-					if (!string.IsNullOrEmpty(attachmentPath))
-					{
-						string tmpFile = string.Format(Core.Globals.GeneralOptions.CurrentCulture, @"{0}tmp\{1}", Core.Globals.UserDataDir, Guid.NewGuid().ToString("N"));
-						File.Copy(attachmentPath, tmpFile);
-
-						FileStream fs = new FileStream(tmpFile, FileMode.Open, FileAccess.Read);
-						attachmentStreams.Add(fs);
-						smtpMail.Attachments.Add(new Attachment(fs, new FileInfo(attachmentPath).Name));
-					}
-
 			try
 			{
-				using (SmtpClient smtp = new SmtpClient(Server, Port))
-				{
-					smtp.EnableSsl				= UseSSL;
-					smtp.Timeout				= 120 * 1000;
-					smtp.UseDefaultCredentials	= false;
-					smtp.Credentials			= new NetworkCredential(mailUserName, mailPassword);
-					smtp.SendCompleted += (o, e) =>
-						{
-							if (e.Error != null)
-								LogAndPrint(typeof(Custom.Resource), "ShareMailSendError", new[] { e.Error.Message }, Cbi.LogLevel.Error);
-							else
-								LogAndPrint(typeof(Custom.Resource), "ShareMailSentSuccessfully", new[] { Name }, Cbi.LogLevel.Information);
-
-							foreach (FileStream fs in attachmentStreams)
-							{
-								string tmp = fs.Name;
-								fs.Close();
-								if (File.Exists(tmp)) File.Delete(tmp);
-							}
-						};
-				
-					await smtp.SendMailAsync(smtpMail);
-				}
+				await Core.Globals.SendMailToServer(FromMailAddress, DisplayName, ToMailAddress.Split(',', ';'), CcMailAddress.Split(',', ';'), text, Subject, imageFilePath, Server, Port, mailUserName, mailPassword);
 			}
-			catch (SmtpException ex)
+			catch (Exception ex)
 			{
 				Exception innerEx = ex.InnerException;
 				string error = ex.Message;
@@ -159,7 +143,7 @@ namespace NinjaTrader.NinjaScript.ShareServices
 			}
 		}
 
-		public async override Task OnShare(string text, string imageFilePath, object[] args)
+		public override async Task OnShare(string text, string imageFilePath, object[] args)
 		{
 			if (args != null && args.Length > 1)
 			{
@@ -191,6 +175,7 @@ namespace NinjaTrader.NinjaScript.ShareServices
 				Signature					= Custom.Resource.EmailSignature;
 				UseOAuth					= false;
 
+				CcMailAddress				= string.Empty;
 				FromMailAddress				= string.Empty;
 				IsBodyHtml					= false;
 				Port						= 25;
@@ -215,6 +200,7 @@ namespace NinjaTrader.NinjaScript.ShareServices
 			}
 			else if (State == State.Terminated)
 			{
+				CcMailAddress	= string.Empty;
 				Subject			= string.Empty;
 				ToMailAddress	= string.Empty;
 			}
@@ -225,39 +211,53 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		{
 			if (name == Custom.Resource.ShareMailPreconfiguredAol)
 			{
-				Port	= 587;
-				Server	= "smtp.aol.com";
-				UseSSL	= true;
+				Port			= 587;
+				Server			= "smtp.aol.com";
+				UseSSL			= true;
+				UseOAuth		= false;
+				IsConfigured	= true;
 			}
 			else if (name == Custom.Resource.ShareMailPreconfiguredComcast)
 			{
-				Port	= 587;
-				Server	= "smtp.comcast.net";
-				UseSSL	= true;
+				Port			= 587;
+				Server			= "smtp.comcast.net";
+				UseSSL			= true;
+				UseOAuth		= false;
+				IsConfigured	= true;
 			}
 			else if (name == Custom.Resource.ShareMailPreconfiguredGmail)
 			{
-				Port	= 587;
-				Server	= "smtp.gmail.com";
-				UseSSL	= true;
+				UseOAuth		= true;
+				IsConfigured	= false;
 			}
 			else if (name == Custom.Resource.ShareMailPreconfiguredICloud)
 			{
-				Port	= 587;
-				Server	= "smtp.mail.me.com";
-				UseSSL	= true;
+				Port			= 587;
+				Server			= "smtp.mail.me.com";
+				UseSSL			= true;
+				UseOAuth		= false;
+				IsConfigured	= true;
 			}
 			else if (name == Custom.Resource.ShareMailPreconfiguredOutlook)
 			{
-				Port	= 587;
-				Server	= "smtp.live.com";
-				UseSSL	= true;
+				Port			= 587;
+				Server			= "smtp-mail.outlook.com";
+				UseSSL			= true;
+				UseOAuth		= false;
+				IsConfigured	= true;
 			}
 			else if (name == Custom.Resource.ShareMailPreconfiguredYahoo)
 			{
-				Port	= 587;
-				Server	= "smtp.mail.yahoo.com";
-				UseSSL	= true;
+				Port			= 587;
+				Server			= "smtp.mail.yahoo.com";
+				UseSSL			= true;
+				UseOAuth		= false;
+				IsConfigured	= true;
+			}
+			else
+			{
+				UseOAuth		= false;
+				IsConfigured	= true;
 			}
 		}
 
@@ -280,7 +280,11 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		[Browsable(false)]
 		public bool IsBodyHtml
 		{ get; set; }
-	
+
+		[Gui.Encrypt]
+		[Browsable(false)]
+		public string OAuthToken { get; set; }
+
 		[Gui.Encrypt]
 		[PasswordPropertyText(true)]
 		[Required]
@@ -293,6 +297,10 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		[Required]
 		public int Port
 		{ get; set; }
+
+		[Gui.Encrypt]
+		[Browsable(false)]
+		public string RefreshToken { get; set; }
 
 		[Display(ResourceType = typeof(Custom.Resource), Name = "MailServiceServer", GroupName = "ShareServiceParameters", Order = 10)]
 		[Required]
@@ -313,6 +321,13 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		public string ToMailAddress
 		{ get; set; }
 
+		[ShareField]																													//This indicates this property should show up in the Share window
+		[Display(ResourceType = typeof(Custom.Resource), Name = "MailCcAddress", Description = "MailCcAddressDescription", Order = 1)]	//The name will show up in the text label on the Share window and the Description will be the tooltip. Order determines the order fields show up in the window.
+		[Browsable(false)]
+		[XmlIgnore]
+		public string CcMailAddress
+		{ get; set; }
+
 		[Gui.Encrypt]
 		[Display(ResourceType = typeof(Custom.Resource), Name = "ShareServiceUserName", GroupName = "ShareServiceParameters", Order = 50)]
 		[Required]
@@ -324,5 +339,32 @@ namespace NinjaTrader.NinjaScript.ShareServices
 		public bool UseSSL
 		{ get; set; }
 		#endregion
+	}
+
+	public class MailTypeConverter : TypeConverter
+	{
+		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object component, Attribute[] attrs)
+		{
+			Mail mail = component as Mail;
+			PropertyDescriptorCollection filtered = new PropertyDescriptorCollection(null);
+			TypeConverter converter = TypeDescriptor.GetConverter(typeof(ShareService));
+			if (!mail.UseOAuth)
+				return converter.GetProperties(context, component, attrs);
+			else
+			{
+				foreach (PropertyDescriptor property in converter.GetProperties(context, component, attrs))
+					if (property.Name == "Password" || property.Name == "Port" || property.Name == "Server" || property.Name == "UseSSL" || property.Name == "UserName" || property.Name == "FromMailAddress")
+						continue;
+					else
+						filtered.Add(property);
+			}
+
+			return filtered;
+		}
+
+		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
+		{
+			return true;
+		}
 	}
 }

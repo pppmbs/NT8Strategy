@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -37,11 +37,11 @@ namespace NinjaTrader.NinjaScript.Indicators
 		{
 			if (State == State.SetDefaults)
 			{
-				Description					= NinjaTrader.Custom.Resource.NinjaScriptIndicatorDescriptionADL;
-				Name						= NinjaTrader.Custom.Resource.NinjaScriptIndicatorNameADL;
+				Description					= Custom.Resource.NinjaScriptIndicatorDescriptionADL;
+				Name						= Custom.Resource.NinjaScriptIndicatorNameADL;
 				IsSuspendedWhileInactive	= true;
 				DrawOnPricePanel			= false;
-				AddPlot(Brushes.DarkCyan, NinjaTrader.Custom.Resource.ADLAD);
+				AddPlot(Brushes.DarkCyan, Custom.Resource.ADLAD);
 			}
 			else if (State == State.Historical)
 			{

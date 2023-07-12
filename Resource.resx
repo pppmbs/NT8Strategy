@@ -3234,4 +3234,49 @@
   <data name="NinjaScriptDrawingToolAndrewsPitchforkExtendLinesBack" xml:space="preserve">
     <value>Extend lines back</value>
   </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>CC:</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>The email address of your carbon copy recipient. Separate multiple addresses with ',' or ';'</value>
+  </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>Legend location</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>Bottom left</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>Bottom right</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>Top left</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>Top right</value>
+  </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>Copyright &lt;sup&gt;©&lt;/sup&gt; {0}. All rights reserved. NinjaTrader and the NinjaTrader logo. Reg. U.S. Pat. &amp;amp; Tm. Off.</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>FULL RISK DISCLOSURE: Futures and forex trading contains substantial risk and is not for every investor. An investor could potentially lose all or more than the initial investment. Risk capital is money that can be lost without jeopardizing ones financial security or lifestyle. Only risk capital should be used for trading and only those with sufficient risk capital should consider trading. Past performance is not necessarily indicative of future results.</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>Account Successfully Authorized</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>You have successfully authorized {0} to access your Twitter account.</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>You may close this window and return to {0}.</value>
+  </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>TrendLines indicator is not visible with Strategy Analyzer</value>
+  </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>Select font, style, size to display on chart</value>
+  </data>
 </root>

@@ -150,6 +150,12 @@
   <data name="AskLineStroke" xml:space="preserve">
     <value>询问行</value>
   </data>
+  <data name="AuthDisclosureText1" xml:space="preserve">
+    <value>版权 &lt;sup&gt;©&lt;/sup&gt; {0}。保留所有权利。NinjaTrader 和 NinjaTrader 徽标。美国注册帕特放大器;关闭。</value>
+  </data>
+  <data name="AuthDisclosureText2" xml:space="preserve">
+    <value>全面风险披露：期货和外汇交易包含重大风险，并非适合每个投资者。投资者可能会损失全部或超过初始投资。风险资本是可以在不危及财务安全或生活方式的情况下损失的资金。只有风险资本才应该用于交易，只有那些有足够的风险资本才应该考虑交易。过往表现并不一定预示未来业绩。</value>
+  </data>
   <data name="BandPct" xml:space="preserve">
     <value>带 %</value>
   </data>
@@ -618,6 +624,24 @@
   <data name="LastLineStroke" xml:space="preserve">
     <value>最后一行</value>
   </data>
+  <data name="LegendLocation" xml:space="preserve">
+    <value>图例位置</value>
+  </data>
+  <data name="LegendLocation_BottomLeft" xml:space="preserve">
+    <value>左下角</value>
+  </data>
+  <data name="LegendLocation_BottomRight" xml:space="preserve">
+    <value>右下角</value>
+  </data>
+  <data name="LegendLocation_Disabled" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="LegendLocation_TopLeft" xml:space="preserve">
+    <value>左上角</value>
+  </data>
+  <data name="LegendLocation_TopRight" xml:space="preserve">
+    <value>右上角</value>
+  </data>
   <data name="Length" xml:space="preserve">
     <value>长度</value>
   </data>
@@ -647,6 +671,12 @@
   </data>
   <data name="LowerLow" xml:space="preserve">
     <value>低低</value>
+  </data>
+  <data name="MailCcAddress" xml:space="preserve">
+    <value>抄送：</value>
+  </data>
+  <data name="MailCcAddressDescription" xml:space="preserve">
+    <value>抄送收件人的电子邮件地址。用""、"或";"分隔多个地址</value>
   </data>
   <data name="MailServiceMailAddress" xml:space="preserve">
     <value>电子邮件地址</value>
@@ -3102,6 +3132,9 @@
   <data name="TextFont" xml:space="preserve">
     <value>文本字体</value>
   </data>
+  <data name="TextFontDescription" xml:space="preserve">
+    <value>选择要在图表上显示的字体，样式，大小</value>
+  </data>
   <data name="TextPosition_BottomLeft" xml:space="preserve">
     <value>左下角</value>
   </data>
@@ -3129,6 +3162,9 @@
   <data name="TrendLinesCurrentTrendLine" xml:space="preserve">
     <value>当前趋势线</value>
   </data>
+  <data name="TrendLinesNotVisible" xml:space="preserve">
+    <value>趋势线指标在策略分析器中不可见</value>
+  </data>
   <data name="TrendLinesTrendLineBroken" xml:space="preserve">
     <value>{0}破碎</value>
   </data>
@@ -3146,6 +3182,15 @@
   </data>
   <data name="TRIXSignal" xml:space="preserve">
     <value>信号</value>
+  </data>
+  <data name="TwitterAuthHeader" xml:space="preserve">
+    <value>帐户已成功授权</value>
+  </data>
+  <data name="TwitterAuthText1" xml:space="preserve">
+    <value>你已成功授权{0}访问你的 Twitter 帐户。</value>
+  </data>
+  <data name="TwitterAuthText2" xml:space="preserve">
+    <value>您可以关闭此窗口并返回到{0}。</value>
   </data>
   <data name="TwitterServiceName" xml:space="preserve">
     <value>推特</value>

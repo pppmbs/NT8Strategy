@@ -1,5 +1,5 @@
 ﻿// 
-// Copyright (C) 2021, NinjaTrader LLC <www.ninjatrader.com>.
+// Copyright (C) 2022, NinjaTrader LLC <www.ninjatrader.com>.
 // NinjaTrader reserves the right to modify or overwrite this NinjaScript component with each release.
 //
 #region Using declarations
@@ -134,6 +134,15 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					AreaBrush						= Brushes.SeaGreen;
 					AreaOpacity						= 0;
 					break;
+				case State.Configure:
+				{
+					if (PriceLevels.Count == 0)
+					{
+						PriceLevels.Add(new PriceLevel(0,	Brushes.Transparent));
+						PriceLevels.Add(new PriceLevel(100,	Brushes.Transparent));
+					}
+					break;
+				}
 				case State.Terminated:
 					Dispose();
 					break;
