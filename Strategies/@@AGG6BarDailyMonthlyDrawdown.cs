@@ -39,15 +39,15 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int sumFilled = 0; // This variable tracks the quantities of each execution making up the entry order
 
         // these constants affects how the drawdown policy is being enforced, typical settings are 7-5-2 and 6-4-2
-        private static int MaxConsecutiveLossesUpper = 6;
-        private static int MaxConsecutiveLosses = 4;
+        private static int MaxConsecutiveLossesUpper = 7;
+        private static int MaxConsecutiveLosses = 5;
         private static int MinConsecutiveWins = 2;
 
         private static double CommissionRate = 5.48;
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy constants that could be experimented
-        private static double ProfitChasingTarget = 0.75; // % monthly gain profit target
-        private static double MaxPercentAllowableDrawdown = 0.7; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double ProfitChasingTarget = 0.6; // % monthly gain profit target
+        private static double MaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double ProfitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private static readonly int lotSize = 1;

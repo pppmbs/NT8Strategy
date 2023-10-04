@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class SP500EminiLiveNoTickAITrader3001 : Strategy
+    public class SP500EminiLiveAITrader3002 : Strategy
     {
         // log, error, current capital and vix  files
         private string pathLog;
@@ -60,8 +60,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Daily drawdown (counting wins and losses) strategy settings
         // Low VIX daily drawdown control settings
-        private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
-        private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
+        //private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
+        //private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
+        //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
+        private static int LVmaxConsecutiveLossesUpper = 4;  // upper limit allowable daily losses
+        private static int LVmaxConsecutiveLosses = 2;      // max allowable daily losses if no win
         private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
         // High VIX daily drawdown control settings
         private static int HVmaxConsecutiveLossesUpper = 4; // upper limit allowable daily losses
@@ -70,13 +73,64 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy settings
         //Low VIX monthly drawdown control settings
-        private static double LVprofitChasingTarget = 0.6; // % monthly gain profit target
-        private static double LVmaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private static double LVprofitChasingTarget = 0.3; // % monthly gain profit target
+        private static double LVmaxPercentAllowableDrawdown = 0.15; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double LVprofitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
         // High VIX monthly drawdown control settings
         private static double HVprofitChasingTarget = 0.75; // % monthly gain profit target
         private static double HVmaxPercentAllowableDrawdown = 0.1; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private static double HVprofitChasingAllowableDrawdown = 0.05; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+        // --------------------------------------------------
+        // TRADE FILTERS
+        // --------------------------------------------------
+        // flags and settings for VROC, CCI, DMR, RSI and ADX trade filters, EITHER CCI, RSI OR ADX can be TRUE at ANY ONE TIME
+        private static bool DMREnabled = false;
+        private static bool UseADXFilter = false;
+        private static bool UseCCIFilter = false;
+        private static bool UseVROCFilter = true;
+        private static bool UseRSIFilter = false;
+        private static bool UseMACDFilter = false;
+        private static bool UserMACDAndVROC = false;
+        private static bool UseRSIAndMACDFilter = false;
+        private static bool UseRSIAndVROCFilter = false;
+        private static bool UseADXAndVROCFilter = false;
+        private static bool UseRSIADXandVROCFilter = false;
+        private static bool UseMACDorRSIandVROCFilter = false; // (MACD || RSI) && VROC 
+        private static bool AddFilterForShortOnly = true; // Use additional Entry filter for Short only
+        // When set to TRUE, trade when MACD_Diff < MACDDiffThreshold, 
+        // When set to FALSE, trade when MACD_Diff > MACDDiffThreshold
+        private static bool UseMACDInLessThanMode = false;
+
+        // Handle early position exit with HandleMarketShift
+        private static bool UseEntryFilter = true;
+        private static bool UseExitFilter = true;
+
+        // Macro Market Views
+        enum MarketView
+        {
+            Bullish,
+            Bearish,
+            Neutral
+        };
+        MarketView currMarketView = MarketView.Bearish;
+
+        // --------------------------------------------------
+        // TRADE FILTERS THRESHOLDS
+        // --------------------------------------------------
+        private static double RSIUpper = 75;
+        private static double RSILower = 30;
+        private static double CCIUpper = 180;
+        private static double CCILower = -180;
+        private static double ADXThreshold = 45;
+        private static double VROCUpper = 13;
+        private static double VROCLower = -14;
+        private static double VROCPos = 2.0;
+        private static double VROCNeg = -2.0;
+        private static double MACDDiffThreshold = 0.2;
+        private static double ProfitPercentage = 0.75; // 75% Profit target met to use SMA Exit filter
+        private static int SMAConstant = 20; // Usually 20 or 9
+        private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
         private static readonly int LotSize = 100;
@@ -129,13 +183,13 @@ namespace NinjaTrader.NinjaScript.Strategies
          * **********************************************************************************************************
          */
         private static readonly int TicksPerStop = 4;
-        private static readonly int defaultPstops = 20; 
+        private static readonly int defaultPstops = 20;
         private static readonly int defaultLstops = 10;
         private int profitChasing = defaultPstops * TicksPerStop; // the target where HandleProfitChasing kicks in
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
         private int pStops, lStops;
-        private static readonly int portNumber = 3001;
+        private static readonly int portNumber = 3002;
         private static readonly string hostName = "AITrader";
         /*
          * **********************************************************************************************************
@@ -192,7 +246,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "SP500EminiLiveNoTickAITrader3001";
+                Name = "SP500EminiLiveAITrader3002";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -434,7 +488,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     if (attemptToFlattenPos) // attempting to close existing positions
                     {
-                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Closing position order rejected!!" + " Error code=" + error.ToString() + ": " + nativeError);
+                        MyErrPrint(ErrorType.fatal, "OnOrderUpdate, Closing position order rejected!! May need to manually close position." + " Error code=" + error.ToString() + ": " + nativeError);
                     }
                     else // opening new position rejected
                     {
@@ -519,7 +573,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             double cumulativePL;
             double allowableMonthlyLossesg;
 
-
+            //SystemPerformance.AllTrades.TradesPerformance.NetProfit keeps track of the P/L only when the system is running
+            //i.e. for live trading it only keep tracks of the P/L for the day
             cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit;
             if (cumulativePL <= 0)
             {
@@ -537,6 +592,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                     virtualCurrentCapital = 0;
 
+                    //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                     MyErrPrint(ErrorType.fatal, "CheckMonthlyStopLoss, !!!!!!!!!!!! Monthly stop loss enforced, Skipping New Trade Position and setting virtualCurrentCapital to ZERO !!!!!!!!!!!!" + " monthlyProfitChasingFlag=" + monthlyProfitChasingFlag);
                     MyPrint(defaultErrorType, "CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " currentMonthlyLosses=" + currentMonthlyLosses + " cumulativePL=" + cumulativePL);
                 }
@@ -549,6 +605,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                         virtualCurrentCapital = 0;
 
+                        //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                         MyErrPrint(ErrorType.fatal, "CheckMonthlyStopLoss, !!!!!!!!!!!! Monthly stop loss enforced, Skipping New Trade Position and setting virtualCurrentCapital to ZERO !!!!!!!!!!!!" + " monthlyProfitChasingFlag=" + monthlyProfitChasingFlag);
                         MyPrint(defaultErrorType, "CheckMonthlyStopLoss, virtualCurrentCapital=" + virtualCurrentCapital + " currentMonthlyLosses=" + currentMonthlyLosses + " cumulativePL=" + cumulativePL);
                     }
@@ -737,13 +794,18 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             lStops = pStops / 2;
 
-            // set up profit chasing and stop loss settings for the day
-            profitChasing = pStops * TicksPerStop; // the target where HandleProfitChasing kicks in
-            softDeck = lStops * TicksPerStop; // number of stops for soft stop loss
-            hardDeck = pStops * TicksPerStop; //hard deck for auto stop loss
-    }
+            // set profitChasing, softDeck and hardDeck if DMREnabled is TRUE
+            if (DMREnabled)
+            {
+                // set up profit chasing and stop loss settings for the day
+                profitChasing = pStops * TicksPerStop; // the target where HandleProfitChasing kicks in
+                softDeck = lStops * TicksPerStop; // number of stops for soft stop loss
+                hardDeck = pStops * TicksPerStop; //hard deck for auto stop loss
+            }
+        }
 
 
+        // CloseStrategy() is called in the event of a fatal error, which will close all positions and disable strategy
         private void MyErrPrint(ErrorType errType, string buf)
         {
             string errString = "";
@@ -780,6 +842,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (errType == ErrorType.fatal)
             {
                 CloseStrategy(errString);
+                haltTrading = true;
             }
         }
 
@@ -886,6 +949,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             currPos = Position.posFlat;
             profitChasingFlag = false;
             attemptToFlattenPos = false;
+            profitPercentMet = false; // reset profitPercentMet flag
 
             MyPrint(defaultErrorType, "FlattenVirtualPositions, currPos=" + currPos + " profitChasingFlag=" + profitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
         }
@@ -894,10 +958,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void AiFlat(ExitOrderType order)
         {
             MyPrint(defaultErrorType, "AiFlat: currPos=" + currPos.ToString() + ", ExitOrderType=" + order);
-
-            MyPrint(defaultErrorType, "--- ADX ---");
-            MyPrint(defaultErrorType, "ADX=" + ADX(8)[0].ToString());
-            MyPrint(defaultErrorType, "--- ADX ---");
 
             if (!PosFlat())
             {
@@ -929,6 +989,377 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        private bool IsTradeInterrupted(string signal)
+        {
+            MyPrint(defaultErrorType, "IsTradeInterrupted Checked. VROC(-10/10) && RSI(30/70)");
+            MyPrint(defaultErrorType, "closePrice=" + closedPrice + " Close[0]=" + Close[0]);
+            MyPrint(defaultErrorType, "profitPercentMet=" + profitPercentMet.ToString());
+            MyPrint(defaultErrorType, "SMA9=" + SMA(9)[0].ToString() + " SMA20=" + SMA(20)[0].ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
+            switch (signal[0])
+            {
+                case '0':
+                    // Buy position Sell Signal
+                    // ADX+RSI+VROC if ((ADX(8)[0] > 45) && (VROC(25, 3)[0] < VROCLower) && (RSI(20, 3)[0] > 75))
+                    // RSI+VROC if ((VROC(25, 3)[0] < VROCLower) && (RSI(20, 3)[0] > 75))
+                    // ADX+ VROC if ((ADX(8)[0] > 45) && (VROC(25, 3)[0] < VROCLower))
+                    // Negative P/L && (closedPrice > Close[0])
+                    // Positive P/L && (closedPrice < Close[0])
+                    // SMA Exit if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
+                    //{
+                    //    profitPercentMet = false; // reset profitPercentMet flag
+                    //    return true;
+                    //}
+                    if ((Close[0] >= (closedPrice + ProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
+                    {
+                        profitPercentMet = true;
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                    }
+
+                    if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
+                    {
+                        profitPercentMet = false; // reset profitPercentMet flag
+                        return true;
+                    }
+                    break;
+                case '2':
+                    // Sell position Buy singal
+                    // ADX+RSI+VROC if ((ADX(8)[0] > 45) && (VROC(25, 3)[0] > VROCUpper) && (RSI(20, 3)[0] < 30))
+                    // RSI+VROC if ((VROC(25, 3)[0] > VROCUpper) && (RSI(20, 3)[0] < 30))
+                    // ADX+VROC if ((ADX(8)[0] > 45) && (VROC(25, 3)[0] > VROCUpper))
+                    // Negative P/L && (closedPrice < Close[0])
+                    // Positive P/L && (closedPrice > Close[0])
+                    // SMA Exit if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
+                    //{
+                    //    profitPercentMet = false; // reset profitPercentMet flag
+                    //    return true;
+                    //}
+                    if ((Close[0] <= (closedPrice - ProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
+                    {
+                        profitPercentMet = true;
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                    }
+
+                    if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
+                    {
+                        profitPercentMet = false; // reset profitPercentMet flag
+                        return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+
+        // Skip trade if IsTradeFilered is FALSE
+        private bool IsTradeFiltered(string signal)
+        {
+            MyPrint(defaultErrorType, "Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
+
+            if (UseRSIAndMACDFilter)
+            {
+                MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
+                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
+                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+                MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if (UseMACDInLessThanMode)
+                        {
+                            if ((RSI(20, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                                return true;
+                        }
+                        else
+                        {
+                            if ((RSI(20, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                                return true;
+                        }
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if (UseMACDInLessThanMode)
+                        {
+                            if ((RSI(20, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                                return true;
+                        }
+                        else
+                        {
+                            if ((RSI(20, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                                return true;
+                        }
+                        break;
+                }
+            }
+            if (UseRSIFilter)
+            {
+                MyPrint(defaultErrorType, "UseRSIFilter");
+                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
+                MyPrint(defaultErrorType, "UseRSIFilter");
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if (RSI(20, 3)[0] > RSIUpper)
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if (RSI(20, 3)[0] < RSILower)
+                            return true;
+                        break;
+                }
+            }
+            if (UseMACDFilter)
+            {
+                MyPrint(defaultErrorType, "UseMACDFilter");
+                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+                MyPrint(defaultErrorType, "UseMACDFilter");
+                if (UseMACDInLessThanMode)
+                {
+                    // reject trade until MACD_Diff < MACDDiffThreshold
+                    if (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)
+                        return true;
+                }
+                else
+                {
+                    // reject trade until MACD_Diff > MACDDiffThreshold
+                    if (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)
+                        return true;
+                }
+            }
+            if (UseCCIFilter)
+            {
+                MyPrint(defaultErrorType, "UseCCIFilter");
+                MyPrint(defaultErrorType, "CCIUpper=" + CCIUpper.ToString() + " CCILower=" + CCILower.ToString() + " CCI=" + CCI(20)[0].ToString());
+                MyPrint(defaultErrorType, "UseCCIFilter");
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if (CCI(20)[0] > CCIUpper)
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if (CCI(20)[0] < CCILower)
+                            return true;
+                        break;
+                }
+            }
+            if (UseADXFilter)
+            {
+                MyPrint(defaultErrorType, "--- UseADXFilter ---");
+                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+                MyPrint(defaultErrorType, "--- UseADXFilter ---");
+                if (ADX(8)[0] > ADXThreshold)
+                    return true;
+            }
+            if (UseVROCFilter)
+            {
+                MyPrint(defaultErrorType, "--- UseVROCFilter ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCPos=" + VROCPos.ToString() + " VROCNeg=" + VROCNeg.ToString() + " VROC=" + VROC(25, 3)[0].ToString()); MyPrint(defaultErrorType, "--- UseVROCFilter ---");
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        //if (VROC(25, 3)[0] < VROCLower)
+                        //    return true;
+                        // Sell when VROC is in range [VROCNeg..VROCPos]
+                        if ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg))
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if (VROC(25, 3)[0] > VROCUpper)
+                            return true;
+                        break;
+                }
+            }
+            if (UserMACDAndVROC)
+            {
+                MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+                MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
+
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if (UseMACDInLessThanMode)
+                        {
+                            if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                                return true;
+                        }
+                        else
+                        {
+                            if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                                return true;
+                        }
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if (UseMACDInLessThanMode)
+                        {
+                            if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                                return true;
+                        }
+                        else
+                        {
+                            if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                                return true;
+                        }
+                        break;
+                }
+            }
+            if (UseRSIAndVROCFilter)
+            {
+                MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
+                MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if ((RSI(20, 3)[0] > RSIUpper) && (VROC(25, 3)[0] < VROCLower))
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if ((RSI(20, 3)[0] < RSILower) && (VROC(25, 3)[0] > VROCUpper))
+                            return true;
+                        break;
+                }
+            }
+            if (UseADXAndVROCFilter)
+            {
+                MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+                MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
+
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower))
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper))
+                            return true;
+                        break;
+                }
+            }
+            if (UseRSIADXandVROCFilter)
+            {
+                MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
+                MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
+
+                switch (signal[0])
+                {
+                    case '0':
+                        if (currMarketView == MarketView.Bullish)
+                            return false; // eliminate any Sell opportunity
+                        // sell
+                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower) && (RSI(20, 3)[0] > RSIUpper))
+                            return true;
+                        break;
+                    case '2':
+                        if (currMarketView == MarketView.Bearish)
+                            return false; // eliminate any Buy opportunity
+                        // buy
+                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper) && (RSI(20, 3)[0] < RSILower))
+                            return true;
+                        break;
+                }
+            }
+            if (UseMACDorRSIandVROCFilter)
+            {
+                {
+                    MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
+                    MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
+                    MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+                    MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+                    MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
+                    switch (signal[0])
+                    {
+                        case '0':
+                            if (currMarketView == MarketView.Bullish)
+                                return false; // eliminate any Sell opportunity
+                            // sell
+                            if (UseMACDInLessThanMode)
+                            {
+                                // reject trade unless VROC AND (MACD OR RSI) passed
+                                if ((VROC(25, 3)[0] < VROCLower) && ((RSI(20, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
+                                    return true;
+                            }
+                            else
+                            {
+                                // reject trade unless VROC AND (MACD OR RSI) passed
+                                if ((VROC(25, 3)[0] < VROCLower) && ((RSI(20, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
+                                    return true;
+                            }
+                            break;
+                        case '2':
+                            if (currMarketView == MarketView.Bearish)
+                                return false; // eliminate any Buy opportunity
+                            // buy
+                            if (UseMACDInLessThanMode)
+                            {
+                                // reject trade unless VROC AND (MACD OR RSI) passed
+                                if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(20, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
+                                    return true;
+                            }
+                            else
+                            {
+                                // reject trade unless VROC AND (MACD OR RSI) passed
+                                if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(20, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
+                                    return true;
+                            }
+                            break;
+                    }
+                }
+            }
+            return false;
+        }
+
+
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
@@ -957,9 +1388,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            MyPrint(defaultErrorType, "--- ADX ---");
-            MyPrint(defaultErrorType, "ADX=" + ADX(8)[0].ToString());
-            MyPrint(defaultErrorType, "--- ADX ---");
+            // Skip trade if IsTradeFilered is FALSE
+            if (UseEntryFilter && !IsTradeFiltered(signal))
+            {
+                MyPrint(defaultErrorType, "IsTradeFiltered failed! NO TRADE!");
+                return;
+            }
 
             switch (signal[0])
             {
@@ -992,8 +1426,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             // don't execute trade if consecutive losses greater than allowable limits
             if (consecutiveDailyLosses >= maxConsecutiveDailyLosses)
             {
+                //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                 MyErrPrint(ErrorType.fatal, "ExecuteAITrade, consecutiveDailyLosses >= maxConsecutiveDailyLosses, Halt trading enforced, skipping StartNewTradePosition");
-                haltTrading = true;
+                //haltTrading = true;
                 return;
             }
 
@@ -1016,6 +1451,99 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+
+        // Exit current positions if market dynamic shifted against current positions
+        private void HandleMarketShift(string signal)
+        {
+            double estVirtualCurrentCapital;
+
+            if (PosFlat())
+            {
+                // this is not possible
+                Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleMarketShift");
+                return;
+            }
+
+            if (PosLong())
+            {
+                // Check Sell signal when position is Long
+                if (signal[0] == '0')
+                {
+                    // Exit position if IsTradeFilered is TRUE
+                    if (IsTradeInterrupted(signal))
+                    {
+                        //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
+                        MyPrint(defaultErrorType, "");
+                        MyPrint(defaultErrorType, "HandleMarketShift, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
+                        MyPrint(defaultErrorType, "");
+                        AiFlat(ExitOrderType.limit);
+
+                        // if early exit is a loss then increment daily losses count
+                        if (((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate) < 0)
+                            IncrementDailyLoss();
+                        else
+                            IncrementDailyWin();
+
+                        // keeping records for monthly profit chasing and stop loss strategy
+                        // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
+                        estVirtualCurrentCapital = virtualCurrentCapital + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate);
+
+                        // stop trading if monthly profit is met and trading going negative
+                        if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
+                        {
+                            MyPrint(defaultErrorType, "HandleMarketShift, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                            haltTrading = true;
+
+                            // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                            virtualCurrentCapital = 0;
+                            PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (PosShort())
+            {
+                // Check Buy signal when position is Short
+                if (signal[0] == '2')
+                {
+                    // Exit position if IsTradeFilered is TRUE
+                    if (IsTradeInterrupted(signal))
+                    {
+                        //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
+                        MyPrint(defaultErrorType, "");
+                        MyPrint(defaultErrorType, "HandleMarketShift, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
+                        MyPrint(defaultErrorType, "");
+                        AiFlat(ExitOrderType.limit);
+
+                        // if early exit is a loss then increment daily losses count
+                        if (((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate) < 0)
+                            IncrementDailyLoss();
+                        else
+                            IncrementDailyWin();
+
+                        // keeping records for monthly profit chasing and stop loss strategy
+                        // estCurrentCapital is an estimate because time lagged between AiFlat() and actual closing of account position
+                        estVirtualCurrentCapital = virtualCurrentCapital + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate);
+
+                        // stop trading if monthly profit is met and trading going negative
+                        if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
+                        {
+                            MyPrint(defaultErrorType, "HandleMarketShift, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + " estCurrentVirtualCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                            haltTrading = true;
+
+                            // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
+                            virtualCurrentCapital = 0;
+                            PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
+                        }
+                    }
+                }
+                return;
+            }
+        }
+
+
         private void HandleSoftDeck(string signal)
         {
             double estVirtualCurrentCapital;
@@ -1033,7 +1561,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+                    MyPrint(defaultErrorType, "HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1063,7 +1591,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    MyPrint(defaultErrorType, "HandleSoftDeck, signal= " + signal.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1114,8 +1642,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosLong())
             {
-                MyErrPrint(ErrorType.fatal, "HandleHardDeck, Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
-                //CloseStrategy() called in MyErrPrint when error is fatal, it will flatten all positions
+                //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
+                MyErrPrint(ErrorType.fatal, "HandleHardDeck, Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
                 //AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
@@ -1138,7 +1666,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                MyErrPrint(ErrorType.fatal, "HandleHardDeck,  Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
+                MyErrPrint(ErrorType.fatal, "HandleHardDeck,  Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                 //CloseStrategy() called in MyErrPrint when error is fatal, it will flatten all positions
                 //AiFlat(ExitOrderType.market);
 
@@ -1191,7 +1720,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate));
+                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate));
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1210,6 +1739,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                         virtualCurrentCapital = 0;
                         PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
+                        MyErrPrint(ErrorType.fatal, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     }
                 }
             }
@@ -1218,7 +1748,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
                 {
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
+                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1231,12 +1761,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // stop trading if monthly profit is met and trading going negative
                     if (monthlyProfitChasingFlag && (estVirtualCurrentCapital < yesterdayVirtualCapital))
                     {
-                        MyPrint(defaultErrorType, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
+                        MyPrint(defaultErrorType, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
 
                         // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                         virtualCurrentCapital = 0;
                         PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
+                        MyErrPrint(ErrorType.fatal, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     }
                 }
             }
@@ -1277,7 +1808,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
 
             // EOD close current position(s)
-            MyPrint(defaultErrorType, "CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * 50 - CommissionRate).ToString());
+            MyPrint(defaultErrorType, "CloseCurrentPositions, HandleEOD:: " + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " P/L= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
             AiFlat(ExitOrderType.limit);
         }
 
@@ -1296,6 +1827,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void PrintProfitLossCurrentCapital()
         {
+            //SystemPerformance.AllTrades.TradesPerformance.NetProfit keeps track of the P/L only when the system is running
+            //i.e. for live trading it only keep tracks of the P/L for the day
             double cumulativePL = SystemPerformance.AllTrades.TradesPerformance.NetProfit; // cumulative P&L
 
             // MyPrint out the net profit of all trades
@@ -1512,6 +2045,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
                 MyPrint(defaultErrorType, "CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
+                MyPrint(defaultErrorType, "SMA9=" + SMA(9)[0].ToString() + " SMA20=" + SMA(20)[0].ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+                MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
+                MyPrint(defaultErrorType, "Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
+
+                // Play a sound when current bar hit VROCUpper or VROCLower
+                if ((VROC(25, 3)[0] >= VROCUpper) || (VROC(25, 3)[0] <= VROCLower))
+                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_up.wav");
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
@@ -1553,6 +2093,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
                     if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                     {
+                        if (UseExitFilter)
+                            HandleMarketShift(svrSignal);
+
                         // if Close[0] violates soft deck, if YES handle stop loss accordingly
                         if (ViolateSoftDeck())
                         {
