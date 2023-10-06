@@ -422,6 +422,7 @@
     <Compile Include="Strategies\SP500EminiLiveAITrader3003.cs" />
     <Compile Include="Strategies\%40%40SP500EminiBackTest3333.cs" />
     <Compile Include="Strategies\RegularBackTest3333.cs" />
+    <Compile Include="Strategies\MarketViewGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

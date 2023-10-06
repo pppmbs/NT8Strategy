@@ -31,20 +31,20 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
     public class SP500EminiLiveAITrader3001 : Strategy
     {
-        // log, error, current capital and vix  files
+        // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
         private string pathErr;
         private string pathCC;
         private string pathCL;
         private string pathVIX;
-        private string pathPstops;
+        private string pathPpercent;
         private string pathMktView;
         private StreamWriter swLog = null; // runtime log file 
         private StreamWriter swErr = null; // error file
         private StreamWriter swCC = null;  // Store current capital for each strategy 
         private StreamWriter swCL = null;  // Store current monthly losses for each strategy
         private StreamWriter swVIX = null;  // Store 10 days Moving average VIX
-        private StreamWriter swPstops = null; // Store dynamic Pstops
+        private StreamWriter swPpercent = null; // Store dynamic Pstops
         private StreamWriter swMkt = null; // Store marekt view, 0=Bear, 1=Neutral, 2=Bull
 
         private Order entryOrder = null; // This variable holds an object representing our entry order
@@ -121,16 +121,21 @@ namespace NinjaTrader.NinjaScript.Strategies
         // --------------------------------------------------
         private static double RSIUpper = 75;
         private static double RSILower = 30;
+        private static double RSIMultipier = 1.45;
+
         private static double CCIUpper = 180;
         private static double CCILower = -180;
         private static double ADXThreshold = 45;
+        private static double ADXMultiplier = 1.2;
+
         private static double VROCUpper = 13;
-        private static double VROCLower = -14;
+        private static double VROCLower = -13;
         private static double VROCPos = 1.0;
         private static double VROCNeg = -1.0;
         private static double MACDDiffThreshold = 0.2;
-        private static double ProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
-        private static int SMAConstant = 20; // Usually 20 or 9
+        private static int SMAConstant = 20;
+        private static double DefaultProfitPercent = 0.75;
+        private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
         private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
@@ -537,11 +542,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 swVIX = null;
             }
 
-            if (swPstops != null)
+            if (swPpercent != null)
             {
-                swPstops.Close();
-                swPstops.Dispose();
-                swPstops = null;
+                swPpercent.Close();
+                swPpercent.Dispose();
+                swPpercent = null;
             }
         }
 
@@ -553,14 +558,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // Read current monthly losses file .cl for the current monthly losses, create one if it does not exist
             ReadCurrentMonthlyLosses();
-            CheckMonthlyStopLoss();
+            //CheckMonthlyStopLoss(); can not check for monthly stop loss here for back test, can only check in OnPositionUpdate
 
             // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
             ReadMarketViewFile();
 
-            // Read the pStops and lStops to set up the profit chasing and stop loss settings
-            // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
-            ReadPstopsnLstopsSettings();
+            // Read the profit percentage for triggering the early exit
+            ReadEarlyExitProftPercent();
 
             // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
             ReadEMAVixToSetUpDrawdownSettings();
@@ -815,34 +819,24 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Read the pStops and lStops to set up the profit chasing and stop loss settings
         // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
-        private void ReadPstopsnLstopsSettings()
+        private void ReadEarlyExitProftPercent()
         {
             //Read pstops file, pstops is the same across all strategies
-            pathPstops = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathPstops = System.IO.Path.Combine(pathPstops, "Artista" + ".pstop");
+            pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathPpercent = System.IO.Path.Combine(pathPpercent, "Backtest" + ".pp");
 
-            if (File.Exists(pathPstops))
+            if (File.Exists(pathPpercent))
             {
-                string pStopsString = File.ReadAllText(pathPstops); // read pStops
+                string ppString = File.ReadAllText(pathPpercent); // read pStops
 
-                MyPrint(defaultErrorType, "ReadPstopsnLstopsSettings, pStops=" + pStopsString);
+                earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
 
-                pStops = Convert.ToInt32(pStopsString);
+                MyPrint(defaultErrorType, "ReadEarlyExitProftPercent, earlyExitProfitPercentage=" + earlyExitProfitPercentage.ToString());
             }
             else
             {
-                pStops = defaultPstops;
-                MyErrPrint(ErrorType.warning, pathPstops + " Pstops file does not exist! Revert to default pStops=" + pStops);
-            }
-            lStops = pStops / 2;
-
-            // set profitChasing, softDeck and hardDeck if DMREnabled is TRUE
-            if (DMREnabled)
-            {
-                // set up profit chasing and stop loss settings for the day
-                profitChasing = pStops * TicksPerStop; // the target where HandleProfitChasing kicks in
-                softDeck = lStops * TicksPerStop; // number of stops for soft stop loss
-                hardDeck = pStops * TicksPerStop; //hard deck for auto stop loss
+                earlyExitProfitPercentage = DefaultProfitPercent;
+                MyErrPrint(ErrorType.warning, pathPpercent + " Profit Percent file does not exist! Revert to default earlyExitProfitPercentage=" + earlyExitProfitPercentage);
             }
         }
 
@@ -1033,6 +1027,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private bool IsTradeInterrupted()
         {
+            // Check current earlyExitProfitPercentage 
+            ReadEarlyExitProftPercent();
+
             MyPrint(defaultErrorType, "IsTradeInterrupted Checked. VROC(-10/10) && RSI(30/70)");
             MyPrint(defaultErrorType, "closePrice=" + closedPrice + " Close[0]=" + Close[0]);
             MyPrint(defaultErrorType, "profitPercentMet=" + profitPercentMet.ToString());
@@ -1040,7 +1037,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
             if (PosLong())
             {
-                if ((Close[0] >= (closedPrice + ProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
+                if ((Close[0] >= (closedPrice + earlyExitProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
                     MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
@@ -1054,7 +1051,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             if (PosShort())
             {
-                if ((Close[0] <= (closedPrice - ProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
+                if ((Close[0] <= (closedPrice - earlyExitProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
                     MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
@@ -1210,17 +1207,23 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '0':
                         if (currMarketView == MarketView.Bullish)
                             return false; // eliminate any Sell opportunity
-                        // sell
-                        //if (VROC(25, 3)[0] < VROCLower)
-                        //    return true;
-                        // Sell when VROC is in range [VROCNeg..VROCPos]
-                        if ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg))
-                            return true;
+                        // Sell 
+                        // Bearish vs Neutral market outlook VROC entry for Buy
+                        if (currMarketView == MarketView.Bearish)
+                        {
+                            if ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg))
+                                return true;
+                        }
+                        else // Neutral
+                        {
+                            if (VROC(25, 3)[0] < VROCLower)
+                                return true;
+                        }
                         break;
                     case '2':
                         if (currMarketView == MarketView.Bearish)
                             return false; // eliminate any Buy opportunity
-                        // buy
+                        // Buy
                         // Bullish vs Neutral market outlook VROC entry for Buy
                         if (currMarketView == MarketView.Bullish)
                         {
@@ -1893,30 +1896,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        private void ComputeDynamicPstopsLstops(double highOfDay, double lowOfDay)
-        {
-            Int32 pStops, lStops;
-
-            // 50% of the daily range between peak and trough, round to even number
-            pStops = (int)Math.Round((highOfDay - lowOfDay) * 0.5, MidpointRounding.ToEven);
-
-            // pStops can only be between 20 and 4
-            if (pStops > 20)
-                pStops = 20;
-            if (pStops < 10)
-                pStops = 10;
-
-            lStops = pStops / 2;
-
-            // save pStops in file 
-            swPstops = File.CreateText(pathPstops); // Open the path for pStops
-            swPstops.WriteLine(pStops.ToString());
-            swPstops.Close();
-            swPstops.Dispose();
-            swPstops = null;
-        }
-
-
         // Attempt to flatten position with limit order if EOD
         private void HandleEndOfSession()
         {
@@ -1951,7 +1930,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     MyPrint(defaultErrorType, "^^^^^^^^^^^^ High of the day=" + highOfDay);
                     MyPrint(defaultErrorType, "vvvvvvvvvvvv Low of the day=" + lowOfDay);
-                    ComputeDynamicPstopsLstops(highOfDay, lowOfDay);
                 }
             }
         }
