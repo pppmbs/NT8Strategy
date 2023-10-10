@@ -199,7 +199,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
         private int pStops = defaultPstops;
-        private int lStop = defaultLstops;
+        private int lStops = defaultLstops;
         private static readonly int portNumber = 3333;
         private static readonly string hostName = "AITrader";
         /*

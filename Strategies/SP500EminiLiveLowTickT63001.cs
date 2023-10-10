@@ -108,9 +108,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Macro Market Views
         enum MarketView
         {
-            Bullish,
-            Bearish,
-            Neutral
+            Bull,     // >2
+            Bullish,  // =2
+            Bearish,  // =0
+            Bear,     // <0
+            Neutral   // =1
         };
         MarketView currMarketView;
 
@@ -192,7 +194,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int profitChasing = defaultPstops * TicksPerStop; // the target where HandleProfitChasing kicks in
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
-        private int pStops, lStops;
+        private int pStops = defaultPstops;
+        private int lStops = defaultLstops;
         private static readonly int portNumber = 3001;
         private static readonly string hostName = "ArtistaT6";
         /*
@@ -774,7 +777,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // Read market view file, 0=Bearish, 1=Neutral, 2=Bullish
+        // Read market view file, Bear<0, 0=Bearish, 1=Neutral, 2=Bullish, Bull>2
         private void ReadMarketViewFile()
         {
             int mktView;
@@ -790,18 +793,30 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 MyPrint(defaultErrorType, "ReadMarketViewFile, mktViewString=" + mktViewString);
 
-                switch (mktView)
+                if (mktView < 0)
                 {
-                    case 0:
-                        currMarketView = MarketView.Bearish;
-                        break;
-                    case 2:
-                        currMarketView = MarketView.Bullish;
-                        break;
-                    default:
-                        currMarketView = MarketView.Neutral;
-                        break;
+                    currMarketView = MarketView.Bear;
                 }
+                else if (mktView > 2)
+                {
+                    currMarketView = MarketView.Bull;
+                }
+                else
+                {
+                    switch (mktView)
+                    {
+                        case 0:
+                            currMarketView = MarketView.Bearish;
+                            break;
+                        case 2:
+                            currMarketView = MarketView.Bullish;
+                            break;
+                        default:
+                            currMarketView = MarketView.Neutral;
+                            break;
+                    }
+                }
+
                 MyPrint(defaultErrorType, "ReadMarketViewFile, currMarketView=" + currMarketView.ToString());
             }
             else
@@ -1065,8 +1080,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Skip trade if IsTradeFilered is FALSE
         private bool IsTradeFiltered(string signal)
         {
+            // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
             ReadMarketViewFile();
-            MyPrint(defaultErrorType, "Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
+            MyPrint(defaultErrorType, "IsTradeFiltered, Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
 
             if (UseRSIAndMACDFilter)
             {
@@ -1077,8 +1093,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 switch (signal[0])
                 {
                     case '0':
-                        if (currMarketView == MarketView.Bullish)
+                        if (currMarketView == MarketView.Bull)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if (UseMACDInLessThanMode)
                         {
@@ -1092,8 +1111,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                         }
                         break;
                     case '2':
-                        if (currMarketView == MarketView.Bearish)
+                        if (currMarketView == MarketView.Bear)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if (UseMACDInLessThanMode)
                         {
@@ -1116,15 +1138,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 switch (signal[0])
                 {
                     case '0':
-                        if (currMarketView == MarketView.Bullish)
+                        if (currMarketView == MarketView.Bull)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if (RSI(20, 3)[0] > RSIUpper)
                             return true;
                         break;
                     case '2':
-                        if (currMarketView == MarketView.Bearish)
+                        if (currMarketView == MarketView.Bear)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if (RSI(20, 3)[0] < RSILower)
                             return true;
@@ -1137,10 +1165,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
                 MyPrint(defaultErrorType, "UseMACDFilter");
 
-                if ((signal[0] == '0') && (currMarketView == MarketView.Bullish))
-                    return false; // eliminate any Sell opportunity
-                if ((signal[0] == '2') && (currMarketView == MarketView.Bearish))
-                    return false; // eliminate any Buy opportunity
+                if (signal[0] == '0')
+                {
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+                }
+                if (signal[0] == '2')
+                {
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+                }
 
                 if (UseMACDInLessThanMode)
                 {
@@ -1163,15 +1201,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 switch (signal[0])
                 {
                     case '0':
-                        if (currMarketView == MarketView.Bullish)
+                        if (currMarketView == MarketView.Bull)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if (CCI(20)[0] > CCIUpper)
                             return true;
                         break;
                     case '2':
-                        if (currMarketView == MarketView.Bearish)
+                        if (currMarketView == MarketView.Bear)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if (CCI(20)[0] < CCILower)
                             return true;
@@ -1184,10 +1228,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
                 MyPrint(defaultErrorType, "--- UseADXFilter ---");
 
-                if ((signal[0] == '0') && (currMarketView == MarketView.Bullish))
-                    return false; // eliminate any Sell opportunity
-                if ((signal[0] == '2') && (currMarketView == MarketView.Bearish))
-                    return false; // eliminate any Buy opportunity
+                if (signal[0] == '0')
+                {
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+                }
+                if (signal[0] == '2')
+                {
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+                }
 
                 if (ADX(8)[0] > ADXThreshold)
                     return true;
@@ -1195,18 +1249,25 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (UseVROCFilter)
             {
                 MyPrint(defaultErrorType, "--- UseVROCFilter ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCPos=" + VROCPos.ToString() + " VROCNeg=" + VROCNeg.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                MyPrint(defaultErrorType, "--- UseVROCFilter ---");
+                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCPos=" + VROCPos.ToString() + " VROCNeg=" + VROCNeg.ToString() + " VROC=" + VROC(25, 3)[0].ToString()); MyPrint(defaultErrorType, "--- UseVROCFilter ---");
                 switch (signal[0])
                 {
                     case '0':
-                        if (currMarketView == MarketView.Bullish)
+                        if (currMarketView == MarketView.Bull)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // Sell 
-                        // Bearish vs Neutral market outlook VROC entry for Buy
                         if (currMarketView == MarketView.Bearish)
                         {
-                            if ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg))
+                            if ((VROC(25, 3)[0] < VROCLower) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
+                                return true;
+                        }
+                        // In order to Short in a Bullish market outlook, the filter has to be more stringent than Neutral
+                        else if (currMarketView == MarketView.Bullish)
+                        {
+                            if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] > RSIUpper))
                                 return true;
                         }
                         else // Neutral
@@ -1216,13 +1277,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                         }
                         break;
                     case '2':
-                        if (currMarketView == MarketView.Bearish)
+                        if (currMarketView == MarketView.Bear)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // Buy
-                        // Bullish vs Neutral market outlook VROC entry for Buy
                         if (currMarketView == MarketView.Bullish)
                         {
                             if ((VROC(25, 3)[0] > VROCUpper) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
+                                return true;
+                        }
+                        // In order to Long in a Bearish market outlook, the filter has to be more stringent than Neutral
+                        else if (currMarketView == MarketView.Bearish)
+                        {
+                            if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] < RSILower))
                                 return true;
                         }
                         else // Neutral
@@ -1245,6 +1314,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '0':
                         if (currMarketView == MarketView.Bullish)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if (UseMACDInLessThanMode)
                         {
@@ -1260,6 +1332,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '2':
                         if (currMarketView == MarketView.Bearish)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if (UseMACDInLessThanMode)
                         {
@@ -1285,6 +1360,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '0':
                         if (currMarketView == MarketView.Bullish)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if ((RSI(20, 3)[0] > RSIUpper) && (VROC(25, 3)[0] < VROCLower))
                             return true;
@@ -1292,6 +1370,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '2':
                         if (currMarketView == MarketView.Bearish)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if ((RSI(20, 3)[0] < RSILower) && (VROC(25, 3)[0] > VROCUpper))
                             return true;
@@ -1310,6 +1391,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '0':
                         if (currMarketView == MarketView.Bullish)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower))
                             return true;
@@ -1317,6 +1401,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '2':
                         if (currMarketView == MarketView.Bearish)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper))
                             return true;
@@ -1336,6 +1423,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '0':
                         if (currMarketView == MarketView.Bullish)
                             return false; // eliminate any Sell opportunity
+                        if (currMarketView == MarketView.Bear)
+                            return true; // accepts all Sell opportunities
+
                         // sell
                         if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower) && (RSI(20, 3)[0] > RSIUpper))
                             return true;
@@ -1343,6 +1433,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     case '2':
                         if (currMarketView == MarketView.Bearish)
                             return false; // eliminate any Buy opportunity
+                        if (currMarketView == MarketView.Bull)
+                            return true; // accepts all Buy opportunities
+
                         // buy
                         if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper) && (RSI(20, 3)[0] < RSILower))
                             return true;
@@ -1362,6 +1455,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                         case '0':
                             if (currMarketView == MarketView.Bullish)
                                 return false; // eliminate any Sell opportunity
+                            if (currMarketView == MarketView.Bear)
+                                return true; // accepts all Sell opportunities
+
                             // sell
                             if (UseMACDInLessThanMode)
                             {
@@ -1379,6 +1475,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                         case '2':
                             if (currMarketView == MarketView.Bearish)
                                 return false; // eliminate any Buy opportunity
+                            if (currMarketView == MarketView.Bull)
+                                return true; // accepts all Buy opportunities
+
                             // buy
                             if (UseMACDInLessThanMode)
                             {
@@ -1398,7 +1497,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             return false;
         }
-
 
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
@@ -2053,8 +2151,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 MyPrint(defaultErrorType, "CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
                 MyPrint(defaultErrorType, "SMA9=" + SMA(9)[0].ToString() + " SMA20=" + SMA(20)[0].ToString() + " RSI=" + RSI(14, 3)[0].ToString());
-                MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
-                MyPrint(defaultErrorType, "Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
+                MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString() + " ADX=" + ADX(8)[0].ToString());
+                if (State == State.Realtime)
+                {
+                    // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
+                    ReadMarketViewFile();
+                    MyPrint(defaultErrorType, "OnBarUpdate, Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
+                }
 
                 // Play a sound when current bar hit VROCUpper or VROCLower
                 if ((VROC(25, 3)[0] >= VROCUpper) || (VROC(25, 3)[0] <= VROCLower))
