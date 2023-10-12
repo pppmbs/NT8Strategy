@@ -833,7 +833,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             //Read pstops file, pstops is the same across all strategies
             pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathPpercent = System.IO.Path.Combine(pathPpercent, "Backtest" + ".pp");
+            pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
 
             if (File.Exists(pathPpercent))
             {
@@ -1261,18 +1261,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // Sell 
                         if (currMarketView == MarketView.Bearish)
                         {
-                            if ((VROC(25, 3)[0] < VROCLower) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
+                            if ((VROC(25, 3)[0] > VROCUpper) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
                                 return true;
                         }
                         // In order to Short in a Bullish market outlook, the filter has to be more stringent than Neutral
                         else if (currMarketView == MarketView.Bullish)
                         {
-                            if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] > RSIUpper))
+                            if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] > RSIUpper))
                                 return true;
                         }
                         else // Neutral
                         {
-                            if (VROC(25, 3)[0] < VROCLower)
+                            if ((VROC(25, 3)[0] > VROCUpper) && ((ADX(8)[0] > ADXThreshold) || (RSI(20, 3)[0] > RSIUpper)))
                                 return true;
                         }
                         break;
@@ -1296,7 +1296,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         }
                         else // Neutral
                         {
-                            if ((VROC(25, 3)[0] > VROCUpper))
+                            if ((VROC(25, 3)[0] > VROCUpper) && ((ADX(8)[0] > ADXThreshold) || (RSI(20, 3)[0] < RSILower)))
                                 return true;
                         }
                         break;
