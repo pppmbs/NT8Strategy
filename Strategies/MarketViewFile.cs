@@ -26,8 +26,10 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
-	public class MarketViewGenerator : Strategy
+	public class MarketViewFile : Strategy
 	{
+		string path;
+
 		private static double RSIHigh = 80;
 		private static double RSILow = 20;
 		private static double BullConfirmation = 60;
@@ -35,11 +37,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 		private string pathMktView;
 		private StreamWriter swMkt = null; // Store marekt view, 0=Bear, 1=Neutral, 2=Bull
-
-		private string pathIdentViews;
-		private StreamWriter swIDV = null; // 0==no identical market views, 1==consecutive identidcal market views
-
-		private bool identicalViews = false;
 
 		// Macro Market Views
 		enum MarketView
@@ -50,9 +47,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 			Undetermined
 		};
 		MarketView currMarketView = MarketView.Undetermined;
-
-		Queue<MarketView> mvQue = new Queue<MarketView>();
-		private static int mvSize = 6;
 
 		enum RSIRegion
 		{
@@ -67,8 +61,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		{
 			if (State == State.SetDefaults)
 			{
-				Description = @"Experimental with indicators  to establish market view";
-				Name = "MarketViewGenerator";
+				Description = @"Generate daily market view files";
+				Name = "MarketViewFile";
 				Calculate = Calculate.OnBarClose;
 				EntriesPerDirection = 1;
 				EntryHandling = EntryHandling.AllEntries;
@@ -92,85 +86,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 			{
 				AddDataSeries(Data.BarsPeriodType.Minute, 5);
 
-				// Output tab2
+				// Output tab1
 				PrintTo = PrintTo.OutputTab1;
 			}
 		}
 
-		private bool IdenticalMarketViews()
-		{
-			MarketView first;
-			if (mvQue.Count != 0)
-			{
-				first = mvQue.Peek();
-				Print("IdenticalMarketViews, first=" + first.ToString());
-			}
-			else
-			{
-				Print("IdenticalMarketViews, count=0");
-				return false;
-			}
-
-			if (mvQue.Count < mvSize)
-				return false;
-			else
-			{
-				foreach (var mkt in mvQue)
-				{
-					Print("IdenticalMarketViews, mkt=" + mkt.ToString());
-					if (mkt != first)
-						return false;
-				}
-			}
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
-			return true;
-		}
-
-		private void WriteMarketView(MarketView mktView)
-        {
-			pathMktView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-			pathMktView = System.IO.Path.Combine(pathMktView, "Artista" + ".mkt");
-
-			swMkt = File.CreateText(pathMktView); // Open the path for Market View
-            switch (mktView)
-            {
-				case MarketView.Bullish:
-					swMkt.WriteLine("2");
-					break;
-				case MarketView.Bearish:
-					swMkt.WriteLine("0");
-					break;
-				default:
-					swMkt.WriteLine("1");
-					break;
-			}
-			swMkt.Close();
-			swMkt.Dispose();
-			swMkt = null;
-		}
-
-		private void WriteIdenticalViews()
-        {
-			pathIdentViews = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-			pathIdentViews = System.IO.Path.Combine(pathIdentViews, "Artista" + ".idv");
-
-			swIDV = File.CreateText(pathIdentViews); // Open the path for Identical Market Views
-
-			if (IdenticalMarketViews())
-            {
-				swIDV.WriteLine("1");
-			}
-			else
-            {
-				swIDV.WriteLine("0");
-			}
-
-			swIDV.Close();
-			swIDV.Dispose();
-			swIDV = null;
-		}
 
 		protected override void OnBarUpdate()
 		{
@@ -211,7 +131,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				// Bullish -> Neutral, RSI turned back below BullConfirmation
 				if ((RSI(14, 3)[0] < BullConfirmation) && (rsiTouched == RSIRegion.BullConfirmed))
-                {
+				{
 					currMarketView = MarketView.Neutral;
 				}
 
@@ -221,35 +141,28 @@ namespace NinjaTrader.NinjaScript.Strategies
 					currMarketView = MarketView.Neutral;
 				}
 
-				// Insert current market view in queue
-				if (mvQue.Count == mvSize)
+				string bufString;
+				string header = "TIME,VIEW";
+
+				if (Bars.IsFirstBarOfSession)
 				{
-					mvQue.Dequeue();
-					mvQue.Enqueue(currMarketView);
+					path = NinjaTrader.Core.Globals.UserDataDir + "MarketViewFile\\" + Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + ".csv";
+
+					// construct the string buffer to be sent to DLNN
+					bufString = "000000" + ',' + currMarketView.ToString();
+
+					File.Delete(path);
+					File.AppendAllText(path, header + Environment.NewLine);
+					Print(header);
+					Print(Bars.GetTime(CurrentBar).ToString("d"));
 				}
 				else
-					mvQue.Enqueue(currMarketView);
-
-				switch (currMarketView)
-                {
-					case MarketView.Neutral:
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
-						break;
-					case MarketView.Bearish:
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
-						break;
-					case MarketView.Bullish:
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
-						break;
-                }
-
-				Print("[[[[[ VolumeOscillator ]]]]]= " + VolumeOscillator(12, 26)[0].ToString());
-				Print("[[[[[ VolumeOscillator ]]]]]= " + VolumeOscillator(12, 26)[0].ToString());
-
-				WriteMarketView(currMarketView);
-				WriteIdenticalViews();
-				Print("Current Market View =" + " {{{{{ " + currMarketView.ToString() + " }}}}} ");
-				Print("Current Market View =" + " {{{{{ " + currMarketView.ToString() + " }}}}} ");
+				{
+					// construct the string buffer to be sent to DLNN
+					bufString = Bars.GetTime(CurrentBar).ToString("HHmmss") + ',' + currMarketView.ToString();
+				}
+				File.AppendAllText(path, bufString + Environment.NewLine);
+				Print(bufString);
 			}
 		}
 	}

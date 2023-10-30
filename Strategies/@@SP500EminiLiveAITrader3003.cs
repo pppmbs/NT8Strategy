@@ -1,4 +1,4 @@
-﻿#region Using declarations
+#region Using declarations
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,9 +29,9 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class SP500EminiLiveLowTickT63001 : Strategy
+    public class SP500EminiLiveAITrader3003 : Strategy
     {
-        // log, error, current capital and vix  files
+        // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
         private string pathErr;
         private string pathCC;
@@ -62,6 +62,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Daily drawdown (counting wins and losses) strategy settings
         // Low VIX daily drawdown control settings
+        //private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
+        //private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
+        //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
         private static int LVmaxConsecutiveLossesUpper = 4;  // upper limit allowable daily losses
         private static int LVmaxConsecutiveLosses = 2;      // max allowable daily losses if no win
         private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
@@ -90,20 +93,20 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static bool UseVROCFilter = true;
         private static bool UseRSIFilter = false;
         private static bool UseMACDFilter = false;
-        private static bool UserMACDAndVROC = false;
+        private static bool UserMACDAndVROCFilter = false;
         private static bool UseRSIAndMACDFilter = false;
         private static bool UseRSIAndVROCFilter = false;
         private static bool UseADXAndVROCFilter = false;
         private static bool UseRSIADXandVROCFilter = false;
         private static bool UseMACDorRSIandVROCFilter = false; // (MACD || RSI) && VROC 
-        private static bool AddFilterForShortOnly = true; // Use additional Entry filter for Short only
         // When set to TRUE, trade when MACD_Diff < MACDDiffThreshold, 
         // When set to FALSE, trade when MACD_Diff > MACDDiffThreshold
-        private static bool UseMACDInLessThanMode = true;
+        private static bool UseMACDInLessThanMode = false;
 
         // Handle early position exit with HandleMarketShift
         private static bool UseEntryFilter = true;
         private static bool UseExitFilter = true;
+        private static bool UseTighterFilter = false;
 
         // Macro Market Views
         enum MarketView
@@ -119,7 +122,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // --------------------------------------------------
         // TRADE FILTERS THRESHOLDS
         // --------------------------------------------------
-        private static double RSIUpper = 75;
+        private static double RSIUpper = 70;
         private static double RSILower = 30;
         private static double RSIMultipier = 1.45;
 
@@ -129,9 +132,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static double ADXMultiplier = 1.2;
 
         private static double VROCUpper = 13;
-        private static double VROCLower = -13;
-        private static double VROCPos = 1.0;
-        private static double VROCNeg = -1.0;
+        private static double VROCLower = -14;
+        private static double VROCRange = 1.0;
         private static double MACDDiffThreshold = 0.2;
         private static int SMAConstant = 20;
         private static double DefaultProfitPercent = 0.75;
@@ -139,7 +141,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
-        private static readonly int LotSize = 2;
+        private static readonly int LotSize = 100;
 
         // Dollar value for ONE point, i.e. 4 ticks, 4 x $12.50 (value per tick) = $50
         private static double dollarValPerPoint = 50;
@@ -176,6 +178,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // they are to be initialized when State == State.DataLoaded during start up
         private double yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
+        private bool stopMonthlyTrading = false;
         private double lastTotalRealtimePnL = 0;
 
         private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
@@ -196,8 +199,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
         private int pStops = defaultPstops;
         private int lStops = defaultLstops;
-        private static readonly int portNumber = 3001;
-        private static readonly string hostName = "ArtistaT6";
+        private static readonly int portNumber = 3003;
+        private static readonly string hostName = "AITrader";
         /*
          * **********************************************************************************************************
          */
@@ -253,7 +256,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "SP500EminiLiveLowTickT63001";
+                Name = "SP500EminiLiveAITrader3003";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -559,7 +562,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // Read current monthly losses file .cl for the current monthly losses, create one if it does not exist
             ReadCurrentMonthlyLosses();
-            CheckMonthlyStopLoss();
+            //CheckMonthlyStopLoss(); can not check for monthly stop loss here for back test, can only check in OnPositionUpdate
+
+            // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
+            ReadMarketViewFile();
 
             // Read the profit percentage for triggering the early exit
             ReadEarlyExitProftPercent();
@@ -1040,8 +1046,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Check current earlyExitProfitPercentage 
             ReadEarlyExitProftPercent();
 
-            MyPrint(defaultErrorType, "IsTradeInterrupted Checked. VROC(-10/10) && RSI(30/70)");
-            MyPrint(defaultErrorType, "closePrice=" + closedPrice + " Close[0]=" + Close[0]);
+            MyPrint(defaultErrorType, "IsTradeInterrupted Checked." + " closePrice=" + closedPrice + " Close[0]=" + Close[0]);
             MyPrint(defaultErrorType, "profitPercentMet=" + profitPercentMet.ToString());
             MyPrint(defaultErrorType, "SMA9=" + SMA(9)[0].ToString() + " SMA20=" + SMA(20)[0].ToString() + " RSI=" + RSI(14, 3)[0].ToString());
             MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
@@ -1051,6 +1056,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     profitPercentMet = true;
                     MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
                 }
                 // SMA Exit if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
@@ -1065,6 +1071,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     profitPercentMet = true;
                     MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
                 }
                 // SMA Exit if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
@@ -1077,6 +1084,499 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        private bool RSIAndMACDFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
+            MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+            MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if (UseMACDInLessThanMode)
+                    {
+                        if ((RSI(14, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                            return true;
+                    }
+                    else
+                    {
+                        if ((RSI(14, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if (UseMACDInLessThanMode)
+                    {
+                        if ((RSI(14, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                            return true;
+                    }
+                    else
+                    {
+                        if ((RSI(14, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+        private bool RSIFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "UseRSIFilter");
+            MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "UseRSIFilter");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if (RSI(14, 3)[0] > RSIUpper)
+                        return true;
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if (RSI(14, 3)[0] < RSILower)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        private bool MACDFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "UseMACDFilter");
+            MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+            MyPrint(defaultErrorType, "UseMACDFilter");
+
+            if (signal[0] == '0')
+            {
+                if (currMarketView == MarketView.Bull)
+                    return false; // eliminate any Sell opportunity
+                if (currMarketView == MarketView.Bear)
+                    return true; // accepts all Sell opportunities
+            }
+            if (signal[0] == '2')
+            {
+                if (currMarketView == MarketView.Bear)
+                    return false; // eliminate any Buy opportunity
+                if (currMarketView == MarketView.Bull)
+                    return true; // accepts all Buy opportunities
+            }
+
+            if (UseMACDInLessThanMode)
+            {
+                // reject trade until MACD_Diff < MACDDiffThreshold
+                if (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)
+                    return true;
+            }
+            else
+            {
+                // reject trade until MACD_Diff > MACDDiffThreshold
+                if (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)
+                    return true;
+            }
+            return false;
+        }
+
+
+        private bool CCIFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "UseCCIFilter");
+            MyPrint(defaultErrorType, "CCIUpper=" + CCIUpper.ToString() + " CCILower=" + CCILower.ToString() + " CCI=" + CCI(20)[0].ToString());
+            MyPrint(defaultErrorType, "UseCCIFilter");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if (CCI(20)[0] > CCIUpper)
+                        return true;
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if (CCI(20)[0] < CCILower)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool ADXFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseADXFilter ---");
+            MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+            MyPrint(defaultErrorType, "--- UseADXFilter ---");
+
+            if (signal[0] == '0')
+            {
+                if (currMarketView == MarketView.Bull)
+                    return false; // eliminate any Sell opportunity
+                if (currMarketView == MarketView.Bear)
+                    return true; // accepts all Sell opportunities
+            }
+            if (signal[0] == '2')
+            {
+                if (currMarketView == MarketView.Bear)
+                    return false; // eliminate any Buy opportunity
+                if (currMarketView == MarketView.Bull)
+                    return true; // accepts all Buy opportunities
+            }
+
+            if (ADX(8)[0] > ADXThreshold)
+                return true;
+            return false;
+        }
+
+        // Standard overbought is defined as 70, we use a buffer of 10
+        private bool OverBought()
+        {
+            if (RSI(14, 3)[0] > 60)
+                return true;
+            else
+                return false;
+        }
+
+        // Standard oversold is defined as 30, we use a buffer of 10
+        private bool OverSold()
+        {
+            if (RSI(14, 3)[0] < 40)
+                return true;
+            else
+                return false;
+        }
+
+        private bool SMABear()
+        {
+            if (SMA(9)[0] < SMA(20)[0])
+                return true;
+            else
+                return false;
+        }
+
+        private bool SMABull()
+        {
+            if (SMA(9)[0] > SMA(20)[0])
+                return true;
+            else
+                return false;
+        }
+
+        private bool VROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseVROCFilter ---");
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower=" + VROCLower.ToString() + " VROCRange=" + VROCRange.ToString() + " VROC=" + VROC(25, 3)[0].ToString()); MyPrint(defaultErrorType, "--- UseVROCFilter ---");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bull)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // Sell 
+                    if (currMarketView == MarketView.Bearish)
+                    {
+                        // For regular VROC, ADX must exceed ADXThreshold, and should not be oversold 
+                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && !OverSold())
+                        {
+                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && !OverSold");
+                            return true;
+                        }
+                        // For range VROC, ADX must meet some min level, currently set at 30, and should not be oversold 
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverSold() && SMABear())
+                        {
+                            MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverSold && SMABear");
+                            return true;
+                        }
+                    }
+                    // In order to Short in a Bullish or Neutral market outlook, the filter has to be more stringent than Bearish
+                    else if (currMarketView == MarketView.Neutral)
+                    {
+                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] > RSIUpper) && SMABear())
+                        {
+                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && RSI && SMABear");
+                            return true;
+                        }
+                    }
+                    else if (currMarketView == MarketView.Bullish)
+                    {
+                        return false;
+                    }
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bear)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // Buy
+                    if (currMarketView == MarketView.Bullish)
+                    {
+                        // For regular VROC, ADX must exceed ADXThreshold, and should not be overbought 
+                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && !OverBought())
+                        {
+                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && !OverBought");
+                            return true;
+                        }
+                        // For range VROC, ADX must meet some min level, currently set at 30, and should not be overbought 
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverBought() && SMABull())
+                        {
+                            MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverBought &&  SMABull");
+                            return true;
+                        }
+                    }
+                    // In order to Long in a Bearish or Neutral market outlook, the filter has to be more stringent than Bullish
+                    else if (currMarketView == MarketView.Neutral)
+                    {
+                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] < RSILower) && SMABull())
+                        {
+                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && RSI && SMABull");
+                            return true;
+                        }
+                    }
+                    else if (currMarketView == MarketView.Bearish)
+                    {
+                        return false;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool MACDAndVROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+            MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+            MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
+
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bullish)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if (UseMACDInLessThanMode)
+                    {
+                        if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                            return true;
+                    }
+                    else
+                    {
+                        if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bearish)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if (UseMACDInLessThanMode)
+                    {
+                        if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
+                            return true;
+                    }
+                    else
+                    {
+                        if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+        private bool RSIAndVROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+            MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bullish)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if ((RSI(14, 3)[0] > RSIUpper) && (VROC(25, 3)[0] < VROCLower))
+                        return true;
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bearish)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if ((RSI(14, 3)[0] < RSILower) && (VROC(25, 3)[0] > VROCUpper))
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        private bool ADXAndVROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+            MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+            MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
+
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bullish)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower))
+                        return true;
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bearish)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper))
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool RSIADXandVROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+            MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
+            MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
+
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bullish)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower) && (RSI(14, 3)[0] > RSIUpper))
+                        return true;
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bearish)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper) && (RSI(14, 3)[0] < RSILower))
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        private bool MACDorRSIandVROCFilter(string signal)
+        {
+            MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
+            MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(14, 3)[0].ToString());
+            MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
+            MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
+            MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
+            switch (signal[0])
+            {
+                case '0':
+                    if (currMarketView == MarketView.Bullish)
+                        return false; // eliminate any Sell opportunity
+                    if (currMarketView == MarketView.Bear)
+                        return true; // accepts all Sell opportunities
+
+                    // sell
+                    if (UseMACDInLessThanMode)
+                    {
+                        // reject trade unless VROC AND (MACD OR RSI) passed
+                        if ((VROC(25, 3)[0] < VROCLower) && ((RSI(14, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
+                            return true;
+                    }
+                    else
+                    {
+                        // reject trade unless VROC AND (MACD OR RSI) passed
+                        if ((VROC(25, 3)[0] < VROCLower) && ((RSI(14, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (currMarketView == MarketView.Bearish)
+                        return false; // eliminate any Buy opportunity
+                    if (currMarketView == MarketView.Bull)
+                        return true; // accepts all Buy opportunities
+
+                    // buy
+                    if (UseMACDInLessThanMode)
+                    {
+                        // reject trade unless VROC AND (MACD OR RSI) passed
+                        if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(14, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
+                            return true;
+                    }
+                    else
+                    {
+                        // reject trade unless VROC AND (MACD OR RSI) passed
+                        if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(14, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
         // Skip trade if IsTradeFilered is FALSE
         private bool IsTradeFiltered(string signal)
         {
@@ -1086,418 +1586,50 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (UseRSIAndMACDFilter)
             {
-                MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
-                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
-                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
-                MyPrint(defaultErrorType, "UseRSIAndMACDFilter");
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bull)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if (UseMACDInLessThanMode)
-                        {
-                            if ((RSI(20, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
-                                return true;
-                        }
-                        else
-                        {
-                            if ((RSI(20, 3)[0] > RSIUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
-                                return true;
-                        }
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bear)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if (UseMACDInLessThanMode)
-                        {
-                            if ((RSI(20, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
-                                return true;
-                        }
-                        else
-                        {
-                            if ((RSI(20, 3)[0] < RSILower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
-                                return true;
-                        }
-                        break;
-                }
+                return RSIAndMACDFilter(signal);
             }
             if (UseRSIFilter)
             {
-                MyPrint(defaultErrorType, "UseRSIFilter");
-                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
-                MyPrint(defaultErrorType, "UseRSIFilter");
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bull)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if (RSI(20, 3)[0] > RSIUpper)
-                            return true;
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bear)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if (RSI(20, 3)[0] < RSILower)
-                            return true;
-                        break;
-                }
+                return RSIFilter(signal);
             }
             if (UseMACDFilter)
             {
-                MyPrint(defaultErrorType, "UseMACDFilter");
-                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
-                MyPrint(defaultErrorType, "UseMACDFilter");
-
-                if (signal[0] == '0')
-                {
-                    if (currMarketView == MarketView.Bull)
-                        return false; // eliminate any Sell opportunity
-                    if (currMarketView == MarketView.Bear)
-                        return true; // accepts all Sell opportunities
-                }
-                if (signal[0] == '2')
-                {
-                    if (currMarketView == MarketView.Bear)
-                        return false; // eliminate any Buy opportunity
-                    if (currMarketView == MarketView.Bull)
-                        return true; // accepts all Buy opportunities
-                }
-
-                if (UseMACDInLessThanMode)
-                {
-                    // reject trade until MACD_Diff < MACDDiffThreshold
-                    if (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)
-                        return true;
-                }
-                else
-                {
-                    // reject trade until MACD_Diff > MACDDiffThreshold
-                    if (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)
-                        return true;
-                }
+                return MACDFilter(signal);
             }
             if (UseCCIFilter)
             {
-                MyPrint(defaultErrorType, "UseCCIFilter");
-                MyPrint(defaultErrorType, "CCIUpper=" + CCIUpper.ToString() + " CCILower=" + CCILower.ToString() + " CCI=" + CCI(20)[0].ToString());
-                MyPrint(defaultErrorType, "UseCCIFilter");
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bull)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if (CCI(20)[0] > CCIUpper)
-                            return true;
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bear)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if (CCI(20)[0] < CCILower)
-                            return true;
-                        break;
-                }
+                return CCIFilter(signal);
             }
             if (UseADXFilter)
             {
-                MyPrint(defaultErrorType, "--- UseADXFilter ---");
-                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
-                MyPrint(defaultErrorType, "--- UseADXFilter ---");
-
-                if (signal[0] == '0')
-                {
-                    if (currMarketView == MarketView.Bull)
-                        return false; // eliminate any Sell opportunity
-                    if (currMarketView == MarketView.Bear)
-                        return true; // accepts all Sell opportunities
-                }
-                if (signal[0] == '2')
-                {
-                    if (currMarketView == MarketView.Bear)
-                        return false; // eliminate any Buy opportunity
-                    if (currMarketView == MarketView.Bull)
-                        return true; // accepts all Buy opportunities
-                }
-
-                if (ADX(8)[0] > ADXThreshold)
-                    return true;
+                return ADXFilter(signal);
             }
             if (UseVROCFilter)
             {
-                MyPrint(defaultErrorType, "--- UseVROCFilter ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCPos=" + VROCPos.ToString() + " VROCNeg=" + VROCNeg.ToString() + " VROC=" + VROC(25, 3)[0].ToString()); MyPrint(defaultErrorType, "--- UseVROCFilter ---");
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bull)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // Sell 
-                        if (currMarketView == MarketView.Bearish)
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
-                                return true;
-                        }
-                        // In order to Short in a Bullish market outlook, the filter has to be more stringent than Neutral
-                        else if (currMarketView == MarketView.Bullish)
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] > RSIUpper))
-                                return true;
-                        }
-                        else // Neutral
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && ((ADX(8)[0] > ADXThreshold) || (RSI(20, 3)[0] > RSIUpper)))
-                                return true;
-                        }
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bear)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // Buy
-                        if (currMarketView == MarketView.Bullish)
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) || ((VROC(25, 3)[0] < VROCPos) && (VROC(25, 3)[0] > VROCNeg)))
-                                return true;
-                        }
-                        // In order to Long in a Bearish market outlook, the filter has to be more stringent than Neutral
-                        else if (currMarketView == MarketView.Bearish)
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(20, 3)[0] < RSILower))
-                                return true;
-                        }
-                        else // Neutral
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && ((ADX(8)[0] > ADXThreshold) || (RSI(20, 3)[0] < RSILower)))
-                                return true;
-                        }
-                        break;
-                }
+                return VROCFilter(signal);
             }
-            if (UserMACDAndVROC)
+            if (UserMACDAndVROCFilter)
             {
-                MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
-                MyPrint(defaultErrorType, "--- UseMACDAndVROC ---");
-
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bullish)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if (UseMACDInLessThanMode)
-                        {
-                            if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
-                                return true;
-                        }
-                        else
-                        {
-                            if ((VROC(25, 3)[0] < VROCLower) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
-                                return true;
-                        }
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bearish)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if (UseMACDInLessThanMode)
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold))
-                                return true;
-                        }
-                        else
-                        {
-                            if ((VROC(25, 3)[0] > VROCUpper) && (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold))
-                                return true;
-                        }
-                        break;
-                }
+                return MACDAndVROCFilter(signal);
             }
             if (UseRSIAndVROCFilter)
             {
-                MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
-                MyPrint(defaultErrorType, "--- UseRSIAndVROCFilter ---");
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bullish)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if ((RSI(20, 3)[0] > RSIUpper) && (VROC(25, 3)[0] < VROCLower))
-                            return true;
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bearish)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if ((RSI(20, 3)[0] < RSILower) && (VROC(25, 3)[0] > VROCUpper))
-                            return true;
-                        break;
-                }
+                return RSIAndVROCFilter(signal);
             }
             if (UseADXAndVROCFilter)
             {
-                MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
-                MyPrint(defaultErrorType, "--- UseADXAndVROCFilter ---");
-
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bullish)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower))
-                            return true;
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bearish)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper))
-                            return true;
-                        break;
-                }
+                return ADXAndVROCFilter(signal);
             }
             if (UseRSIADXandVROCFilter)
             {
-                MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
-                MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                MyPrint(defaultErrorType, "ADXThreshold=" + ADXThreshold.ToString() + " ADX=" + ADX(8)[0].ToString());
-                MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
-                MyPrint(defaultErrorType, "--- UseRSIADXandVROCFilter ---");
-
-                switch (signal[0])
-                {
-                    case '0':
-                        if (currMarketView == MarketView.Bullish)
-                            return false; // eliminate any Sell opportunity
-                        if (currMarketView == MarketView.Bear)
-                            return true; // accepts all Sell opportunities
-
-                        // sell
-                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] < VROCLower) && (RSI(20, 3)[0] > RSIUpper))
-                            return true;
-                        break;
-                    case '2':
-                        if (currMarketView == MarketView.Bearish)
-                            return false; // eliminate any Buy opportunity
-                        if (currMarketView == MarketView.Bull)
-                            return true; // accepts all Buy opportunities
-
-                        // buy
-                        if ((ADX(8)[0] > ADXThreshold) && (VROC(25, 3)[0] > VROCUpper) && (RSI(20, 3)[0] < RSILower))
-                            return true;
-                        break;
-                }
+                return RSIADXandVROCFilter(signal);
             }
             if (UseMACDorRSIandVROCFilter)
             {
-                {
-                    MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
-                    MyPrint(defaultErrorType, "RSIUpper=" + RSIUpper.ToString() + " RSILower" + RSILower.ToString() + " RSI=" + RSI(20, 3)[0].ToString());
-                    MyPrint(defaultErrorType, "MACDDiffThreshold=" + MACDDiffThreshold.ToString() + " MACD_Diff=" + MACD(12, 26, 9).Diff[0].ToString());
-                    MyPrint(defaultErrorType, "VROCUpper=" + VROCUpper.ToString() + " VROCLower" + VROCLower.ToString() + " VROC=" + VROC(25, 3)[0].ToString());
-                    MyPrint(defaultErrorType, "UseMACDorRSIandVROCFilter");
-                    switch (signal[0])
-                    {
-                        case '0':
-                            if (currMarketView == MarketView.Bullish)
-                                return false; // eliminate any Sell opportunity
-                            if (currMarketView == MarketView.Bear)
-                                return true; // accepts all Sell opportunities
-
-                            // sell
-                            if (UseMACDInLessThanMode)
-                            {
-                                // reject trade unless VROC AND (MACD OR RSI) passed
-                                if ((VROC(25, 3)[0] < VROCLower) && ((RSI(20, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
-                                    return true;
-                            }
-                            else
-                            {
-                                // reject trade unless VROC AND (MACD OR RSI) passed
-                                if ((VROC(25, 3)[0] < VROCLower) && ((RSI(20, 3)[0] > RSIUpper) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
-                                    return true;
-                            }
-                            break;
-                        case '2':
-                            if (currMarketView == MarketView.Bearish)
-                                return false; // eliminate any Buy opportunity
-                            if (currMarketView == MarketView.Bull)
-                                return true; // accepts all Buy opportunities
-
-                            // buy
-                            if (UseMACDInLessThanMode)
-                            {
-                                // reject trade unless VROC AND (MACD OR RSI) passed
-                                if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(20, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) < MACDDiffThreshold)))
-                                    return true;
-                            }
-                            else
-                            {
-                                // reject trade unless VROC AND (MACD OR RSI) passed
-                                if ((VROC(25, 3)[0] > VROCUpper) && ((RSI(20, 3)[0] < RSILower) || (Math.Abs(MACD(12, 26, 9).Diff[0]) > MACDDiffThreshold)))
-                                    return true;
-                            }
-                            break;
-                    }
-                }
+                return MACDorRSIandVROCFilter(signal);
             }
-            return false;
+            return true;
         }
-
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
@@ -1532,6 +1664,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "IsTradeFiltered failed! NO TRADE!");
                 return;
             }
+
+            PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_up.wav");
 
             switch (signal[0])
             {
@@ -1588,6 +1722,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
         }
+
 
         // Exit current positions if market dynamic shifted against current positions
         private void HandleMarketShift()
@@ -1673,6 +1808,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
         }
+
 
         private void HandleSoftDeck(string signal)
         {
@@ -1846,11 +1982,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             // if market trend go against profit positions and server signal against current position, then flatten position and take profits
             if (PosLong())
             {
-                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
+                // Due to market volatility, taking profits no longer double check with server signals
+                //if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
+                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate));
+                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate));
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1865,20 +2003,22 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyPrint(defaultErrorType, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                        stopMonthlyTrading = true;
 
                         // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                         virtualCurrentCapital = 0;
                         PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
-                        MyErrPrint(ErrorType.fatal, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     }
                 }
             }
             if (PosShort())
             {
-                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
+                // Due to market volatility, taking profits no longer double check with server signals
+                //if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
+                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
                 {
                     MyPrint(defaultErrorType, "");
-                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
+                    MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
                     AiFlat(ExitOrderType.limit);
 
@@ -1893,11 +2033,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                     {
                         MyPrint(defaultErrorType, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital.ToString() + " yesterdayVirtualCapital=" + yesterdayVirtualCapital.ToString() + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                         haltTrading = true;
+                        stopMonthlyTrading = true;
 
                         // set virtualCurrentCapital to 0 so that it is written into the cc file, no future trading allowed for the month
                         virtualCurrentCapital = 0;
                         PrintProfitLossCurrentCapital();   // output current virtual capital to cc file
-                        MyErrPrint(ErrorType.fatal, "HandleProfitChasing, monthlyProfitChasingFlag=" + monthlyProfitChasingFlag + "estVirtualCurrentCapital=" + estVirtualCurrentCapital + " yesterdayVirtualCapital=" + yesterdayVirtualCapital + " $$$$$$$!!!!!!!! Monthly profit target met, stop loss enforced, Skipping StartNewTradePosition $$$$$$$!!!!!!!!");
                     }
                 }
             }
@@ -1913,6 +2053,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
                     MyPrint(defaultErrorType, "TouchedProfitChasing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==================================");
+                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -1923,6 +2064,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
                     MyPrint(defaultErrorType, "TouchedProfitChasing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==================================");
+                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -2160,8 +2302,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
 
                 // Play a sound when current bar hit VROCUpper or VROCLower
-                if ((VROC(25, 3)[0] >= VROCUpper) || (VROC(25, 3)[0] <= VROCLower))
-                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_up.wav");
+                //if ((VROC(25, 3)[0] >= VROCUpper) || (VROC(25, 3)[0] <= VROCLower))
+                //    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_up.wav");
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
