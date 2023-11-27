@@ -415,16 +415,19 @@
     <Compile Include="Strategies\CaptureNTData.cs" />
     <Compile Include="Strategies\Sample.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
-    <Compile Include="Strategies\%40%40ExperimentalBackTest3333.cs" />
     <Compile Include="Strategies\SP500EminiLiveAITrader3001.cs" />
     <Compile Include="Strategies\SP500EminiLiveAITrader3002.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLiveAITrader3003.cs" />
     <Compile Include="Strategies\%40%40SP500EminiBackTest3333.cs" />
     <Compile Include="Strategies\MarketViewGenerator.cs" />
     <Compile Include="Strategies\MarketViewFile.cs" />
-    <Compile Include="Strategies\RegularBackTest3333.cs" />
-    <Compile Include="Strategies\%40%40SP500EminiLiveLowTickT63001.cs" />
+    <Compile Include="Strategies\%40%40RegularBackTest3333.cs" />
     <Compile Include="Strategies\VrocBackTest3333.cs" />
+    <Compile Include="Strategies\%40%40ThreeEntriesLiveTrade3001.cs" />
+    <Compile Include="Strategies\%40%40VROCFilterLiveTrade3002.cs" />
+    <Compile Include="Strategies\BollingerViewFile.cs" />
+    <Compile Include="Strategies\%40%40ExperimentalBackTest3333.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiLiveLowTickT63001.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

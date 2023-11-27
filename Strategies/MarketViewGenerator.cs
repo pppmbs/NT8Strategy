@@ -34,7 +34,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private static double BearConfirmation = 40;
 
 		private string pathMktView;
+		private string pathBolView;
 		private StreamWriter swMkt = null; // Store marekt view, 0=Bear, 1=Neutral, 2=Bull
+		private StreamWriter swBol = null; // Store bollinger view, 0=Sell, 1=Neutral, 2=Buy
 
 		private string pathIdentViews;
 		private StreamWriter swIDV = null; // 0==no identical market views, 1==consecutive identidcal market views
@@ -50,6 +52,15 @@ namespace NinjaTrader.NinjaScript.Strategies
 			Undetermined
 		};
 		MarketView currMarketView = MarketView.Undetermined;
+
+		enum BollingerView
+		{
+			Buy,
+			Sell,
+			Neutral
+		};
+		BollingerView bollingerView = BollingerView.Neutral;
+		private static double BollingerWidth = 15;
 
 		Queue<MarketView> mvQue = new Queue<MarketView>();
 		private static int mvSize = 6;
@@ -93,7 +104,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				AddDataSeries(Data.BarsPeriodType.Minute, 5);
 
 				// Output tab2
-				PrintTo = PrintTo.OutputTab1;
+				PrintTo = PrintTo.OutputTab2;
 			}
 		}
 
@@ -103,11 +114,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 			if (mvQue.Count != 0)
 			{
 				first = mvQue.Peek();
-				Print("IdenticalMarketViews, first=" + first.ToString());
+				Print(DateTime.Now + " IdenticalMarketViews, first=" + first.ToString());
 			}
 			else
 			{
-				Print("IdenticalMarketViews, count=0");
+				Print(DateTime.Now + " IdenticalMarketViews, count=0");
 				return false;
 			}
 
@@ -117,14 +128,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 			{
 				foreach (var mkt in mvQue)
 				{
-					Print("IdenticalMarketViews, mkt=" + mkt.ToString());
+					Print(DateTime.Now + " IdenticalMarketViews, mkt=" + mkt.ToString());
 					if (mkt != first)
 						return false;
 				}
 			}
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
-			Print("IdenticalMarketViews: <<<< Identical Market Views >>>>");
 			return true;
 		}
 
@@ -151,6 +159,31 @@ namespace NinjaTrader.NinjaScript.Strategies
 			swMkt = null;
 		}
 
+		private void WriteBollingerView(BollingerView bolView)
+		{
+			pathBolView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+			pathBolView = System.IO.Path.Combine(pathBolView, "Artista" + ".bol");
+
+			Print("WriteBollingerView: bollingerView =" + bollingerView.ToString());
+
+			swBol = File.CreateText(pathBolView); // Open the path for Bollinger View
+			switch (bolView)
+			{
+				case BollingerView.Buy:
+					swBol.WriteLine("2");
+					break;
+				case BollingerView.Sell:
+					swBol.WriteLine("0");
+					break;
+				default:
+					swBol.WriteLine("1");
+					break;
+			}
+			swBol.Close();
+			swBol.Dispose();
+			swBol = null;
+		}
+
 		private void WriteIdenticalViews()
         {
 			pathIdentViews = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
@@ -161,15 +194,54 @@ namespace NinjaTrader.NinjaScript.Strategies
 			if (IdenticalMarketViews())
             {
 				swIDV.WriteLine("1");
+				Print(DateTime.Now + " WriteIdenticalViews: <<<< Identical Market Views: TRUE >>>>");
 			}
 			else
             {
 				swIDV.WriteLine("0");
+				Print(DateTime.Now + " WriteIdenticalViews: <<<< Identical Market Views: FALSE >>>>");
 			}
 
 			swIDV.Close();
 			swIDV.Dispose();
 			swIDV = null;
+		}
+
+
+		private void SetBollingerView()
+		{
+			double midBollinger = (Bollinger(2, 20).Lower[0] + Bollinger(2, 20).Upper[0]) / 2;
+
+			// skip first bar of session
+			if (Bars.IsFirstBarOfSession)
+				return;
+
+			Print("midBollinger=" + midBollinger.ToString() + " Bollinger(2, 20).Upper[0]=" + Bollinger(2, 20).Upper[0].ToString() + " Bollinger(2, 20).Lower[0]=" + Bollinger(2, 20).Lower[0].ToString());
+
+			// if Bollinger band is narrow, i.e. < BollingerWidth in width, then bollinger view is neutral
+			if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) < BollingerWidth)
+			{
+				bollingerView = BollingerView.Neutral;
+				WriteBollingerView(bollingerView);
+				return;
+			}
+			// if current close price is higher or lower than bollinger band, then bollinger view is neutral 
+			if (Close[0] >= Bollinger(2, 20).Upper[0] || Close[0] <= Bollinger(2, 20).Lower[0])
+			{
+				bollingerView = BollingerView.Neutral;
+				WriteBollingerView(bollingerView);
+				return;
+			}
+
+			// capture the moment when price crosses the bollinger mid point
+			if (Close[0] < midBollinger && Close[0] < Close[1])
+				bollingerView = BollingerView.Sell;
+			else if (Close[0] > midBollinger && Close[0] > Close[1])
+				bollingerView = BollingerView.Buy;
+			else
+				bollingerView = BollingerView.Neutral;
+
+			WriteBollingerView(bollingerView);
 		}
 
 		protected override void OnBarUpdate()
@@ -179,8 +251,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 			}
 			else if (BarsInProgress == 1) // 5 mins
 			{
-				// Use RSI on 5 mins chart to establish market views
+				// Use Bollinger Band on 5 mins chart to establish bollinger market views
+				SetBollingerView();
 
+				// Use RSI on 5 mins chart to establish market view
 				// Neutral
 				if (RSI(14, 3)[0] >= RSIHigh)
 				{
@@ -243,13 +317,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 						break;
                 }
 
-				Print("[[[[[ VolumeOscillator ]]]]]= " + VolumeOscillator(12, 26)[0].ToString());
-				Print("[[[[[ VolumeOscillator ]]]]]= " + VolumeOscillator(12, 26)[0].ToString());
+				Print(DateTime.Now + " Bollinger View = [[[[[ " + bollingerView.ToString() + " ]]]]]");
 
 				WriteMarketView(currMarketView);
 				WriteIdenticalViews();
-				Print("Current Market View =" + " {{{{{ " + currMarketView.ToString() + " }}}}} ");
-				Print("Current Market View =" + " {{{{{ " + currMarketView.ToString() + " }}}}} ");
+				Print(DateTime.Now + " Current Market View = {{{{{ " + currMarketView.ToString() + " }}}}} ");
 			}
 		}
 	}

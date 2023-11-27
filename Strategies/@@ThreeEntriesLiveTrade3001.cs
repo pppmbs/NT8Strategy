@@ -1,4 +1,4 @@
-#region Using declarations
+﻿#region Using declarations
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class SP500EminiLiveAITrader3001 : Strategy
+    public class ThreeEntriesLiveTrade3001 : Strategy
     {
         // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
@@ -39,9 +39,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private string pathVIX;
         private string pathPpercent;
         private string pathMktView; // Store marekt view, 0==Bear, 1==Neutral, 2==Bull
-        private string pathBolView; // Store bollinger view, 0==Sell, 1==Neutral, 2==Buy
         // Store identical market viewx set by MarketViewGenerator, 0==no identical market views, 1==consecutive identidcal market views
-        private string pathIdentViews; 
+        private string pathIdentViews;
         private StreamWriter swLog = null; // runtime log file 
         private StreamWriter swErr = null; // error file
         private StreamWriter swCC = null;  // Store current capital for each strategy 
@@ -92,7 +91,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static bool DMREnabled = false;
         private static bool UseADXFilter = false;
         private static bool UseCCIFilter = false;
-        private static bool UseVROCFilter = true;
+        private static bool UseVROCFilter = false;
         private static bool UseRSIFilter = false;
         private static bool UseMACDFilter = false;
         private static bool UserMACDAndVROCFilter = false;
@@ -112,13 +111,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             ADXRSI,
             ADXVROC
         }
-        Entry2Types entry2Filter = Entry2Types.ADXRSI;
+        Entry2Types entry2Filter = Entry2Types.RSIVROC;
 
         // Handle early position exit with HandleMarketShift
-        private static bool UseEntryFilter = true;
-        private static bool Use3EntriesFilter = false;
+        private static bool UseEntryFilter = false;
+        private static bool Use3EntriesFilter = true;
         private static bool UseExitFilter = true;
         private static bool UseMaketViewExit = true;
+        private static bool UseTighterFilter = false;
 
         // Macro Market Views
         enum MarketView
@@ -130,14 +130,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             Neutral   // =1
         };
         MarketView currMarketView;
-
-        enum BollingerView
-        {
-            Buy,
-            Sell,
-            Neutral
-        }
-        BollingerView bollingerView = BollingerView.Neutral;
 
         enum TradeDecisions
         {
@@ -226,7 +218,7 @@ namespace NinjaTrader.NinjaScript.Strategies
          * **********************************************************************************************************
          */
         private static readonly int TicksPerStop = 4;
-        private static readonly int defaultPstops = 20; 
+        private static readonly int defaultPstops = 20;
         private static readonly int defaultLstops = 10;
         private int profitChasing = defaultPstops * TicksPerStop; // the target where HandleProfitChasing kicks in
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
@@ -291,7 +283,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "SP500EminiLiveAITrader3001";
+                Name = "ThreeEntriesLiveTrade3001";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -599,11 +591,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             ReadCurrentMonthlyLosses();
             //CheckMonthlyStopLoss(); can not check for monthly stop loss here for back test, can only check in OnPositionUpdate
 
-            // Read current market view file, 0==Bearish, 1==neutral, 2==Bullish
+            // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
             ReadMarketViewFile();
-
-            // Read current bolinger view file, 0==Sell, 1==neutral, 2==Buy
-            ReadBollingerViewFile();
 
             // Read the profit percentage for triggering the early exit
             ReadEarlyExitProftPercent();
@@ -842,43 +831,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return false;
         }
 
-        // Read market view file, Bear<0, 0=Bearish, 1=Neutral, 2=Bullish, Bull>2
-        private void ReadBollingerViewFile()
-        {
-            int bolView;
-
-            //Read bollinger view file, Bollinger view is the same across all strategies on the same machine
-            pathBolView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathBolView = System.IO.Path.Combine(pathBolView, "Artista" + ".bol");
-
-            if (File.Exists(pathBolView))
-            {
-                string bolViewString = File.ReadAllText(pathBolView); // read market view
-                bolView = Convert.ToInt32(bolViewString);
-
-                MyPrint(defaultErrorType, "ReadBollingerViewFile, bolViewString=" + bolViewString);
-
-                switch (bolView)
-                {
-                    case 0:
-                        bollingerView = BollingerView.Sell;
-                        break;
-                    case 2:
-                        bollingerView = BollingerView.Buy;
-                        break;
-                    default:
-                        bollingerView = BollingerView.Neutral;
-                        break;
-                }
-
-                MyPrint(defaultErrorType, "ReadBollingerViewFile, bollingerView=" + bollingerView.ToString());
-            }
-            else
-            {
-                bollingerView = BollingerView.Neutral;
-                MyErrPrint(ErrorType.warning, pathBolView + " Bolinger View file does not exist! Default bollingerView=" + bollingerView.ToString());
-            }
-        }
 
         // Read market view file, Bear<0, 0=Bearish, 1=Neutral, 2=Bullish, Bull>2
         private void ReadMarketViewFile()
@@ -896,11 +848,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 MyPrint(defaultErrorType, "ReadMarketViewFile, mktViewString=" + mktViewString);
 
-                if (mktView <0)
+                if (mktView < 0)
                 {
                     currMarketView = MarketView.Bear;
                 }
-                else if (mktView >2)
+                else if (mktView > 2)
                 {
                     currMarketView = MarketView.Bull;
                 }
@@ -1306,19 +1258,19 @@ namespace NinjaTrader.NinjaScript.Strategies
             return false;
         }
 
-        // Standard overbought is defined as 70, we use a buffer of 15
+        // Standard overbought is defined as 70, we use a buffer of 10
         private bool OverBought()
         {
-            if (RSI(14, 3)[0] > 55)
+            if (RSI(14, 3)[0] > 60)
                 return true;
             else
                 return false;
         }
 
-        // Standard oversold is defined as 30, we use a buffer of 15
+        // Standard oversold is defined as 30, we use a buffer of 10
         private bool OverSold()
         {
-            if (RSI(14, 3)[0] < 45)
+            if (RSI(14, 3)[0] < 40)
                 return true;
             else
                 return false;
@@ -1347,13 +1299,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal[0])
             {
                 case '0':
-                    // if (bollingerView == BollingerView.Sell && (ADX(8)[0] > ADXThreshold) && !OverSold() && SMABear())
-                    if (bollingerView == BollingerView.Sell && (ADX(8)[0] > ADXThreshold) && !OverSold())
-                    {
-                        MyPrint(defaultErrorType, "Enter via Bollinger ADX && !OverSold");
-                        return true;
-                    }
-
                     // Sell 
                     if (currMarketView == MarketView.Bearish)
                     {
@@ -1364,7 +1309,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be oversold 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverSold())
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverSold())
                         {
                             MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverSold");
                             return true;
@@ -1373,9 +1318,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // In order to Short in a Bullish or Neutral market outlook, the filter has to be more stringent than Bearish
                     else if (currMarketView == MarketView.Neutral)
                     {
-                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] > RSIUpper) && SMABear())
+                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] > RSIUpper))
                         {
-                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && RSI && SMABear");
+                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && RSI");
                             return true;
                         }
                     }
@@ -1385,13 +1330,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     }
                     break;
                 case '2':
-                    // if (bollingerView == BollingerView.Buy && (ADX(8)[0] > ADXThreshold) && !OverBought() && SMABull())
-                    if (bollingerView == BollingerView.Buy && (ADX(8)[0] > ADXThreshold) && !OverBought())
-                    {
-                        MyPrint(defaultErrorType, "Enter via Bollinger ADX && !OverBought");
-                        return true;
-                    }
-
                     // Buy
                     if (currMarketView == MarketView.Bullish)
                     {
@@ -1402,7 +1340,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be overbought 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverBought())
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverBought())
                         {
                             MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverBought");
                             return true;
@@ -1411,9 +1349,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // In order to Long in a Bearish or Neutral market outlook, the filter has to be more stringent than Bullish
                     else if (currMarketView == MarketView.Neutral)
                     {
-                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] < RSILower) && SMABull())
+                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] < RSILower))
                         {
-                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && RSI && SMABull");
+                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && RSI");
                             return true;
                         }
                     }
@@ -1737,13 +1675,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Skip trade if IsTradeFilered is FALSE
         private bool IsTradeFiltered(string signal)
         {
-            // Read current market view file, 0==Bearish, 1==neutral, 2==Bullish
+            // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
             ReadMarketViewFile();
             MyPrint(defaultErrorType, "IsTradeFiltered, Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
-            // Read current bolinger view file, 0==Sell, 1==neutral, 2==Buy
-            ReadBollingerViewFile();
-            MyPrint(defaultErrorType, "IsTradeFiltered, Bollinger Outlook = {{{{{ " + bollingerView.ToString() + " }}}}}");
-
 
             if (UseRSIAndMACDFilter)
             {
@@ -2538,9 +2472,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
                     ReadMarketViewFile();
                     MyPrint(defaultErrorType, "OnBarUpdate, Market Outlook = {{{{{ " + currMarketView.ToString() + " }}}}}");
-                    // Read current bolinger view file, 0==Sell, 1==neutral, 2==Buy
-                    ReadBollingerViewFile();
-                    MyPrint(defaultErrorType, "OnBarUpdate, Bollinger Outlook = {{{{{ " + bollingerView.ToString() + " }}}}}");
                 }
 
 

@@ -139,6 +139,14 @@ namespace NinjaTrader.NinjaScript.Strategies
         };
         MarketView currMarketView = MarketView.Neutral;
         MarketView lastMarketView = MarketView.Neutral;
+
+        enum BollingerView
+        {
+            Buy,
+            Sell,
+            Neutral
+        }
+        BollingerView bollingerView = BollingerView.Neutral;
         Queue<MarketView> mvQue = new Queue<MarketView>();
         private static int mvSize = 6; 
 
@@ -1315,19 +1323,19 @@ namespace NinjaTrader.NinjaScript.Strategies
             return false;
         }
 
-        // Standard overbought is defined as 70, we use a buffer of 10
+        // Standard overbought is defined as 70, we use a buffer of 15
         private bool OverBought()
         {
-            if (RSI(14, 3)[0] > 60)
+            if (RSI(14, 3)[0] > 55)
                 return true;
             else
                 return false;
         }
 
-        // Standard oversold is defined as 30, we use a buffer of 10
+        // Standard oversold is defined as 30, we use a buffer of 15
         private bool OverSold()
         {
-            if (RSI(14, 3)[0] < 40)
+            if (RSI(14, 3)[0] < 45)
                 return true;
             else
                 return false;
@@ -1356,6 +1364,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal[0])
             {
                 case '0':
+                    // if (bollingerView == BollingerView.Sell && (ADX(8)[0] > ADXThreshold) && !OverSold() && SMABear())
+                    if (bollingerView == BollingerView.Sell && (ADX(8)[0] > ADXThreshold) && !OverSold())
+                    {
+                        MyPrint(defaultErrorType, "Enter via Bollinger ADX && !OverSold");
+                        return true;
+                    }
+
                     // Sell 
                     if (currMarketView == MarketView.Bearish)
                     {
@@ -1366,7 +1381,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be oversold 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverSold())
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverSold())
                         {
                             MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverSold");
                             return true;
@@ -1375,9 +1390,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // In order to Short in a Bullish or Neutral market outlook, the filter has to be more stringent than Bearish
                     else if (currMarketView == MarketView.Neutral)
                     {
-                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] > RSIUpper))
+                        if ((VROC(25, 3)[0] < VROCLower) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] > RSIUpper) && SMABear())
                         {
-                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && RSI");
+                            MyPrint(defaultErrorType, "Enter via -VROC && ADX && RSI && SMABear");
                             return true;
                         }
                     }
@@ -1387,6 +1402,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     }
                     break;
                 case '2':
+                    // if (bollingerView == BollingerView.Buy && (ADX(8)[0] > ADXThreshold) && !OverBought() && SMABull())
+                    if (bollingerView == BollingerView.Buy && (ADX(8)[0] > ADXThreshold) && !OverBought())
+                    {
+                        MyPrint(defaultErrorType, "Enter via Bollinger ADX && !OverBought");
+                        return true;
+                    }
+
                     // Buy
                     if (currMarketView == MarketView.Bullish)
                     {
@@ -1397,7 +1419,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be overbought 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > 30) && !OverBought())
+                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverBought())
                         {
                             MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverBought");
                             return true;
@@ -1406,9 +1428,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // In order to Long in a Bearish or Neutral market outlook, the filter has to be more stringent than Bullish
                     else if (currMarketView == MarketView.Neutral)
                     {
-                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] < RSILower))
+                        if ((VROC(25, 3)[0] > VROCUpper) && (ADX(8)[0] > ADXThreshold) && (RSI(14, 3)[0] < RSILower) && SMABull())
                         {
-                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && RSI");
+                            MyPrint(defaultErrorType, "Enter via +VROC && ADX && RSI && SMABull");
                             return true;
                         }
                     }
@@ -2464,6 +2486,19 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        private void SetBollingerView()
+        {
+            double midBollinger = (Bollinger(2, 20).Lower[0] + Bollinger(2, 20).Upper[0]) / 2;
+
+            // capture the moment when price crosses the bollinger mid point
+            if (Close[0] < midBollinger && Close[0] < Close[1])
+                bollingerView = BollingerView.Sell;
+            else if (Close[0] > midBollinger && Close[0] > Close[1])
+                bollingerView = BollingerView.Buy;
+            else
+                bollingerView = BollingerView.Neutral;
+        }
+
         protected override void OnBarUpdate()
         {
             /* When working with multiple bar series objects it is important to understand the sequential order in which the
@@ -2748,6 +2783,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 else
                     mvQue.Enqueue(currMarketView);
+
+                SetBollingerView();
 
                 //switch (currMarketView)
                 //{
