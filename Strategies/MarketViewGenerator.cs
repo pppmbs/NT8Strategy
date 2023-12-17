@@ -235,9 +235,15 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 			// capture the moment when price crosses the bollinger mid point
 			if (Close[0] < midBollinger && Close[0] < Close[1])
+            {
 				bollingerView = BollingerView.Sell;
+				PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_down.wav");
+			}
 			else if (Close[0] > midBollinger && Close[0] > Close[1])
+			{
 				bollingerView = BollingerView.Buy;
+				PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\chime_up.wav");
+			}
 			else
 				bollingerView = BollingerView.Neutral;
 

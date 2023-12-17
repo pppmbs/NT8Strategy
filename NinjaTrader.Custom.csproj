@@ -428,6 +428,7 @@
     <Compile Include="Strategies\BollingerViewFile.cs" />
     <Compile Include="Strategies\%40%40ExperimentalBackTest3333.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLiveLowTickT63001.cs" />
+    <Compile Include="Strategies\Capture5MinuteData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

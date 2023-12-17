@@ -1372,11 +1372,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be oversold 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverSold())
-                        {
-                            MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverSold");
-                            return true;
-                        }
+                        //if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverSold())
+                        //{
+                        //    MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverSold");
+                        //    return true;
+                        //}
                     }
                     // In order to Short in a Bullish or Neutral market outlook, the filter has to be more stringent than Bearish
                     else if (currMarketView == MarketView.Neutral)
@@ -1415,11 +1415,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return true;
                         }
                         // For range VROC, ADX must meet some min level, currently set at 30, and should not be overbought 
-                        if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverBought())
-                        {
-                            MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverBought");
-                            return true;
-                        }
+                        //if ((Math.Abs(VROC(25, 3)[0]) < VROCRange) && (ADX(8)[0] > ADXThreshold) && !OverBought())
+                        //{
+                        //    MyPrint(defaultErrorType, "Enter via VROC Range && ADX && !OverBought");
+                        //    return true;
+                        //}
                     }
                     // In order to Long in a Bearish or Neutral market outlook, the filter has to be more stringent than Bullish
                     else if (currMarketView == MarketView.Neutral)
