@@ -93,11 +93,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Macro Market Views
         enum MarketView
         {
-            ForcedBuy,     // >2
-            Buy,  // =2
-            Sell,  // =0
+            ForcedBuy,      // >2
+            Buy,            // =2
+            Sell,           // =0
             ForcedSell,     // <0
-            Hold   // =1
+            Hold            // =1
         };
         MarketView currMarketView = MarketView.Hold;
 
@@ -1116,6 +1116,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
+            // if currMarketView == MarketView.ForcedSell (human trader override) start Sell without consulting neither T-Server nor V-Server
+            if (currMarketView == MarketView.ForcedSell)
+            {
+                MyPrint(defaultErrorType, "StartNewTradePosition, ForcedSell, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                AiShort();
+                return;
+            }
+            // if currMarketView == MarketView.ForcedBuy (human trader override) start Buy without consulting neither T-Server nor V-Server
+            if (currMarketView == MarketView.ForcedBuy)
+            {
+                MyPrint(defaultErrorType, "StartNewTradePosition, ForcedBuy, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                AiLong();
+                return;
+            }
+
             switch (signal[0])
             {
                 case '0':
@@ -1793,32 +1808,32 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Start processing signal after 8th signal and beyond, otherwise ignore
                 if (lineNo >= 8)
                 {
-                    // No trading before 9:00am CST
-                    if (!WallstreetOpenHours())
-                        return;
-
-                    ExecuteAITrade(svrSignal);
-
-                    // if position is flat, no need to do anything
-                    if (PosFlat())
-                        return;
-
-                    // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
-                    if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
+                    // Either trading starts after 9:00am CST or when currentMarketView is FocedSell or ForceBuy
+                    if (WallstreetOpenHours() || currMarketView == MarketView.ForcedBuy || currMarketView == MarketView.ForcedSell)
                     {
-                        if (UseExitFilter)
-                            HandleMarketShift();
+                        ExecuteAITrade(svrSignal);
 
-                        // if Close[0] violates soft deck, if YES handle stop loss accordingly
-                        if (ViolateSoftDeck())
-                        {
-                            HandleSoftDeck(svrSignal);
-                        }
+                        // if position is flat, no need to do anything
+                        if (PosFlat())
+                            return;
 
-                        // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
-                        if ((profitChasingFlag || TouchedProfitChasing()))
+                        // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
+                        if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                         {
-                            HandleProfitChasing(svrSignal);
+                            if (UseExitFilter)
+                                HandleMarketShift();
+
+                            // if Close[0] violates soft deck, if YES handle stop loss accordingly
+                            if (ViolateSoftDeck())
+                            {
+                                HandleSoftDeck(svrSignal);
+                            }
+
+                            // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
+                            if ((profitChasingFlag || TouchedProfitChasing()))
+                            {
+                                HandleProfitChasing(svrSignal);
+                            }
                         }
                     }
                 }

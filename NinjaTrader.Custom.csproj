@@ -432,6 +432,7 @@
     <Compile Include="Strategies\TServerBackTest3883.cs" />
     <Compile Include="Strategies\TServerViewGenerator.cs" />
     <Compile Include="Strategies\SP500EminiLive2Models3001.cs" />
+    <Compile Include="Strategies\SP500EminiLive2Models3002.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

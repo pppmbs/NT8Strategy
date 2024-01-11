@@ -42,6 +42,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 		};
 		MarketView currMarketView = MarketView.Hold;
 
+		// with MaketConfirmation flag set to true, T-Server Buy signal only when current bar Close_price > Open_price, vice versa for Sell signal
+		static bool MaketConfirmation = true;
+
 		private Socket tSender = null;
 		private byte[] tBytes = new byte[1024];
 		int tLineNo = 0;
@@ -231,14 +234,46 @@ namespace NinjaTrader.NinjaScript.Strategies
 				switch (tServerSignal[0])
 				{
 					case '0':
-						// sell
-						currMarketView = MarketView.Sell;
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
-						break;
+                        // sell
+                        if (MaketConfirmation)
+                        {
+                            if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                            {
+                                currMarketView = MarketView.Sell;
+                                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
+                            }
+							else
+                            {
+								currMarketView = MarketView.Hold;
+								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
+							}
+                        }
+                        else
+                        {
+                            currMarketView = MarketView.Sell;
+                            PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
+                        }
+                        break;
 					case '2':
 						// buy
-						currMarketView = MarketView.Buy;
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
+						if (MaketConfirmation)
+						{
+							if (Bars.GetOpen(CurrentBar) < Bars.GetClose(CurrentBar))
+							{
+								currMarketView = MarketView.Buy;
+								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
+							}
+							else
+                            {
+								currMarketView = MarketView.Hold;
+								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
+							}
+						}
+						else
+						{
+							currMarketView = MarketView.Buy;
+							PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
+						}
 						break;
 					default:
 						currMarketView = MarketView.Hold;
