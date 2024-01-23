@@ -204,9 +204,32 @@ namespace NinjaTrader.NinjaScript.Strategies
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
 
-                Print(bufString);
+                //Print(bufString);
 
-                Print("CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
+                //Print("CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
+				if (!Bars.IsFirstBarOfSession)
+				{
+					Print("CurrentTimeBar" +
+								" Start time=" + Bars.GetTime(Bars.CurrentBar - 1).ToString("HHmmss") +
+								" End time=" + Bars.GetTime(Bars.CurrentBar).ToString("HHmmss") +
+								" Open=" + Bars.GetOpen(Bars.CurrentBar).ToString() +
+								" Close=" + Bars.GetClose(Bars.CurrentBar).ToString() +
+								" High=" + Bars.GetHigh(Bars.CurrentBar).ToString() +
+								" Low=" + Bars.GetLow(Bars.CurrentBar).ToString() +
+								" Volume=" + Bars.GetVolume(Bars.CurrentBar).ToString() +
+								" SMA9=" + SMA(9)[0].ToString() +
+								" SMA20=" + SMA(20)[0].ToString() +
+								" SMA50=" + SMA(50)[0].ToString() +
+								" MACD=" + MACD(12, 26, 9).Diff[0].ToString() +
+								" RSI=" + RSI(14, 3)[0].ToString() +
+								" Boll_Low=" + Bollinger(2, 20).Lower[0].ToString() +
+								" Boll_Hi=" + Bollinger(2, 20).Upper[0].ToString() +
+								" CCI=" + CCI(20)[0].ToString() +
+								" Momentum=" + Momentum(20)[0].ToString() +
+								" DiPlus=" + DM(14).DiPlus[0].ToString() +
+								" DiMinus=" + DM(14).DiMinus[0].ToString() +
+								" VROC=" + VROC(25, 3)[0].ToString());
+				}
 
 				byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
@@ -229,8 +252,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				tServerSignal = System.Text.Encoding.UTF8.GetString(tBytes, 0, tBytes.Length).Split(',')[1];
 				Print("Start time=" + Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + " End time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
-				Print("OnBarUpdate, TServer response= <" + tServerSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
-				Print("Time Server signal=" + tServerSignal);
+				Print("OnBarUpdate, TServer response= <<< " + tServerSignal + " >>> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+				//Print("Time Server signal=" + tServerSignal);
 				switch (tServerSignal[0])
 				{
 					case '0':

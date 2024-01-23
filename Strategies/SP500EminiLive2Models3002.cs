@@ -89,6 +89,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
         private static bool UseMaketViewExit = true;
+        private static bool ForcedEntryConsultServer = true;
 
         // Macro Market Views
         enum MarketView
@@ -1116,15 +1117,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            // if currMarketView == MarketView.ForcedSell (human trader override) start Sell without consulting neither T-Server nor V-Server
-            if (currMarketView == MarketView.ForcedSell)
+            // if !ForcedEntryConsultServer and currMarketView == MarketView.ForcedSell (human trader override) start Sell without consulting neither T-Server nor V-Server
+            if (!ForcedEntryConsultServer && currMarketView == MarketView.ForcedSell)
             {
                 MyPrint(defaultErrorType, "StartNewTradePosition, ForcedSell, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
                 AiShort();
                 return;
             }
-            // if currMarketView == MarketView.ForcedBuy (human trader override) start Buy without consulting neither T-Server nor V-Server
-            if (currMarketView == MarketView.ForcedBuy)
+            // if !ForcedEntryConsultServer && currMarketView == MarketView.ForcedBuy (human trader override) start Buy without consulting neither T-Server nor V-Server
+            if (!ForcedEntryConsultServer && currMarketView == MarketView.ForcedBuy)
             {
                 MyPrint(defaultErrorType, "StartNewTradePosition, ForcedBuy, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
                 AiLong();
@@ -1134,21 +1135,39 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal[0])
             {
                 case '0':
-                    // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
-                    if (currMarketView != MarketView.Sell)
-                        return;
-
                     // sell
+                    // Confirm with V server, if Close > Open, market heading higher, skip the trade
+                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                    {
+                        return;
+                    }
+                    // confirm with T server if not forced Sell
+                    if (currMarketView != MarketView.ForcedSell)
+                    {
+                        // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
+                        if (currMarketView != MarketView.Sell)
+                            return;
+                    }
                     MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
                     AiShort();
                     break;
                 case '2':
-                    // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
-                    if (currMarketView != MarketView.Buy)
-                        return;
-
                     // buy
-                    MyPrint(defaultErrorType, "StartNewTradePosition, Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                    // Confirm with V server, if Open > Close, market heading lower, skip the trade
+                    if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                    {
+                        return;
+                    }
+                    // confirm with T server if not forced Buy
+                    if (currMarketView != MarketView.ForcedBuy)
+                    {
+                        // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
+                        if (currMarketView != MarketView.Buy)
+                            return;
+                    }
+                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
                     AiLong();
                     break;
                 default:
@@ -1525,7 +1544,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) >= (closedPrice + profitChasing * TickSize))
                 {
                     MyPrint(defaultErrorType, "TouchedProfitChasing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==================================");
-                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\boxing_bell_multiple.wav");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -1536,7 +1555,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (Bars.GetClose(CurrentBar) <= (closedPrice - profitChasing * TickSize))
                 {
                     MyPrint(defaultErrorType, "TouchedProfitChasing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==================================");
-                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell_multiple.wav");
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\boxing_bell_multiple.wav");
                     profitChasingFlag = true;
                     return profitChasingFlag;
                 }
@@ -1764,8 +1783,30 @@ namespace NinjaTrader.NinjaScript.Strategies
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
                 }
                 MyPrint(defaultErrorType, "CurrentBar = " + CurrentBar + ": " + "bufString = " + bufString);
-                //MyPrint(defaultErrorType, "SMA9=" + SMA(9)[0].ToString() + " SMA20=" + SMA(20)[0].ToString() + " RSI=" + RSI(14, 3)[0].ToString());
-                //MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString() + " ADX=" + ADX(8)[0].ToString());
+                if (!Bars.IsFirstBarOfSession)
+                {
+                    MyPrint(defaultErrorType, "CurrentBar" +
+                                " Start time=" + Bars.GetTime(Bars.CurrentBar - 1).ToString("HHmmss") +
+                                " End time=" + Bars.GetTime(Bars.CurrentBar).ToString("HHmmss") +
+                                " Open=" + Bars.GetOpen(Bars.CurrentBar).ToString() +
+                                " Close=" + Bars.GetClose(Bars.CurrentBar).ToString() +
+                                " High=" + Bars.GetHigh(Bars.CurrentBar).ToString() +
+                                " Low=" + Bars.GetLow(Bars.CurrentBar).ToString() +
+                                " Volume=" + Bars.GetVolume(Bars.CurrentBar).ToString() +
+                                " SMA9=" + SMA(9)[0].ToString() +
+                                " SMA20=" + SMA(20)[0].ToString() +
+                                " SMA50=" + SMA(50)[0].ToString() +
+                                " MACD=" + MACD(12, 26, 9).Diff[0].ToString() +
+                                " RSI=" + RSI(14, 3)[0].ToString() +
+                                " Boll_Low=" + Bollinger(2, 20).Lower[0].ToString() +
+                                " Boll_Hi=" + Bollinger(2, 20).Upper[0].ToString() +
+                                " CCI=" + CCI(20)[0].ToString() +
+                                " Momentum=" + Momentum(20)[0].ToString() +
+                                " DiPlus=" + DM(14).DiPlus[0].ToString() +
+                                " DiMinus=" + DM(14).DiMinus[0].ToString() +
+                                " VROC=" + VROC(25, 3)[0].ToString());
+                }
+
                 if (State == State.Realtime)
                 {
                     // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
@@ -1800,7 +1841,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                MyPrint(defaultErrorType, "OnBarUpdate, Server response= <" + svrSignal + "> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                MyPrint(defaultErrorType, "OnBarUpdate, Server response= <<< " + svrSignal + " >>> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
                 //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
                 lineNo++;
