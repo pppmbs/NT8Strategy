@@ -123,10 +123,12 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Macro Market Views
         enum MarketView
         {
+            ForcedBull, // >= 50
             Bull,     // >2
             Bullish,  // =2
             Bearish,  // =0
             Bear,     // <0
+            ForcedBear, // <= -50
             Neutral   // =1
         };
         MarketView currMarketView;
@@ -898,11 +900,17 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (mktView < 0)
                 {
-                    currMarketView = MarketView.Bear;
+                    if (mktView <= -50)
+                        currMarketView = MarketView.ForcedBear;
+                    else
+                        currMarketView = MarketView.Bear;
                 }
                 else if (mktView > 2)
                 {
-                    currMarketView = MarketView.Bull;
+                    if (mktView >= 50)
+                        currMarketView = MarketView.ForcedBull;
+                    else
+                        currMarketView = MarketView.Bull;
                 }
                 else
                 {
@@ -1350,9 +1358,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal[0])
             {
                 case '0':
-                    if (currMarketView == MarketView.Bull)
+                    if (currMarketView == MarketView.Bull || currMarketView == MarketView.Neutral)
                         return false; // eliminate any Sell opportunity
-                    if (currMarketView == MarketView.Bear)
+                    if (currMarketView == MarketView.Bear || currMarketView == MarketView.ForcedBear)
                         return true; // accepts all Sell opportunities
 
                     // if (bollingerView == BollingerView.Sell && (ADX(8)[0] > ADXThreshold) && !OverSold() && SMABear())
@@ -1393,9 +1401,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     }
                     break;
                 case '2':
-                    if (currMarketView == MarketView.Bear)
+                    if (currMarketView == MarketView.Bear || currMarketView == MarketView.Neutral)
                         return false; // eliminate any Buy opportunity
-                    if (currMarketView == MarketView.Bull)
+                    if (currMarketView == MarketView.Bull || currMarketView == MarketView.ForcedBull)
                         return true; // accepts all Buy opportunities
 
                     // if (bollingerView == BollingerView.Buy && (ADX(8)[0] > ADXThreshold) && !OverSold() && SMABear())
@@ -1835,7 +1843,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
 
             // Skip trade if IsTradeFilered is FALSE or if currMarketView is Bull or Bear
-            if (UseEntryFilter && !IsTradeFiltered(signal) && currMarketView != MarketView.Bull && currMarketView != MarketView.Bear)
+            if (UseEntryFilter && !IsTradeFiltered(signal))
             {
                 MyPrint(defaultErrorType, "IsTradeFiltered failed! NO TRADE!");
                 return;
@@ -1909,6 +1917,28 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 else
                     MyPrint(defaultErrorType, "StartNewTradePosition, Entry 1, Server signal=" + signal);
+            }
+
+            // Forced Buy or Sell and not wait for Server signal
+            if (currMarketView == MarketView.Neutral || currMarketView == MarketView.ForcedBull || currMarketView == MarketView.ForcedBear)
+            {
+                // don't trade if market view is 1
+                if (currMarketView == MarketView.Neutral)
+                    return;
+
+                // Forced trade
+                if (currMarketView == MarketView.ForcedBull)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Forced to Buy");
+                    AiLong();
+
+                }
+                if (currMarketView == MarketView.ForcedBear)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Forced to Sell");
+                    AiShort();
+                }
+                return;
             }
 
             switch (signal[0])

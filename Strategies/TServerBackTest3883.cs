@@ -102,6 +102,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private static bool UseExitFilter = true;
         private static bool UseTServerExitFilter = true;
+        private static bool ConsultVServer = false;
+        private static bool UseTServerFilters = true;
+
         private static int SMAConstant = 20;
         private static double DefaultProfitPercent = 0.75;
         private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
@@ -1157,6 +1160,116 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        private bool BollingerFlat()
+        {
+
+
+            // if Bollinger width is less than 5 then return true (Hold)
+            if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) < 5)
+            {
+                Print("Bollinger width= " + (Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]).ToString());
+                return true;
+            }
+
+            return false;
+        }
+
+
+        private bool BollingerWrongTrend(char signal)
+        {
+            double lastMidBoll;
+            double currMidBoll;
+
+            currMidBoll = (Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2;
+            lastMidBoll = (Bollinger(2, 20).Upper[1] + Bollinger(2, 20).Lower[1]) / 2;
+            Print("currMidBoll =" + currMidBoll.ToString() + " lastMidBoll =" + lastMidBoll.ToString());
+
+            switch (signal)
+            {
+                case '0':
+                    // if mid bollinger is trending up, return true
+                    if (currMidBoll >= lastMidBoll)
+                        return true;
+                    break;
+
+                case '2':
+                    // if mid bollinger is trending down, return true
+                    if (currMidBoll <= lastMidBoll)
+                        return true;
+                    break;
+
+                default:
+                    return false;
+            }
+
+            return false;
+        }
+
+
+        private bool VolumeTooLow()
+        {
+            // if the trading in the last 5 minutes is less than 5000, return true
+            if (Bars.GetVolume(CurrentBar) < 5000)
+            {
+                Print("Volume= " + Bars.GetVolume(CurrentBar));
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool OverBoughtOverSold(char signal)
+        {
+            switch (signal)
+            {
+                case '0':
+                    if (Bars.GetHigh(CurrentBar) != Bars.GetClose(CurrentBar))
+                        return true;
+                    break;
+
+                case '2':
+                    if (Bars.GetHigh(CurrentBar) == Bars.GetClose(CurrentBar))
+                        return true;
+                    break;
+
+                default:
+                    return false;
+            }
+            return false;
+        }
+
+
+        // Different filtering mechanism employed for the T-Server signals, if anyone of them returned true, T-Server will be set to Hold
+        private bool FilterTServer(char signal)
+        {
+            //if (BollingerFlat())
+            //{
+            //    Print("BollingerFlat is TRUE, set T-Server to Hold!");
+            //    return true;
+            //}
+
+            //if (BollingerWrongTrend(signal))
+            //{
+            //    Print("BollingerWrongTrend is TRUE, set T-Server to Hold!");
+            //    return true;
+            //}
+
+            //if (VolumeTooLow())
+            //{
+            //    Print("VolumeTooLow is TRUE, set T-Server to Hold!");
+            //    return true;
+            //}
+
+            if (OverBoughtOverSold(signal))
+            {
+                Print("OverBoughtOverSold is TRUE, set T-Server to Hold!");
+                return true;
+            }
+
+            return false;
+        }
+
+
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
         {
@@ -1185,6 +1298,47 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
+            MyPrint(defaultErrorType, "CurrentTimeBar" +
+                            " Start time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar - 1).ToString("HHmmss") +
+                            " End time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar).ToString("HHmmss") +
+                            " Open=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar).ToString() +
+                            " Close=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar).ToString() +
+                            " High=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar).ToString() +
+                            " Low=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar).ToString() +
+                            " Volume=" + BarsArray[3].GetVolume(BarsArray[3].CurrentBar).ToString() +
+                            " SMA9=" + SMA(BarsArray[3], 9)[0].ToString() +
+                            " SMA20=" + SMA(BarsArray[3], 20)[0].ToString() +
+                            " SMA50=" + SMA(BarsArray[3], 50)[0].ToString() +
+                            " MACD=" + MACD(BarsArray[3], 12, 26, 9).Diff[0].ToString() +
+                            " RSI=" + RSI(BarsArray[3], 14, 3)[0].ToString() +
+                            " Boll_Low=" + Bollinger(BarsArray[3], 2, 20).Lower[0].ToString() +
+                            " Boll_Hi=" + Bollinger(BarsArray[3], 2, 20).Upper[0].ToString() +
+                            " CCI=" + CCI(BarsArray[3], 20)[0].ToString() +
+                            " Momentum=" + Momentum(BarsArray[3], 20)[0].ToString() +
+                            " DiPlus=" + DM(BarsArray[3], 14).DiPlus[0].ToString() +
+                            " DiMinus=" + DM(BarsArray[3], 14).DiMinus[0].ToString() +
+                            " VROC=" + VROC(BarsArray[3], 25, 3)[0].ToString());
+
+            if (!ConsultVServer)
+            {
+                // if !ConsultVServer and currMarketView == MarketView.Sell, start Sell without consulting V-Server
+                if (tServerDecision == TServerTradeDecison.Sell)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + tServerDecision.ToString());
+                    AiShort();
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                }
+                // if !ConsultVServer and currMarketView == MarketView.Buy, start Buy without consulting V-Server
+                if (tServerDecision == TServerTradeDecison.Buy)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + tServerDecision.ToString());
+                    AiLong();
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                }
+
+                // return if not consulting V-server
+                return;
+            }
 
             switch (signal[0])
             {
@@ -1192,7 +1346,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // sell
                     if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
                     {
-                        // if Close > Open, market heading higher, skip the trade
+                        // Check V-Server market direction, if Close > Open, market heading higher, skip the trade
                         return;
                     }
                     if (tServerDecision == TServerTradeDecison.Sell)
@@ -1205,7 +1359,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // buy
                     if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
                     {
-                        // if Open > Close, market heading lower, skip the trade
+                        // Check V-Server market direction, if Open > Close, market heading lower, skip the trade
                         return;
                     }
                     if (tServerDecision == TServerTradeDecison.Buy)
@@ -1860,8 +2014,30 @@ namespace NinjaTrader.NinjaScript.Strategies
                         VROC(25, 3)[0].ToString() + ',' +
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                         '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
+
+                    MyPrint(defaultErrorType, "CurrentVolumeBar" +
+                            " Start time=" + Bars.GetTime(CurrentBar - 1).ToString("HHmmss") +
+                            " End time=" + Bars.GetTime(CurrentBar).ToString("HHmmss") +
+                            " Open=" + Bars.GetOpen(CurrentBar).ToString() +
+                            " Close=" + Bars.GetClose(CurrentBar).ToString() +
+                            " High=" + Bars.GetHigh(CurrentBar).ToString() +
+                            " Low=" + Bars.GetLow(CurrentBar).ToString() +
+                            " Volume=" + Bars.GetVolume(CurrentBar).ToString() +
+                            " SMA9=" + SMA(9)[0].ToString() +
+                            " SMA20=" + SMA(20)[0].ToString() +
+                            " SMA50=" + SMA(50)[0].ToString() +
+                            " MACD=" + MACD(12, 26, 9).Diff[0].ToString() +
+                            " RSI=" + RSI(14, 3)[0].ToString() +
+                            " Boll_Low=" + Bollinger(2, 20).Lower[0].ToString() +
+                            " Boll_Hi=" + Bollinger(2, 20).Upper[0].ToString() +
+                            " CCI=" + CCI(20)[0].ToString() +
+                            " Momentum=" + Momentum(20)[0].ToString() +
+                            " DiPlus=" + DM(14).DiPlus[0].ToString() +
+                            " DiMinus=" + DM(14).DiMinus[0].ToString() +
+                            " VROC=" + VROC(25, 3)[0].ToString());
                 }
                 MyPrint(defaultErrorType, "CurrentVolumeBar = " + CurrentBar + ": " + "bufString = " + bufString);
+
 
                 byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
@@ -2061,35 +2237,44 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "Start time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar - 1).ToString("HHmmss") + " End time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar).ToString("HHmmss"));
                 MyPrint(defaultErrorType, "OnBarUpdate, TServer response= <" + tServerSignal + "> Current Bar: Open=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar) + " Close=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar) + " High=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar) + " Low=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar));
 
-                switch (tServerSignal[0])
+                // if T-Server filter returns true, set to Hold
+                if (UseTServerFilters && FilterTServer(tServerSignal[0]))
                 {
-                    case '0':
-                        // sell confirms with market direction
-                        if (Bars.GetOpen(BarsArray[3].CurrentBar) > Bars.GetClose(BarsArray[3].CurrentBar))
-                        {
-                            tServerDecision = TServerTradeDecison.Sell;
-                        }
-                        else
-                        {
-                            tServerDecision = TServerTradeDecison.Hold;
-                        }
-                        MyPrint(defaultErrorType, "Time Server signal=" + tServerSignal);
-                        break;
-                    case '2':
-                        // buy confirms with market direction
-                        if (Bars.GetOpen(BarsArray[3].CurrentBar) < Bars.GetClose(BarsArray[3].CurrentBar))
-                        {
-                            tServerDecision = TServerTradeDecison.Buy;
-                        }
-                        else
-                        {
-                            tServerDecision = TServerTradeDecison.Hold;
-                        }
-                        break;
-                    default:
-                        tServerDecision = TServerTradeDecison.Hold;
-                        break;
+                    tServerDecision = TServerTradeDecison.Hold;
                 }
+                else
+                {
+                    switch (tServerSignal[0])
+                    {
+                        case '0':
+                            // sell confirms with T-Server market direction
+                            if (Bars.GetOpen(BarsArray[3].CurrentBar) > Bars.GetClose(BarsArray[3].CurrentBar))
+                            {
+                                tServerDecision = TServerTradeDecison.Sell;
+                            }
+                            else
+                            {
+                                tServerDecision = TServerTradeDecison.Hold;
+                            }
+                            MyPrint(defaultErrorType, "Time Server signal=" + tServerSignal);
+                            break;
+                        case '2':
+                            // buy confirms with T-Server market direction
+                            if (Bars.GetOpen(BarsArray[3].CurrentBar) < Bars.GetClose(BarsArray[3].CurrentBar))
+                            {
+                                tServerDecision = TServerTradeDecison.Buy;
+                            }
+                            else
+                            {
+                                tServerDecision = TServerTradeDecison.Hold;
+                            }
+                            break;
+                        default:
+                            tServerDecision = TServerTradeDecison.Hold;
+                            break;
+                    }
+                }
+
                 tLineNo++;
             }
         }

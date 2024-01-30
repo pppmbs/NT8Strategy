@@ -89,7 +89,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
         private static bool UseMaketViewExit = true;
-        private static bool ForcedEntryConsultServer = true;
+        private static bool ConsultVServer = false;
 
         // Macro Market Views
         enum MarketView
@@ -803,7 +803,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     }
                 }
 
-                MyPrint(defaultErrorType, "ReadMarketViewFile, T-Server currMarketView=" + currMarketView.ToString());
+                MyPrint(defaultErrorType, "ReadMarketViewFile, T-Server currMarketView= {{{  " + currMarketView.ToString() + "  }}}");
             }
             else
             {
@@ -1117,62 +1117,83 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            // if !ForcedEntryConsultServer and currMarketView == MarketView.ForcedSell (human trader override) start Sell without consulting neither T-Server nor V-Server
-            if (!ForcedEntryConsultServer && currMarketView == MarketView.ForcedSell)
+            if (!ConsultVServer)  // does not consult V-Server
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, ForcedSell, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                AiShort();
-                return;
-            }
-            // if !ForcedEntryConsultServer && currMarketView == MarketView.ForcedBuy (human trader override) start Buy without consulting neither T-Server nor V-Server
-            if (!ForcedEntryConsultServer && currMarketView == MarketView.ForcedBuy)
-            {
-                MyPrint(defaultErrorType, "StartNewTradePosition, ForcedBuy, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                AiLong();
-                return;
-            }
-
-            switch (signal[0])
-            {
-                case '0':
-                    // sell
-                    // Confirm with V server, if Close > Open, market heading higher, skip the trade
-                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                    {
-                        return;
-                    }
-                    // confirm with T server if not forced Sell
-                    if (currMarketView != MarketView.ForcedSell)
-                    {
-                        // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
-                        if (currMarketView != MarketView.Sell)
-                            return;
-                    }
-                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                // if !ConsultVServer and currMarketView == MarketView.Sell, start Sell without consulting V-Server
+                if (currMarketView == MarketView.Sell || currMarketView == MarketView.ForcedSell)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + currMarketView.ToString());
                     AiShort();
-                    break;
-                case '2':
-                    // buy
-                    // Confirm with V server, if Open > Close, market heading lower, skip the trade
-                    if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                    {
-                        return;
-                    }
-                    // confirm with T server if not forced Buy
-                    if (currMarketView != MarketView.ForcedBuy)
-                    {
-                        // skip if signals between V-Server (2000 ticks) and T-Server (5 minutes) are not identical
-                        if (currMarketView != MarketView.Buy)
-                            return;
-                    }
-                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
                     PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                }
+                // if !ConsultVServer and currMarketView == MarketView.Buy, start Buy without consulting V-Server
+                if (currMarketView == MarketView.Buy || currMarketView == MarketView.ForcedBuy)
+                {
+                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + currMarketView.ToString());
                     AiLong();
-                    break;
-                default:
-                    // do nothing if signal is 1 for flat position
-                    break;
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                }
+            }
+            else // consulting V-Server
+            {
+                switch (signal[0])
+                {
+                    case '0':
+                        // sell
+                        // if ForcedSell, skip all other checks and Sell
+                        if (currMarketView == MarketView.ForcedSell)
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition, ForcedSell, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                            AiShort();
+                            PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                            return;
+                        }
+                        // Confirm with V server, if Close > Open, market heading higher, skip the trade
+                        if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                            return;
+                        }
+                        // confirm with T server 
+                        if (currMarketView != MarketView.Sell)
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! (currMarketView != MarketView.Sell)");
+                            return;
+                        }
+                        MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                        AiShort();
+                        PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                        break;
+                    case '2':
+                        // buy
+                        // if ForcedBuy, skip all other checks and Buy
+                        if (currMarketView == MarketView.ForcedBuy)
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition, ForcedBuy, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                            AiLong();
+                            PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                            return;
+                        }
+                        // Confirm with V server, if Open > Close, market heading lower, skip the trade
+                        if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                            return;
+                        }
+                        // confirm with T server 
+                        if (currMarketView != MarketView.Buy)
+                        {
+                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! (currMarketView != MarketView.Buy)");
+                            return;
+                        }
+                        MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
+                        AiLong();
+                        PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
+                        break;
+                    default:
+                        // do nothing if signal is 1 for flat position
+                        break;
+                }
             }
         }
 
@@ -1841,7 +1862,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //svrSignal = ExtractResponse(System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length));
                 svrSignal = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length).Split(',')[1];
-                MyPrint(defaultErrorType, "OnBarUpdate, Server response= <<< " + svrSignal + " >>> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+                MyPrint(defaultErrorType, "OnBarUpdate, V-Server response= <<<  " + svrSignal + "  >>> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
                 //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " Server response= <" + svrSignal + ">");
 
                 lineNo++;

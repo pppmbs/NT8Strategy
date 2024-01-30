@@ -31,7 +31,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 	public class TServerViewGenerator : Strategy
 	{
 		private string pathMktView;
-		private StreamWriter swMkt = null; // Store marekt view, 0=Bear, 1=Neutral, 2=Bull
+		private StreamWriter swMkt = null; // Store market view, 0=Bear, 1=Neutral, 2=Bull
 
 		// Macro Market Views
 		enum MarketView
@@ -42,8 +42,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 		};
 		MarketView currMarketView = MarketView.Hold;
 
-		// with MaketConfirmation flag set to true, T-Server Buy signal only when current bar Close_price > Open_price, vice versa for Sell signal
-		static bool MaketConfirmation = true;
+		private static bool UseTServerFilters = true;
 
 		private Socket tSender = null;
 		private byte[] tBytes = new byte[1024];
@@ -51,7 +50,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 		private static readonly int tPortNumber = 3883;
 		private static readonly string hostName = "AITrader";
 		private string tServerSignal = "1";
-
 
 		private void ConnectTimeServer()
 		{
@@ -171,11 +169,148 @@ namespace NinjaTrader.NinjaScript.Strategies
 			swMkt = null;
 		}
 
+		private bool BollingerFlat()
+        {
 
+
+			// if Bollinger width is less than 5 then return true (Hold)
+			if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) < 5)
+            {
+				Print("Bollinger width= " + (Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]).ToString());
+				return true;
+			}
+
+            return false;
+        }
+
+
+		private bool BollingerWrongTrend(char signal)
+        {
+			double lastMidBoll;
+			double currMidBoll;
+
+			currMidBoll = (Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2;
+			lastMidBoll = (Bollinger(2, 20).Upper[1] + Bollinger(2, 20).Lower[1]) / 2;
+			Print("currMidBoll =" + currMidBoll.ToString() + " lastMidBoll =" + lastMidBoll.ToString());
+
+			switch (signal)
+            {
+				case '0':
+					// if mid bollinger is trending up, return true
+					if (currMidBoll >= lastMidBoll)
+						return true;
+					break;
+
+				case '2':
+					// if mid bollinger is trending down, return true
+					if (currMidBoll <= lastMidBoll)
+						return true;
+					break;
+
+				default:
+					return false;
+            }
+
+			return false;
+        }
+
+
+		private bool VolumeTooLow()
+        {
+			// if the trading in the last 5 minutes is less than 5000, return true
+			if (Bars.GetVolume(CurrentBar) < 5000)
+            {
+				Print("Volume= " + Bars.GetVolume(CurrentBar));
+				return true;
+			}
+
+			return false;
+        }
+
+
+		private bool OverBoughtOverSold(char signal)
+        {
+			switch (signal)
+			{
+				case '0':
+					if (Bars.GetHigh(CurrentBar) != Bars.GetClose(CurrentBar))
+						return true;
+					break;
+
+				case '2':
+					if (Bars.GetHigh(CurrentBar) == Bars.GetClose(CurrentBar))
+						return true;
+					break;
+
+				default:
+					return false;
+			}
+			return false;
+        }
+
+
+		private bool OpenCloseWrongDirection(char signal)
+        {
+			switch (signal)
+			{
+				case '0':
+					if (Bars.GetOpen(CurrentBar) < Bars.GetClose(CurrentBar))
+						return true;
+					break;
+
+				case '2':
+					if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+						return true;
+					break;
+
+				default:
+					return false;
+			}
+			return false;
+        }
+
+
+		// Different filtering mechanism employed for the T-Server signals, if anyone of them returned true, T-Server will be set to Hold
+		private bool FilterTServer(char signal)
+        {
+			/*
+			if (BollingerFlat())
+            {
+				Print("BollingerFlat is TRUE, set T-Server to Hold!");
+				return true;
+			}
+
+			if (BollingerWrongTrend(signal))
+            {
+				Print("BollingerWrongTrend is TRUE, set T-Server to Hold!");
+				return true;
+			}
+
+			if (VolumeTooLow())
+            {
+				Print("VolumeTooLow is TRUE, set T-Server to Hold!");
+				return true;
+			}
+			*/
+
+			if (OverBoughtOverSold(signal))
+            {
+				Print("OverBoughtOverSold is TRUE, set T-Server to Hold!");
+				return true;
+			}
+
+			if (OpenCloseWrongDirection(signal))
+            {
+				Print("OpenCloseWrongDirection is TRUE, set T-Server to Hold!");
+				return true;
+			}
+
+			return false;
+        }
 
 		protected override void OnBarUpdate()
 		{
-			if (BarsInProgress == 0)
+            if (BarsInProgress == 0)
 			{
 				string bufString;
 
@@ -206,7 +341,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //Print(bufString);
 
-                //Print("CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
+				//Print("CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
 				if (!Bars.IsFirstBarOfSession)
 				{
 					Print("CurrentTimeBar" +
@@ -229,13 +364,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 								" DiPlus=" + DM(14).DiPlus[0].ToString() +
 								" DiMinus=" + DM(14).DiMinus[0].ToString() +
 								" VROC=" + VROC(25, 3)[0].ToString());
-				}
+                }
 
 				byte[] msg = Encoding.UTF8.GetBytes(bufString);
 
-
-				int tBytesSent;
-				int tBytesRec;
+                int tBytesSent;
+                int tBytesRec;
 
 				try
 				{
@@ -252,59 +386,36 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				tServerSignal = System.Text.Encoding.UTF8.GetString(tBytes, 0, tBytes.Length).Split(',')[1];
 				Print("Start time=" + Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + " End time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
-				Print("OnBarUpdate, TServer response= <<< " + tServerSignal + " >>> Current Bar: Open=" + Bars.GetOpen(CurrentBar) + " Close=" + Bars.GetClose(CurrentBar) + " High=" + Bars.GetHigh(CurrentBar) + " Low=" + Bars.GetLow(CurrentBar));
+				Print("OnBarUpdate, TServer response= <<<  " + tServerSignal + "  >>> ");
 				//Print("Time Server signal=" + tServerSignal);
-				switch (tServerSignal[0])
-				{
-					case '0':
-                        // sell
-                        if (MaketConfirmation)
-                        {
-                            if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                            {
-                                currMarketView = MarketView.Sell;
-                                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
-                            }
-							else
-                            {
-								currMarketView = MarketView.Hold;
-								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
-							}
-                        }
-                        else
-                        {
+
+				// if T-Server filter returns true, set to Hold
+				if (UseTServerFilters && FilterTServer(tServerSignal[0]))
+                {
+					currMarketView = MarketView.Hold;
+					PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
+				}
+                else
+                {
+					switch (tServerSignal[0])
+					{
+						case '0':
                             currMarketView = MarketView.Sell;
                             PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
-                        }
-                        break;
-					case '2':
-						// buy
-						if (MaketConfirmation)
-						{
-							if (Bars.GetOpen(CurrentBar) < Bars.GetClose(CurrentBar))
-							{
-								currMarketView = MarketView.Buy;
-								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
-							}
-							else
-                            {
-								currMarketView = MarketView.Hold;
-								PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
-							}
-						}
-						else
-						{
-							currMarketView = MarketView.Buy;
-							PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
-						}
-						break;
-					default:
-						currMarketView = MarketView.Hold;
-						PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
-						break;
+                            break;
+						case '2':
+                            currMarketView = MarketView.Buy;
+                            PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\bicycle_bell.wav");
+                            break;
+                        default:
+							currMarketView = MarketView.Hold;
+							PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
+							break;
+					}
 				}
-				tLineNo++;
 
+				// increment tlineNo for T-Server
+				tLineNo++;
 
 				WriteMarketView(currMarketView);
 				Print(DateTime.Now + " Current T-Server View = {{{{{ " + currMarketView.ToString() + " }}}}} ");
