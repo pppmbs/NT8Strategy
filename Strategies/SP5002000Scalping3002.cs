@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class SP500EminiLive2Models3002 : Strategy
+    public class SP5002000Scalping3002 : Strategy
     {
         // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
@@ -39,6 +39,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private string pathVIX;
         private string pathPpercent;
         private string pathMktView; // Store marekt view, 0==Bear, 1==Neutral, 2==Bull
+        private string pathExitView; // Store exit view, 0==Sell, 1==Hold, 2==Buy
         private StreamWriter swLog = null; // runtime log file 
         private StreamWriter swErr = null; // error file
         private StreamWriter swCC = null;  // Store current capital for each strategy 
@@ -85,11 +86,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // --------------------------------------------------
         // TRADE FILTERS
         // --------------------------------------------------
-
+        
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static bool UseMaketViewExit = true;
-        private static bool ConsultVServer = false;
 
         // Macro Market Views
         enum MarketView
@@ -101,6 +100,16 @@ namespace NinjaTrader.NinjaScript.Strategies
             Hold            // =1
         };
         MarketView currMarketView = MarketView.Hold;
+
+
+        // Macro Exit Views
+        enum ExitView
+        {
+            Buy,            // =2
+            Sell,           // =0
+            Hold            // =1
+        };
+        ExitView currExitView = ExitView.Hold;
 
         enum TradeDecisions
         {
@@ -174,6 +183,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int defaultLstops = 10;
         private int profitChasing = defaultPstops * TicksPerStop; // the target where HandleProfitChasing kicks in
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
+        private int softerDeck = Convert.ToInt32(0.6 * defaultLstops * TicksPerStop);
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
         private int pStops = defaultPstops;
         private int lStops = defaultLstops;
@@ -185,8 +195,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double closedPrice = 0.0;
         // *** NOTE ***: NEED TO MODIFY the HH and MM of the endSessionTime to user needs, always minus bufferUntilEOD minutes to allow for buffer checking of end of session time, e.g. 23HH 59-10MM
         private static int bufferUntilEOD = 10;  // number of minutes before end of session
-        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
-        private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
+        //private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
+        private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
+        //private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
+        private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
         private DateTime NineAM = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 00, 00);
         private bool endSession = false;
         private bool firstBarOfDay = true;
@@ -235,7 +247,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements 2 models approach live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "SP500EminiLive2Models3002";
+                Name = "SP5002000Scalping3002";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -298,7 +310,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 AddDataSeries(Data.BarsPeriodType.Tick, 100);
 
                 // Add daily VIX data series
-                AddDataSeries("^VIX", BarsPeriodType.Day, 1);
+                //AddDataSeries("^VIX", BarsPeriodType.Day, 1);
 
                 //SetProfitTarget and SetStopLoss can not be used together with ExitLongLimit and ExitShortLimit, let HandleSoftDeck and HandleHardDeck handles the Exit.
                 //set static profit target and stop loss, this will ensure outstanding Account Positions are protected automatically
@@ -544,7 +556,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             //CheckMonthlyStopLoss(); can not check for monthly stop loss here for back test, can only check in OnPositionUpdate
 
             // Read current market view file, 0==Bearish, 1==neutral, 2==Bullish
-            ReadMarketViewFile();
+            //ReadMarketViewFile();
 
             // Read the profit percentage for triggering the early exit
             ReadEarlyExitProftPercent();
@@ -813,6 +825,45 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        // Read exit view file, 0=Sell, 1=Hold, 2=Buy
+        private void ReadExitViewFile()
+        {
+            int exitView;
+
+            //Read exit view file, market view is the same across all strategies on the same machine
+            pathExitView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathExitView = System.IO.Path.Combine(pathExitView, "Artista" + ".xit");
+
+            if (File.Exists(pathExitView))
+            {
+                string exitViewString = File.ReadAllText(pathExitView); // read exit view
+                exitView = Convert.ToInt32(exitViewString);
+
+                MyPrint(defaultErrorType, "ReadExitViewFile, exitViewString=" + exitViewString);
+
+                switch (exitView)
+                {
+                    case 0:
+                        currExitView = ExitView.Sell;
+                        break;
+                    case 2:
+                        currExitView = ExitView.Buy;
+                        break;
+                    default:
+                        currExitView = ExitView.Hold;
+                        break;
+                }
+
+                MyPrint(defaultErrorType, "ReadExitViewFile, currExitView= {{{  " + currExitView.ToString() + "  }}}");
+            }
+            else
+            {
+                currExitView = ExitView.Hold;
+                MyErrPrint(ErrorType.warning, pathExitView + " Exit View file does not exist! Default currExitView=" + currExitView.ToString());
+            }
+        }
+
+
         // Read the pStops and lStops to set up the profit chasing and stop loss settings
         // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
         private void ReadEarlyExitProftPercent()
@@ -901,7 +952,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     //Set this scripts MyPrint() calls to the second output tab
                     PrintTo = PrintTo.OutputTab2;
 
-                Print(hostName + ":" + portNumber.ToString() + ":" + DateTime.Now + " " + buf);
+                //Print(hostName + ":" + portNumber.ToString() + ":" + DateTime.Now + " " + buf);
+                Print(DateTime.Now.ToString("HHmmss") + " " + buf);
             }
 
 
@@ -1032,6 +1084,14 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint(defaultErrorType, "VROC=" + VROC(25, 3)[0].ToString() + " MACD=" + MACD(12, 26, 9).Diff[0].ToString());
             if (PosLong())
             {
+                // Scalping Exits - profit taking and stop loss
+                // profit taking
+                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0]) 
+                    return true;
+                // stop loss
+                if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    return true;
+
                 //if (currMarketView == MarketView.Bearish || currMarketView == MarketView.Neutral)
                 //{
                 //    return true;
@@ -1044,15 +1104,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // SMA Exit if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
                 {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted is True, exit via SMA20.");
                     profitPercentMet = false; // reset profitPercentMet flag
                     return true;
                 }
-                // interrupt the trade when consecutive market views is opposite of current position
-                if (UseMaketViewExit && currMarketView == MarketView.Sell)
-                    return true;
             }
             if (PosShort())
             {
+                // Scalping Exits - profit taking and stop loss
+                // profit taking
+                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                    return true;
+                // stop loss
+                if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    return true;
+
                 //if (currMarketView == MarketView.Bullish || currMarketView == MarketView.Neutral)
                 //{
                 //    return true;
@@ -1065,12 +1131,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // SMA Exit if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
                 {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted is True, exit via SMA20.");
                     profitPercentMet = false; // reset profitPercentMet flag
                     return true;
                 }
-                // interrupt the trade when consecutive market views is opposite of current position
-                if (UseMaketViewExit && currMarketView == MarketView.Buy)
-                    return true;
             }
             return false;
         }
@@ -1087,7 +1151,33 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return false;
         }
 
-
+        private bool ScalpEntryPassed(char signal)
+        {
+            switch (signal)
+            {
+                case '0':
+                    // Confirm with V server, if Close > Open, market heading higher, skip the trade
+                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed faled! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                        return false;
+                    }
+                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= 3)
+                        return true;
+                    break;
+                case '2':
+                    // Confirm with V server, if Open > Close, market heading lower, skip the trade
+                    if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed failed! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                        return false;
+                    }
+                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= 3)
+                        return true;
+                    break;
+            }
+            return false;
+        }
 
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
@@ -1117,83 +1207,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            if (!ConsultVServer)  // does not consult V-Server
+            if (!ScalpEntryPassed(signal[0]))
+                return;
+
+            switch (signal[0])
             {
-                // if !ConsultVServer and currMarketView == MarketView.Sell, start Sell without consulting V-Server
-                if (currMarketView == MarketView.Sell || currMarketView == MarketView.ForcedSell)
-                {
-                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + currMarketView.ToString());
+                case '0':
+                    // sell
+                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal);
                     AiShort();
-                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                }
-                // if !ConsultVServer and currMarketView == MarketView.Buy, start Buy without consulting V-Server
-                if (currMarketView == MarketView.Buy || currMarketView == MarketView.ForcedBuy)
-                {
-                    MyPrint(defaultErrorType, "StartNewTradePosition, Not consulting V-Server, T-Server signal=" + currMarketView.ToString());
+                    break;
+                case '2':
+                    // buy
+                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal);
                     AiLong();
-                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                }
-            }
-            else // consulting V-Server
-            {
-                switch (signal[0])
-                {
-                    case '0':
-                        // sell
-                        // if ForcedSell, skip all other checks and Sell
-                        if (currMarketView == MarketView.ForcedSell)
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition, ForcedSell, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                            AiShort();
-                            PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                            return;
-                        }
-                        // Confirm with V server, if Close > Open, market heading higher, skip the trade
-                        if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                            return;
-                        }
-                        // confirm with T server 
-                        if (currMarketView != MarketView.Sell)
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! (currMarketView != MarketView.Sell)");
-                            return;
-                        }
-                        MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                        AiShort();
-                        PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                        break;
-                    case '2':
-                        // buy
-                        // if ForcedBuy, skip all other checks and Buy
-                        if (currMarketView == MarketView.ForcedBuy)
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition, ForcedBuy, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                            AiLong();
-                            PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                            return;
-                        }
-                        // Confirm with V server, if Open > Close, market heading lower, skip the trade
-                        if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                            return;
-                        }
-                        // confirm with T server 
-                        if (currMarketView != MarketView.Buy)
-                        {
-                            MyPrint(defaultErrorType, "StartNewTradePosition rejected! (currMarketView != MarketView.Buy)");
-                            return;
-                        }
-                        MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal + " T-Server signal=" + currMarketView.ToString());
-                        AiLong();
-                        PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
-                        break;
-                    default:
-                        // do nothing if signal is 1 for flat position
-                        break;
-                }
+                    break;
+                default:
+                    // do nothing if signal is 1 for flat position
+                    break;
             }
         }
 
@@ -1250,7 +1281,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosLong())
             {
-                // Exit position if IsTradeFilered is TRUE
+                // Exit position if IsTradeInterrupted is TRUE
                 if (IsTradeInterrupted())
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (Close[0]-closedPrice).ToString());
@@ -1286,7 +1317,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (PosShort())
             {
-                // Exit position if IsTradeFilered is TRUE
+                // Exit position if IsTradeInterrupted is TRUE
                 if (IsTradeInterrupted())
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleSoftDeck:: signal= " + signal.ToString() + " current price=" + Close[0] + " closedPrice=" + closedPrice.ToString() + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ L O S E R @@@@@@ loss= " + (closedPrice- Close[0]).ToString());
@@ -1398,14 +1429,38 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
+                MyPrint(defaultErrorType, "ViolateSoftDeck, violate soft deck!");
                 return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
+                MyPrint(defaultErrorType, "ViolateSoftDeck, violate soft deck!");
                 return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
             }
             return false;
         }
+
+        private bool MarketAgainstPosition()
+        {
+            if (PosLong())
+            {
+                if (SMA(9)[0] < SMA(20)[0])
+                {
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] < SMA(20)[0] and loss 60% of position!");
+                    return (Bars.GetClose(CurrentBar) <= (closedPrice - softerDeck * TickSize));
+                }
+            }
+            if (PosShort())
+            {
+                if (SMA(9)[0] > SMA(20)[0])
+                {
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] > SMA(20)[0] and loss 60% of position!");
+                    return (Bars.GetClose(CurrentBar) >= (closedPrice + softerDeck * TickSize));
+                }
+            }
+            return false;
+        }
+
 
         private void HandleHardDeck()
         {
@@ -1831,7 +1886,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 if (State == State.Realtime)
                 {
                     // Read current market view file, 0=Bearish, 1=neutral, 2=Bullish
-                    ReadMarketViewFile();
+                    //ReadMarketViewFile();
+                    // Read current exit view file, 0=Sell, 1=Hold, 2=Buy
+                    //ReadExitViewFile();
                 }
 
 
@@ -1885,8 +1942,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                             if (UseExitFilter)
                                 HandleMarketShift();
 
-                            // if Close[0] violates soft deck, if YES handle stop loss accordingly
-                            if (ViolateSoftDeck())
+                            // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
+                            if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
                                 HandleSoftDeck(svrSignal);
                             }
@@ -1918,23 +1975,23 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
             // ^VIX daily data
-            else if (BarsInProgress == 2)
-            {
-                MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
-                MyPrint(defaultErrorType, "OnBarUpdate, ^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
-                MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
+            //else if (BarsInProgress == 2)
+            //{
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
 
-                // write 10 days EMA VIX into VIX file 
-                swVIX = File.CreateText(pathVIX); // Open the path for VIX
-                swVIX.WriteLine(EMA(BarsArray[2], 10)[0].ToString());
-                swVIX.Close();
-                swVIX.Dispose();
-                swVIX = null;
+            //    // write 10 days EMA VIX into VIX file 
+            //    swVIX = File.CreateText(pathVIX); // Open the path for VIX
+            //    swVIX.WriteLine(EMA(BarsArray[2], 10)[0].ToString());
+            //    swVIX.Close();
+            //    swVIX.Dispose();
+            //    swVIX = null;
 
-                MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
-                MyPrint(defaultErrorType, "OnBarUpdate, ^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
-                MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
-            }
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ^VIX 10 days SMA " + SMA(BarsArray[2], 10)[0]);
+            //    MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
+            //}
         }
     }
 }
