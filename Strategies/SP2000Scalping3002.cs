@@ -29,7 +29,7 @@ using System.IO;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class SP5002000Scalping3002 : Strategy
+    public class SP2000Scalping3002 : Strategy
     {
         // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
@@ -86,9 +86,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         // --------------------------------------------------
         // TRADE FILTERS
         // --------------------------------------------------
-        
+
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
+        private static double ScaplingRange = 5;
 
         // Macro Market Views
         enum MarketView
@@ -247,7 +248,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements 2 models approach live trading for the daily drawdown control and monthly profit chasing/stop loss strategy, using limit order.";
-                Name = "SP5002000Scalping3002";
+                Name = "SP2000Scalping3002";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -1086,11 +1087,17 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0]) 
+                if (Bars.GetHigh(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
+                }
                 // stop loss
                 if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
                     return true;
+                }
 
                 //if (currMarketView == MarketView.Bearish || currMarketView == MarketView.Neutral)
                 //{
@@ -1113,11 +1120,17 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                if (Bars.GetLow(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
+                }
                 // stop loss
                 if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
                     return true;
+                }
 
                 //if (currMarketView == MarketView.Bullish || currMarketView == MarketView.Neutral)
                 //{
@@ -1157,25 +1170,26 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 case '0':
                     // Confirm with V server, if Close > Open, market heading higher, skip the trade
-                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                    {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed faled! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                        return false;
-                    }
-                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= 3)
+                    //if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                    //{
+                    //    MyPrint(defaultErrorType, "ScalpEntryPassed faled! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                    //    return false;
+                    //}
+                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScaplingRange)
                         return true;
                     break;
                 case '2':
                     // Confirm with V server, if Open > Close, market heading lower, skip the trade
-                    if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                    {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed failed! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                        return false;
-                    }
-                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= 3)
+                    //if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                    //{
+                    //    MyPrint(defaultErrorType, "ScalpEntryPassed failed! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                    //    return false;
+                    //}
+                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScaplingRange)
                         return true;
                     break;
             }
+            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry!");
             return false;
         }
 
@@ -1216,11 +1230,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // sell
                     MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal);
                     AiShort();
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
                     break;
                 case '2':
                     // buy
                     MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal);
                     AiLong();
+                    PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
                     break;
                 default:
                     // do nothing if signal is 1 for flat position

@@ -433,7 +433,7 @@
     <Compile Include="Strategies\%40%40SP500EminiLiveLowTickT63001.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLive2Models3002.cs" />
     <Compile Include="Strategies\%40%40TServerBackTest3883.cs" />
-    <Compile Include="Strategies\SP5002000Scalping3002.cs" />
+    <Compile Include="Strategies\SP2000Scalping3002.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
