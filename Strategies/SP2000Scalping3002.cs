@@ -89,7 +89,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static double ScaplingRange = 5;
+        private static double ScalpingRange = 10;
+        private static bool CheckMarketDirection = true;
 
         // Macro Market Views
         enum MarketView
@@ -954,7 +955,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     PrintTo = PrintTo.OutputTab2;
 
                 //Print(hostName + ":" + portNumber.ToString() + ":" + DateTime.Now + " " + buf);
-                Print(DateTime.Now.ToString("HHmmss") + " " + buf);
+                Print(portNumber.ToString() + ":" +  DateTime.Now.ToString("HHmmss") + " " + buf);
             }
 
 
@@ -1169,23 +1170,25 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal)
             {
                 case '0':
-                    // Confirm with V server, if Close > Open, market heading higher, skip the trade
-                    //if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                    //{
-                    //    MyPrint(defaultErrorType, "ScalpEntryPassed faled! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                    //    return false;
-                    //}
-                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScaplingRange)
+                    // if Close > Open, market heading higher, skip the trade
+                    if (CheckMarketDirection)
+                        if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                            return false;
+                        }
+                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
                         return true;
                     break;
                 case '2':
-                    // Confirm with V server, if Open > Close, market heading lower, skip the trade
-                    //if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                    //{
-                    //    MyPrint(defaultErrorType, "ScalpEntryPassed failed! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                    //    return false;
-                    //}
-                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScaplingRange)
+                    // if Open > Close, market heading lower, skip the trade
+                    if (CheckMarketDirection)
+                        if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                            return false;
+                        }
+                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
                         return true;
                     break;
             }
@@ -1304,7 +1307,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "");
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
-                    AiFlat(ExitOrderType.limit);
+                    
+                    //AiFlat(ExitOrderType.limit);
+                    AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate) < 0)
@@ -1340,7 +1345,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "");
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
-                    AiFlat(ExitOrderType.limit);
+
+                    //AiFlat(ExitOrderType.limit);
+                    AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate) < 0)
