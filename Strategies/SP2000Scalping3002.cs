@@ -1174,25 +1174,29 @@ namespace NinjaTrader.NinjaScript.Strategies
                     if (CheckMarketDirection)
                         if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
                         {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
                             return false;
                         }
                     if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
                         return true;
+                    else
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
                     break;
                 case '2':
                     // if Open > Close, market heading lower, skip the trade
                     if (CheckMarketDirection)
                         if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
                         {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
                             return false;
                         }
                     if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
                         return true;
+                    else
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrower than ScalpingRange");
                     break;
             }
-            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry!");
+            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Signal=" + signal);
             return false;
         }
 
@@ -1243,6 +1247,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     break;
                 default:
                     // do nothing if signal is 1 for flat position
+                    MyPrint(defaultErrorType, "StartNewTradePosition, V-Server signal=" + signal);
                     break;
             }
         }
@@ -1500,6 +1505,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                 MyErrPrint(ErrorType.fatal, "HandleHardDeck, Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
+                
+                //CloseStrategy() called in MyErrPrint when error is fatal, it will flatten all positions
                 //AiFlat(ExitOrderType.market);
 
                 IncrementDailyLoss();
@@ -1524,6 +1531,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                 MyErrPrint(ErrorType.fatal, "HandleHardDeck,  Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
+                
                 //CloseStrategy() called in MyErrPrint when error is fatal, it will flatten all positions
                 //AiFlat(ExitOrderType.market);
 
@@ -1968,6 +1976,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
                             if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
+                                MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition is true");
                                 HandleSoftDeck(svrSignal);
                             }
 

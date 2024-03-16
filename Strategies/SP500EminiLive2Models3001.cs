@@ -1467,12 +1467,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                MyPrint(defaultErrorType, "ViolateSoftDeck, checking soft deck violation.");
                 return (Bars.GetClose(CurrentBar) <= (closedPrice - softDeck * TickSize));
             }
             if (PosShort())
             {
-                MyPrint(defaultErrorType, "ViolateSoftDeck,checking soft deck violation.");
                 return (Bars.GetClose(CurrentBar) >= (closedPrice + softDeck * TickSize));
             }
             return false;
@@ -1986,7 +1984,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                             // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
                             if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
-                                MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition, Stop loss.");
+                                MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition is true, Stop loss.");
                                 HandleSoftDeck(svrSignal);
                             }
 
