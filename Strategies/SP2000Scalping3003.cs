@@ -89,8 +89,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static double ScalpingRange = 5;
+        private static double ScalpingRange = 10;
         private static bool CheckMarketDirection = true;
+        private static bool IgnoreWallStreetHour = false;
+        private static bool UseMomentumFilter = true;
+        private static bool BollingerHiLoStoploss = false;
 
         // Macro Market Views
         enum MarketView
@@ -1093,17 +1096,25 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
-                // stop loss
-                if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // Scalping stop loss
+                if (BollingerHiLoStoploss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
-                    return true;
+                    if (Bars.GetLow(CurrentBar) < Bollinger(2, 20).Lower[0])
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, Low below Bollinger Lo stop loss");
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, Red bar below mid Bollinger stop loss");
+                        return true;
+                    }
                 }
 
-                //if (currMarketView == MarketView.Bearish || currMarketView == MarketView.Neutral)
-                //{
-                //    return true;
-                //}
+                // Turtle strategy exits
                 if ((Close[0] >= (closedPrice + earlyExitProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
@@ -1126,17 +1137,25 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
-                // stop loss
-                if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // Scalping stop loss
+                if (BollingerHiLoStoploss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
-                    return true;
+                    if (Bars.GetHigh(CurrentBar) > Bollinger(2, 20).Upper[0])
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, High above Bolinger Hi stop loss");
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted, Green bar above mid Bollinger stop loss");
+                        return true;
+                    }
                 }
 
-                //if (currMarketView == MarketView.Bullish || currMarketView == MarketView.Neutral)
-                //{
-                //    return true;
-                //}
+                // Turtle strategy exits
                 if ((Close[0] <= (closedPrice - earlyExitProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
@@ -1155,9 +1174,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 
 
-
         private bool WallstreetOpenHours()
         {
+            if (IgnoreWallStreetHour)
+                return true;
+
             // Wallstreet opening hours trade opportunities
             if (Time[0].Hour >= NineAM.Hour)
                 return true;
@@ -1165,31 +1186,42 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return false;
         }
 
+
         private bool ScalpEntryPassed(char signal)
         {
             switch (signal)
             {
                 case '0':
+                    // Check if momentum < 0
+                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
+                        return false;
+                    }
                     // if Close > Open, market heading higher, skip the trade
-                    if (CheckMarketDirection)
-                        if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                            return false;
-                        }
+                    if (CheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                        return false;
+                    }
                     if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
                     break;
                 case '2':
+                    // Check if momentum < 0
+                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
+                        return false;
+                    }
                     // if Open > Close, market heading lower, skip the trade
-                    if (CheckMarketDirection)
-                        if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                            return false;
-                        }
+                    if (CheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                        return false;
+                    }
                     if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
                         return true;
                     else
@@ -1199,6 +1231,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Signal=" + signal);
             return false;
         }
+
 
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
         private void StartNewTradePosition(string signal)
@@ -1529,7 +1562,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 //If fatal error, CloseStrategy() is called in MyErrPrint(), which will close all positions and disable strategy
                 MyErrPrint(ErrorType.fatal, "HandleHardDeck,  Confirmation of position flatten needed. OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " @@@@@ L O S E R @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
-                
+
                 //CloseStrategy() called in MyErrPrint when error is fatal, it will flatten all positions
                 //AiFlat(ExitOrderType.market);
 

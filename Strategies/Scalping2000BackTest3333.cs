@@ -110,6 +110,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static bool UseExitFilter = true;
         private static double ScalpingRange = 10;
         private static bool CheckMarketDirection = true;
+        private static bool UseMomentumFilter = true;
+        private static bool BollingerStoploss = true;
+        private bool touchedMid = false;
 
 
         private static int SMAConstant = 20;
@@ -1064,6 +1067,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             profitChasingFlag = false;
             attemptToFlattenPos = false;
             profitPercentMet = false; // reset profitPercentMet flag
+            touchedMid = false; // reset touchedMid flag
 
             MyPrint(defaultErrorType, "FlattenVirtualPositions, currPos=" + currPos + " profitChasingFlag=" + profitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
         }
@@ -1122,17 +1126,32 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
-                // stop loss
-                if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // Scalping stop loss
+                if (BollingerStoploss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
-                    return true;
+                    if (Bars.GetLow(CurrentBar) < Bollinger(2, 20).Lower[0])
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
+                        return true;
+                    }
+
+
+                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar below mid Bollinger");
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Red bar below mid Bollinger");
+                        return true;
+                    }
                 }
 
-                //if (currMarketView == MarketView.Bearish || currMarketView == MarketView.Neutral)
-                //{
-                //    return true;
-                //}
+                // Turtle strategy exits
                 if ((Close[0] >= (closedPrice + earlyExitProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
@@ -1141,6 +1160,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // SMA Exit if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] < SMA(SMAConstant)[0]) && profitPercentMet)
                 {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted is True, exit via SMA20.");
                     profitPercentMet = false; // reset profitPercentMet flag
                     return true;
                 }
@@ -1154,17 +1174,30 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
-                // stop loss
-                if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // Scalping stop loss
+                if (BollingerStoploss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted, stop loss");
-                    return true;
+                    if (Bars.GetHigh(CurrentBar) > Bollinger(2, 20).Upper[0])
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
+                        return true;
+                    }
+                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar above mid Bollinger");
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Green bar above mid Bollinger");
+                        return true;
+                    }
                 }
 
-                //if (currMarketView == MarketView.Bullish || currMarketView == MarketView.Neutral)
-                //{
-                //    return true;
-                //}
+                // Turtle strategy exits
                 if ((Close[0] <= (closedPrice - earlyExitProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
                 {
                     profitPercentMet = true;
@@ -1173,6 +1206,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // SMA Exit if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
                 if ((Close[0] > SMA(SMAConstant)[0]) && profitPercentMet)
                 {
+                    MyPrint(defaultErrorType, "IsTradeInterrupted is True, exit via SMA20.");
                     profitPercentMet = false; // reset profitPercentMet flag
                     return true;
                 }
@@ -1347,33 +1381,46 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private bool ScalpEntryPassed(char signal)
         {
-            MyPrint(defaultErrorType, "Checking ScalpEntryPassed");
             switch (signal)
             {
                 case '0':
+                    // Check if momentum < 0
+                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
+                        return false;
+                    }
                     // if Close > Open, market heading higher, skip the trade
-                    if (CheckMarketDirection)
-                        if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                            return false;
-                        }
+                    if (CheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                        return false;
+                    }
                     if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
                         return true;
+                    else
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
                     break;
                 case '2':
+                    // Check if momentum < 0
+                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
+                        return false;
+                    }
                     // if Open > Close, market heading lower, skip the trade
-                    if (CheckMarketDirection)
-                        if (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                            return false;
-                        }
+                    if (CheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                        return false;
+                    }
                     if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
                         return true;
+                    else
+                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrower than ScalpingRange");
                     break;
             }
-            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry!");
+            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Signal=" + signal);
             return false;
         }
 
@@ -1964,6 +2011,23 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        private void CheckTouchedMid()
+        {
+            double midBollinger = (Bollinger(2, 20).Lower[0] + Bollinger(2, 20).Upper[0]) / 2;
+
+            if (PosLong())
+            {
+                if (Bars.GetHigh(CurrentBar) > midBollinger)
+                    touchedMid = true;
+            }
+            if (PosShort())
+            {
+                if (Bars.GetLow(CurrentBar) < midBollinger)
+                    touchedMid = true;
+            }
+        }
+
+
         protected override void OnBarUpdate()
         {
             /* When working with multiple bar series objects it is important to understand the sequential order in which the
@@ -2155,6 +2219,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                             AiFlat(ExitOrderType.limit);
                         return;
                     }
+
+                    // check if current High or Low touched mid Bollinger
+                    CheckTouchedMid();
 
                     ExecuteAITrade(vServerSignal);
 

@@ -432,10 +432,10 @@
     <Compile Include="Strategies\SP500EminiLive2Models3001.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLiveLowTickT63001.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLive2Models3002.cs" />
-    <Compile Include="Strategies\TServerBackTest3883.cs" />
+    <Compile Include="Strategies\%40%40TServerBackTest3883.cs" />
     <Compile Include="Strategies\SP2000Scalping3002.cs" />
-    <Compile Include="Strategies\Scalping2000BackTest3333.cs" />
     <Compile Include="Strategies\SP2000Scalping3003.cs" />
+    <Compile Include="Strategies\Scalping2000BackTest3333.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
