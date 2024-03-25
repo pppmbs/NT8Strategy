@@ -364,17 +364,13 @@ namespace NinjaTrader.NinjaScript.Strategies
             return false;
         }
 
-        private void CheckMarketingWarnings()
+        private void CheckMarketWarnings()
         {
-            if (Bars.GetVolume(CurrentBar) <= 10000)
-            {
-                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell.wav");
-            }
-            if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) <= 10)
-            {
-                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell.wav");
-            }
-            if (Momentum(20)[0] <= 0)
+            //if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) <= 10)
+            //{
+            //    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell.wav");
+            //}
+            if (Momentum(20)[0] <= 0 || Bars.GetVolume(CurrentBar) <= 10000 || ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) <= 10))
             {
                 PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
             }
@@ -396,8 +392,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else
             {
-                if (signal == '0' || signal == '2')
-                    CheckMarketingWarnings();
+                CheckMarketWarnings();
 
                 switch (signal)
                 {
