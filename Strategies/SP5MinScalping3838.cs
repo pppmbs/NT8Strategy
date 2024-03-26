@@ -97,11 +97,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static double ScalpingRange = 5;
+        private static double ScalpingRange = 7;
         private static bool CheckMarketDirection = true;
         private static bool IgnoreWallStreetHour = false;
-        private static bool UseMomentumFilter = true;
-        private static bool BollingerStoploss = true;
+        private static bool UseMomentumFilter = false;
         private bool touchedMid = false;
 
         // Macro Market Views
@@ -1171,70 +1170,62 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
+                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                if (BollingerStoploss)
+                // Low below Bollinger_lo && Red bar
+                if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < Bollinger(BarsArray[3], 2, 20).Lower[0] && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
                 {
-                    // Low below Bollinger_lo
-                    if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < Bollinger(BarsArray[3], 2, 20).Lower[0])
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
-                        return true;
-                    }
-
-                    // touched mid Bollinger and red bar below mid Bollinger
-                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar below mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
+                    return true;
                 }
-                else
+
+                // touched mid Bollinger and red bar BELOW mid Bollinger
+                //if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
+                //{
+                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
+                //    return true;
+                //}
+
+                // YF best settings: touched mid Bollinger, red bar and ABOVE mid Bollinger
+                if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
                 {
-                    if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Red bar below mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar ABOVE mid Bollinger");
+                    return true;
                 }
             }
             if (PosShort())
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
+                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                if (BollingerStoploss)
+                // High above Bolinger_hi && Green bar
+                if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > Bollinger(BarsArray[3], 2, 20).Upper[0] && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
                 {
-                    // High above Bolinger_hi
-                    if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > Bollinger(BarsArray[3], 2, 20).Upper[0])
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
-                        return true;
-                    }
-
-                    // touched mid Bollinger and green bar above mid Bollinger
-                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar above mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
+                    return true;
                 }
-                else
+
+                // touched mid Bollinger and green bar ABOVE mid Bollinger
+                //if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
+                //{
+                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
+                //    return true;
+                //}
+
+                // YF best settings: touched mid Bollinger, green bar and BELOW mid Bollinger
+                if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
                 {
-                    if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Green bar above mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar BELOW mid Bollinger");
+                    return true;
                 }
             }
             return false;
@@ -1352,6 +1343,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleMarketShift");
                 return;
             }
+
+            // check if current High or Low touched mid Bollinger
+            CheckTServerTouchedMid();
 
             if (PosLong())
             {
@@ -2062,8 +2056,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Either trading starts after 9:00am CST or when currentMarketView is FocedSell or ForceBuy
                     if (WallstreetOpenHours() || currMarketView == MarketView.ForcedBuy || currMarketView == MarketView.ForcedSell)
                     {
-                        CheckTServerTouchedMid();
-
                         ExecuteAITrade();
 
                         // if position is flat, no need to do anything
@@ -2209,7 +2201,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 tServerSignal = System.Text.Encoding.UTF8.GetString(tBytes, 0, tBytes.Length).Split(',')[1];
                 MyPrint(defaultErrorType, "Start time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar - 1).ToString("HHmmss") + " End time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar).ToString("HHmmss"));
-                MyPrint(defaultErrorType, "OnBarUpdate, TServer response= <" + tServerSignal + "> Current Bar: Open=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar) + " Close=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar) + " High=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar) + " Low=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar));
+                MyPrint(defaultErrorType, "OnBarUpdate, TServer response= <<< " + tServerSignal + " >>> Current Bar: Open=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar) + " Close=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar) + " High=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar) + " Low=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar));
 
                 // if TServerScalpEntryPassed failed, then tServerDecision sets to HOLD
                 if (!TServerScalpEntryPassed(tServerSignal[0]))
@@ -2230,7 +2222,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         tServerDecision = TServerTradeDecison.Hold;
                         break;
                 }
-                MyPrint(defaultErrorType, "Time Server signal=" + tServerSignal);
+                MyPrint(defaultErrorType, "Time Server tServerDecision= {{{ " + tServerDecision.ToString() + " }}}");
             }
             // ^VIX daily data
             //else if (BarsInProgress == 2)

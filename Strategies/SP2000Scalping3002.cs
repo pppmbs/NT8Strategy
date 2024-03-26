@@ -89,11 +89,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static double ScalpingRange = 5;
+        private static double ScalpingRange = 7;
         private static bool CheckMarketDirection = true;
         private static bool IgnoreWallStreetHour = false;
-        private static bool UseMomentumFilter = true;
-        private static bool BollingerStoploss = true;
+        private static bool UseMomentumFilter = false;
         private bool touchedMid = false;
 
         // Macro Market Views
@@ -1089,70 +1088,62 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (Bars.GetHigh(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                if (BollingerStoploss)
+                // Low below Bollinger_lo and red bar
+                if (Bars.GetLow(CurrentBar) < Bollinger(2, 20).Lower[0] && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
                 {
-                    // Low below Bollinger_lo
-                    if (Bars.GetLow(CurrentBar) < Bollinger(2, 20).Lower[0])
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
-                        return true;
-                    }
-
-                    // touched mid Bollinger and red bar below mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar below mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
+                    return true;
                 }
-                else
+
+                // touched mid Bollinger and red bar BELOW mid Bollinger
+                //if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                //{
+                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
+                //    return true;
+                //}
+
+                // YF Best settings: touched mid Bollinger and red bar ABOVE mid Bollinger
+                if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
                 {
-                    if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Red bar below mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar ABOVE mid Bollinger");
+                    return true;
                 }
             }
             if (PosShort())
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking
-                if (Bars.GetLow(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                if (BollingerStoploss)
+                // High above Bolinger_hi and Gree bar
+                if (Bars.GetHigh(CurrentBar) > Bollinger(2, 20).Upper[0] && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
                 {
-                    // High above Bolinger_hi
-                    if (Bars.GetHigh(CurrentBar) > Bollinger(2, 20).Upper[0])
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
-                        return true;
-                    }
-
-                    // touched mid Bollinger and green bar above mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar above mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
+                    return true;
                 }
-                else
+
+                // touched mid Bollinger and green bar ABOVE mid Bollinger
+                //if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                //{
+                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
+                //    return true;
+                //}
+
+                // YF best settings: touched mid Bollinger and green bar BELOW mid Bollinger
+                if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
                 {
-                    if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                    {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Green bar above mid Bollinger");
-                        return true;
-                    }
+                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar BELOW mid Bollinger");
+                    return true;
                 }
             }
             return false;
@@ -1321,6 +1312,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Debug.Assert(!PosFlat(), "ASSERT: Position is flat while HandleMarketShift");
                 return;
             }
+
+            // check if current High or Low touched mid Bollinger
+            CheckTouchedMid();
 
             if (PosLong())
             {
@@ -1996,9 +1990,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Either trading starts after 9:00am CST or when currentMarketView is FocedSell or ForceBuy
                     if (WallstreetOpenHours() || currMarketView == MarketView.ForcedBuy || currMarketView == MarketView.ForcedSell)
                     {
-                        // check if current High or Low touched mid Bollinger
-                        CheckTouchedMid();
-
                         ExecuteAITrade(svrSignal);
 
                         // if position is flat, no need to do anything
