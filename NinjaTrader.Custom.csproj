@@ -114,7 +114,7 @@
       <HintPath>C:\Program Files\NinjaTrader 8\bin\SharpDX.Direct2D1.dll</HintPath>
     </Reference>
     <Reference Include="NinjaTrader.Vendor">
-      <HintPath>C:\Users\pppmb\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Vendor.dll</HintPath>
+      <HintPath>C:\Users\billh\Documents\NinjaTrader 8\bin\Custom\NinjaTrader.Vendor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -434,8 +434,8 @@
     <Compile Include="Strategies\%40%40TServerBackTest3883.cs" />
     <Compile Include="Strategies\SP2000Scalping3002.cs" />
     <Compile Include="Strategies\%40%40SP2000Scalping3003.cs" />
-    <Compile Include="Strategies\Scalping2000BackTest3333.cs" />
     <Compile Include="Strategies\SP5MinScalping3838.cs" />
+    <Compile Include="Strategies\Scalping2000BackTest3333.cs" />
     <Compile Include="Strategies\Scalping5MinBackTest3434.cs" />
   </ItemGroup>
   <ItemGroup>
