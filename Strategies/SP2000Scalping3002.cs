@@ -1108,8 +1108,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 //    return true;
                 //}
 
-                // YF Best settings: touched mid Bollinger and red bar ABOVE mid Bollinger
-                if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // YF Best settings: touched mid Bollinger and red bar BELOW mid Bollinger
+                if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar ABOVE mid Bollinger");
                     return true;
