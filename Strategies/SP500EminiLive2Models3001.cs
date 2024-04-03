@@ -191,7 +191,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static int PStops = DefaultPStops;
         private static int LStops = DefaultLStops;
         private static readonly int PortNumber = 3001;
-        private static readonly string HostName = "AITrader";
+        private static readonly string HostName = Dns.GetHostName();
         /*
          * **********************************************************************************************************
          */

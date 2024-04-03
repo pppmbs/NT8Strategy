@@ -25,7 +25,7 @@ using System.Net.Sockets;
 using System.Net;
 #endregion
 
-//This namespace holds Strategies in this folder and is required. Do not change it. 
+//This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
     public class TServerViewGenerator : Strategy
@@ -35,6 +35,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private string pathExitView;
         private StreamWriter swExit = null; // Store exit view, 0=Sell, 1=Hold, 2=Buy
+
+        // log, error, current capital, profit percentage for early exit, market view and vix  files
+        private string pathLog;
+        private string pathErr;
+        private StreamWriter swLog = null; // runtime log file
+        private StreamWriter swErr = null; // error file
 
         // Macro Market Views
         enum MarketView
@@ -60,8 +66,89 @@ namespace NinjaTrader.NinjaScript.Strategies
         private byte[] tBytes = new byte[1024];
         int tLineNo = 0;
         private static readonly int tPortNumber = 3883;
-        private static readonly string hostName = "AITrader";
+        private static readonly string hostName = Dns.GetHostName();
         private string tServerSignal = "1";
+
+        enum ErrorType
+        {
+            verbose,
+            normal,
+            warning,
+            fatal
+        };
+        private static ErrorType defaultErrorType = ErrorType.verbose;
+
+        // CloseStrategy() is called in the event of a fatal error, which will close all positions and disable strategy
+        private void MyErrPrint(ErrorType errType, string buf)
+        {
+            string errString = "";
+
+            if (swErr == null)
+            {
+                pathErr = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                //pathErr = System.IO.Path.Combine(pathErr, Dns.GetHostName() + "-" + PortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
+                pathErr = System.IO.Path.Combine(pathErr, hostName + "-" + tPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
+                swErr = File.AppendText(pathErr);  // Open the path for err file writing
+            }
+
+            switch (errType)
+            {
+                case ErrorType.fatal:
+                    errString = "FATAL: ";
+                    break;
+                case ErrorType.warning:
+                    errString = "WARNING: ";
+                    break;
+            }
+
+            swErr.WriteLine(errString + DateTime.Now + " " + buf); // Append a new line to the err file
+
+            // close error file
+            swErr.Close();
+            swErr.Dispose();
+            swErr = null;
+
+            MyPrint(errType, errString + DateTime.Now + " " + buf); // replicate error message to log file
+
+            // Cancels all working orders, closes any existing positions, and finally disables the strategy.
+            if (errType == ErrorType.fatal)
+            {
+                CloseStrategy(errString);
+            }
+        }
+
+        private void MyPrint(ErrorType errType, string buf)
+        {
+            if (swLog == null)
+            {
+                //Create log file in the PortNumber-yyyyMMdd.log format
+                pathLog = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+                //pathLog = System.IO.Path.Combine(pathLog, Dns.GetHostName() + "-" + PortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+                pathLog = System.IO.Path.Combine(pathLog, hostName + "-" + tPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+                swLog = File.AppendText(pathLog);  // Open the path for log file writing
+            }
+
+            swLog.WriteLine(DateTime.Now + " " + buf); // Append a new line to the log file
+
+            // only print out verbose, warning and fatal messages to output screen
+            if (errType != ErrorType.normal)
+            {
+                if (errType == ErrorType.warning || errType == ErrorType.verbose)
+                    //Set this scripts MyPrint() calls to the first output tab
+                    PrintTo = PrintTo.OutputTab2;
+                if (errType == ErrorType.fatal)
+                    //Set this scripts MyPrint() calls to the second output tab
+                    PrintTo = PrintTo.OutputTab2;
+
+                //Print(HostName + ":" + PortNumber.ToString() + ":" + DateTime.Now + " " + buf);
+                Print(tPortNumber.ToString() + ":" + DateTime.Now.ToString("HHmmss") + " " + buf);
+            }
+
+
+            swLog.Close();
+            swLog.Dispose();
+            swLog = null;
+        }
 
         private void ConnectTimeServer()
         {
@@ -73,7 +160,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
 
                 // Establish the remote endpoint for the socket.  
-                // connecting server on vPortNumber  
+                // connecting server on vtPortNumber  
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
 
                 IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
@@ -81,7 +168,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                                                                  //ipAddress = ipAddress.MapToIPv4();
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, tPortNumber);
 
-                Print("ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
+                MyPrint(defaultErrorType, "ipHostInfo=" + ipHostInfo.ToString() + " ipAddress=" + ipAddress.ToString());
 
                 // Create a TCP/IP  socket.  
                 tSender = new Socket(ipAddress.AddressFamily,
@@ -92,7 +179,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     tSender.Connect(remoteEP);
 
-                    Print(" ************ Socket connected to : " +
+                    MyPrint(defaultErrorType, " ************ Socket connected to : " +
                         tSender.RemoteEndPoint.ToString() + "*************");
 
                     // set receive timeout 10 secs
@@ -102,20 +189,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 catch (ArgumentNullException ane)
                 {
-                    Print("Socket Connect Error: ArgumentNullException : " + ane.ToString());
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: ArgumentNullException : " + ane.ToString());
                 }
                 catch (SocketException se)
                 {
-                    Print("Socket Connect Error: SocketException : " + se.ToString());
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: SocketException : " + se.ToString());
                 }
                 catch (Exception e)
                 {
-                    Print("Socket Connect Error: Unexpected exception : " + e.ToString());
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: Unexpected exception : " + e.ToString());
                 }
             }
             catch (Exception e)
             {
-                Print(e.ToString());
+                MyErrPrint(ErrorType.fatal, e.ToString());
             }
         }
 
@@ -151,7 +238,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             else if (State == State.DataLoaded)
             {
-                Print("State == State.DataLoaded");
+                MyPrint(defaultErrorType, "State == State.DataLoaded");
 
                 ConnectTimeServer();
             }
@@ -211,7 +298,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // if Bollinger width is less than 5 then return true (Hold)
             if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) < 5)
             {
-                Print("Bollinger width= " + (Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]).ToString());
+                MyPrint(defaultErrorType, "Bollinger width= " + (Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]).ToString());
                 return true;
             }
 
@@ -226,7 +313,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             currMidBoll = (Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2;
             lastMidBoll = (Bollinger(2, 20).Upper[1] + Bollinger(2, 20).Lower[1]) / 2;
-            Print("currMidBoll =" + currMidBoll.ToString() + " lastMidBoll =" + lastMidBoll.ToString());
+            MyPrint(defaultErrorType, "currMidBoll =" + currMidBoll.ToString() + " lastMidBoll =" + lastMidBoll.ToString());
 
             switch (signal)
             {
@@ -256,7 +343,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // if the trading in the last 5 minutes is less than 5000, return true
             if (Bars.GetVolume(CurrentBar) < 5000)
             {
-                Print("Volume= " + Bars.GetVolume(CurrentBar));
+                MyPrint(defaultErrorType, "Volume= " + Bars.GetVolume(CurrentBar));
                 return true;
             }
 
@@ -324,40 +411,46 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool FilterTServer(char signal)
         {
             /*
-			if (BollingerFlat())
+if (BollingerFlat())
             {
-				Print("BollingerFlat is TRUE, set T-Server to Hold!");
-				return true;
-			}
+MyPrint(defaultErrorType, "BollingerFlat is TRUE, set T-Server to Hold!");
+return true;
+}
 
-			if (BollingerWrongTrend(signal))
+if (BollingerWrongTrend(signal))
             {
-				Print("BollingerWrongTrend is TRUE, set T-Server to Hold!");
-				return true;
-			}
+MyPrint(defaultErrorType, "BollingerWrongTrend is TRUE, set T-Server to Hold!");
+return true;
+}
 
-			if (VolumeTooLow())
+if (VolumeTooLow())
             {
-				Print("VolumeTooLow is TRUE, set T-Server to Hold!");
-				return true;
-			}
-			*/
+MyPrint(defaultErrorType, "VolumeTooLow is TRUE, set T-Server to Hold!");
+return true;
+}
+*/
+
+            if (signal == '0')
+            {
+                PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\glass_shatter_c.wav");
+                MyPrint(defaultErrorType, "===========+++++++++++++ {{{  UNFILTERED SELL Signals  }}} ++++++++++++=============");
+            }
 
             if (OverBoughtOverSold(signal))
             {
-                Print("OverBoughtOverSold is TRUE, set T-Server to Hold!");
+                MyPrint(defaultErrorType, "OverBoughtOverSold is TRUE, set T-Server to Hold!");
                 return true;
             }
 
             if (OpenCloseWrongDirection(signal))
             {
-                Print("OpenCloseWrongDirection is TRUE, set T-Server to Hold!");
+                MyPrint(defaultErrorType, "OpenCloseWrongDirection is TRUE, set T-Server to Hold!");
                 return true;
             }
 
             if (MomentumTooLow())
             {
-                Print("MomentumTooLow is TRUE, set T-Server to Hold!");
+                MyPrint(defaultErrorType, "MomentumTooLow is TRUE, set T-Server to Hold!");
                 return true;
             }
 
@@ -368,11 +461,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             //if ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) <= 10)
             //{
-            //    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\boxing_bell.wav");
+            //    PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\boxing_bell.wav");
             //}
             if (Momentum(20)[0] <= 0 || Bars.GetVolume(CurrentBar) <= 10000 || ((Bollinger(2, 20).Upper[0] - Bollinger(2, 20).Lower[0]) <= 10))
             {
-                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
+                PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\glass_shatter_c.wav");
             }
         }
 
@@ -382,13 +475,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (UseTServerFilters && FilterTServer(signal))
             {
                 currMarketView = MarketView.Hold;
-                PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
-
-                if (signal == '0')
-                {
-                    // Play an alert for T-Server original Sell signal
-                    PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
-                }
+                PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\ding.wav");
             }
             else
             {
@@ -398,16 +485,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 {
                     case '0':
                         currMarketView = MarketView.Sell;
-                        PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\glass_shatter_c.wav");
+                        PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\glass_shatter_c.wav");
                         break;
                     case '2':
                         currMarketView = MarketView.Buy;
-                        PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\short-horn.wav");
-                        PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\short-horn.wav");
+                        PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\short-horn.wav");
+                        PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\short-horn.wav");
                         break;
                     default:
                         currMarketView = MarketView.Hold;
-                        PlaySound(@"C:\Program Files (x86)\NinjaTrader 8\sounds\ding.wav");
+                        PlaySound(@"C:\Program Files\NinjaTrader 8\sounds\ding.wav");
                         break;
                 }
             }
@@ -417,15 +504,15 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (OpenCloseWrongDirection(signal))
             {
-                Print("OpenCloseWrongDirection is TRUE, set Exit Signal to Hold!");
-                Print("SetExitSignals= [[[ Hold ]]]");
+                MyPrint(defaultErrorType, "OpenCloseWrongDirection is TRUE, set Exit Signal to Hold!");
+                MyPrint(defaultErrorType, "SetExitSignals= [[[ Hold ]]]");
                 return true;
             }
 
             if (signal == '2' && MomentumTooLow())
             {
-                Print("MomentumTooLow is TRUE, set Exit Signal to Hold!");
-                Print("SetExitSignals= [[[ Hold ]]]");
+                MyPrint(defaultErrorType, "MomentumTooLow is TRUE, set Exit Signal to Hold!");
+                MyPrint(defaultErrorType, "SetExitSignals= [[[ Hold ]]]");
                 return true;
             }
 
@@ -444,15 +531,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                 switch (signal)
                 {
                     case '0':
-                        Print("SetExitSignals= [[[ Sell ]]]");
+                        MyPrint(defaultErrorType, "SetExitSignals= [[[ Sell ]]]");
                         currExitView = ExitView.Sell;
                         break;
                     case '2':
-                        Print("SetExitSignals= [[[ Buy ]]]");
+                        MyPrint(defaultErrorType, "SetExitSignals= [[[ Buy ]]]");
                         currExitView = ExitView.Buy;
                         break;
                     default:
-                        Print("SetExitSignals= [[[ Hold ]]]");
+                        MyPrint(defaultErrorType, "SetExitSignals= [[[ Hold ]]]");
                         currExitView = ExitView.Hold;
                         break;
                 }
@@ -465,7 +552,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 string bufString;
 
-                Print("tLineNo=" + tLineNo.ToString());
+                MyPrint(defaultErrorType, "tLineNo=" + tLineNo.ToString());
 
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
@@ -490,12 +577,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' +
                     '0' + ',' + '0' + ',' + '0' + ',' + '0' + ',' + '0';
 
-                //Print(bufString);
+                //MyPrint(defaultErrorType, bufString);
 
-                //Print("CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
+                //MyPrint(defaultErrorType, "CurrentTimeBar = " + CurrentBar + ": " + "bufString = " + bufString);
                 if (!Bars.IsFirstBarOfSession)
                 {
-                    Print("CurrentTimeBar" +
+                    MyPrint(defaultErrorType, "CurrentTimeBar" +
                                 " Start time=" + Bars.GetTime(Bars.CurrentBar - 1).ToString("HHmmss") +
                                 " End time=" + Bars.GetTime(Bars.CurrentBar).ToString("HHmmss") +
                                 " Open=" + Bars.GetOpen(Bars.CurrentBar).ToString() +
@@ -532,13 +619,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 catch (SocketException ex)
                 {
-                    Print("TServer Socket exception::" + ex.Message + " " + ex.ToString());
+                    MyErrPrint(ErrorType.fatal, "TServer Socket exception::" + ex.Message + " " + ex.ToString());
                 }
 
                 tServerSignal = System.Text.Encoding.UTF8.GetString(tBytes, 0, tBytes.Length).Split(',')[1];
-                Print("Start time=" + Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + " End time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
-                Print("OnBarUpdate, TServer response= <<<  " + tServerSignal + "  >>> ");
-                //Print("Time Server signal=" + tServerSignal);
+                MyPrint(defaultErrorType, "Start time=" + Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + " End time=" + Bars.GetTime(CurrentBar).ToString("HHmmss"));
+                MyPrint(defaultErrorType, "OnBarUpdate, TServer response= <<<  " + tServerSignal + "  >>> ");
+                //MyPrint(defaultErrorType, "Time Server signal=" + tServerSignal);
 
                 SetTServerSignals(tServerSignal[0]);
                 SetExitSignals(tServerSignal[0]);
@@ -548,7 +635,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 WriteMarketView(currMarketView);
                 WriteExitView(currExitView);
-                Print(DateTime.Now + " Current T-Server View = {{{{{ " + currMarketView.ToString() + " }}}}} ");
+                MyPrint(defaultErrorType, DateTime.Now + " Current T-Server View = {{{{{ " + currMarketView.ToString() + " }}}}} ");
             }
         }
     }
