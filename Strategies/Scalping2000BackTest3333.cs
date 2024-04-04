@@ -41,9 +41,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         private string pathPpercent;
         private string pathMktView;
         private string pathEcon;
-        private StreamWriter swLog = null; // runtime log file 
+        private StreamWriter swLog = null; // runtime log file
         private StreamWriter swErr = null; // error file
-        private StreamWriter swCC = null;  // Store current capital for each strategy 
+        private StreamWriter swCC = null;  // Store current capital for each strategy
         private StreamWriter swCL = null;  // Store current monthly losses for each strategy
         private StreamWriter swVIX = null;  // Store 10 days Moving average VIX
         private StreamWriter swPpercent = null; // Store dynamic Pstops
@@ -72,10 +72,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Low VIX daily drawdown control settings
         private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
         private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
-        private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
+        private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses
         //private static int LVmaxConsecutiveLossesUpper = 4;  // upper limit allowable daily losses
         //private static int LVmaxConsecutiveLosses = 2;      // max allowable daily losses if no win
-        //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses 
+        //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses
         // High VIX daily drawdown control settings
         private static int HVmaxConsecutiveLossesUpper = 4; // upper limit allowable daily losses
         private static int HVmaxConsecutiveLosses = 2;     // max allowable daily losses if no win
@@ -112,6 +112,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static bool CheckMarketDirection = true;
         private static bool UseMomentumFilter = false;
         private bool touchedMid = false;
+        private bool touchedTarget = false;
 
 
         private static int SMAConstant = 20;
@@ -125,7 +126,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Dollar value for ONE point, i.e. 4 ticks, 4 x $12.50 (value per tick) = $50
         private static double dollarValPerPoint = 50;
 
-        // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose, 
+        // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose,
         //            the monthly drawdown comparison is based on %percentage% of $10,000
         //            even though capital to lot ratio can be set to $25,000 per lot
         private static double InitStartingCapital = 10000 * LotSize;
@@ -145,13 +146,13 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int minConsecutiveWins = LVmaxConsecutiveLossesUpper;
         private int initMaxConsecutiveLosses;
 
-        // these variables affects how the monthly drawdown policy is being enforced 
+        // these variables affects how the monthly drawdown policy is being enforced
         private double profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
         private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
-        private double currentMonthlyLosses = 0; // starts with zero losses for the monthly 
+        private double currentMonthlyLosses = 0; // starts with zero losses for the monthly
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
         // they are to be initialized when State == State.DataLoaded during start up
@@ -401,19 +402,19 @@ namespace NinjaTrader.NinjaScript.Strategies
                 Slippage = 0; //Sets the amount of slippage in ticks per execution used in performance calculations during backtests.
                 /*
                  * When network goes down and subsequently reconnected, the following behaviors are expected:
-                 * - If the Account Position is flat already, no reconciliatory order will be submitted. 
+                 * - If the Account Position is flat already, no reconciliatory order will be submitted.
                  *      The strategy will then wait for the Strategy Position to reach a flat state as well before submitting any orders live.
-                 * - If the Account Position is not flat, NinjaTrader will submit a market order(s) to reconcile the Account Position to a flat state. 
+                 * - If the Account Position is not flat, NinjaTrader will submit a market order(s) to reconcile the Account Position to a flat state.
                  *      The strategy will then wait for the Strategy Position to reach a flat state before submitting live orders.
-                 *   
+                 *  
                  *   The outcome is that NT strategy code will ensure all virtual positions to be flatten, and NT platform will ensure all account positions to be flatten.
                  */
                 StartBehavior = StartBehavior.WaitUntilFlatSynchronizeAccount;
 
                 TimeInForce = TimeInForce.Gtc; //Sets the time in force property for all orders generated by a strategy. Order will remain working until the order is explicitly cancelled.
 
-                //Determines if OnOrderTrace() would be called for a given strategy.  When enabled, traces are generated and displayed in the NinjaScript Output window for each call of an order method providing confirmation that the method is entered and providing information if order methods are ignored and why. 
-                //This is valuable for debugging if you are not seeing expected behavior when calling an order method. 
+                //Determines if OnOrderTrace() would be called for a given strategy.  When enabled, traces are generated and displayed in the NinjaScript Output window for each call of an order method providing confirmation that the method is entered and providing information if order methods are ignored and why.
+                //This is valuable for debugging if you are not seeing expected behavior when calling an order method.
                 TraceOrders = true;
 
                 //Defines the behavior of a strategy when a strategy generated order is returned from the broker's server in a "Rejected" state.
@@ -423,9 +424,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // hence have to IgnoreAllErrors and rely on manual closing of outstanding positions
                 RealtimeErrorHandling = RealtimeErrorHandling.IgnoreAllErrors;
 
-                //Determines how stop and target orders are submitted during an entry order execution. 
+                //Determines how stop and target orders are submitted during an entry order execution.
                 //StopTargetHandling.ByStrategyPosition means Stop and Target order quantities will match the current strategy position.  (Stops and targets may result in "stacked" orders on partial fills)
-                //If you would prefer all of your stops and targets to be placed at the same time within the same order, it is suggested to use StopTargetHandling.ByStrategyPosition. 
+                //If you would prefer all of your stops and targets to be placed at the same time within the same order, it is suggested to use StopTargetHandling.ByStrategyPosition.
                 //However this may result in more stop and target orders being submitted than the overall strategy position in a scenario in which the strategy's entire entry orders are not filled in one fill.
                 StopTargetHandling = StopTargetHandling.ByStrategyPosition;
 
@@ -655,10 +656,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Read the profit percentage for triggering the early exit
             ReadEarlyExitProftPercent();
 
-            // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
+            // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings
             ReadEMAVixToSetUpDrawdownSettings();
 
-            // This statement needs to be the last statement in real time state so that maxConsecutiveDailyLosses is set after 
+            // This statement needs to be the last statement in real time state so that maxConsecutiveDailyLosses is set after
             // maxConsecutiveLosses is set in ReadEMAVixToSetUpDrawdownSettings
             SetDailyWinLossState();
 
@@ -669,7 +670,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // check if the cumulative P&L or the monthly losses + cumulative P&L is greater than allowable monthly losses, 
+        // check if the cumulative P&L or the monthly losses + cumulative P&L is greater than allowable monthly losses,
         // if greater then set virtualCurrentCapital to zero and halt monthly trading
         private void CheckMonthlyStopLoss()
         {
@@ -819,7 +820,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings 
+        // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings
         private void ReadEMAVixToSetUpDrawdownSettings()
         {
             //Read file in the tPortNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
@@ -944,7 +945,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             else
                 MyPrint(errType, errString + DateTime.Now + " " + buf); // replicate error message to log file
 
-            // Cancels all working orders, closes any existing positions, and finally disables the strategy. 
+            // Cancels all working orders, closes any existing positions, and finally disables the strategy.
             if (errType == ErrorType.fatal)
             {
                 CloseStrategy(errString);
@@ -999,7 +1000,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint(defaultErrorType, "SetDailyWinLossState, maxConsecutiveDailyLosses=" + maxConsecutiveDailyLosses + " consecutiveDailyLosses=" + consecutiveDailyLosses + " consecutiveDailyWins=" + consecutiveDailyWins);
         }
 
-        // increment of daily win will increase max consecutive daily losses as long as it does not exceed the upper limit, 
+        // increment of daily win will increase max consecutive daily losses as long as it does not exceed the upper limit,
         // it will also reset consecutive daily losses back to zero
         private void IncrementDailyWin()
         {
@@ -1067,6 +1068,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             attemptToFlattenPos = false;
             profitPercentMet = false; // reset profitPercentMet flag
             touchedMid = false; // reset touchedMid flag
+            touchedTarget = false; // reset touchedTarget flag
 
             MyPrint(defaultErrorType, "FlattenVirtualPositions, currPos=" + currPos + " profitChasingFlag=" + profitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
         }
@@ -1115,8 +1117,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 // Scalping Exits - profit taking and stop loss
-                // profit taking
-                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                // profit taking when touched profit target and next bar is Red
+                if (touchedTarget && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
+                // if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
@@ -1146,8 +1149,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosShort())
             {
                 // Scalping Exits - profit taking and stop loss
-                // profit taking
-                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                // profit taking when touched profit target and next bar is Green
+                if (touchedTarget && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                // if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
@@ -1489,6 +1493,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // check if current High or Low touched mid Bollinger
             CheckTouchedMid();
+            // check if current Close touched profit target
+            CheckTouchedTarget();
 
             if (PosLong())
             {
@@ -1914,8 +1920,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // ouput current monthly losses to cl file, currentMonthlyLosses is updated only ONCE during start up
             swCL = File.CreateText(pathCL); // Open the path for current monthly losses
-            //When running backtest for a month period, SystemPerformance.AllTrades.TradesPerformance.NetProfit provides P/L for entire month 
-            // in live trading SystemPerformance.AllTrades.TradesPerformance.NetProfit provides P/L for the day and therefore 
+            //When running backtest for a month period, SystemPerformance.AllTrades.TradesPerformance.NetProfit provides P/L for entire month
+            // in live trading SystemPerformance.AllTrades.TradesPerformance.NetProfit provides P/L for the day and therefore
             // needs to track currentMonthlyLosses in live trading but not in back test
             //swCL.WriteLine(currentMonthlyLosses + cumulativePL); // overwrite current monthly losses to cl file
             swCL.WriteLine(cumulativePL);
@@ -1990,6 +1996,22 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (Bars.GetLow(CurrentBar) < midBollinger)
                     touchedMid = true;
+            }
+        }
+
+
+        // Check if touched Boll_hi for Buy and Boll_lo for Sell
+        private void CheckTouchedTarget()
+        {
+            if (PosLong())
+            {
+                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                    touchedTarget = true;
+            }
+            if (PosShort())
+            {
+                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                    touchedTarget = true;
             }
         }
 
@@ -2176,7 +2198,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return;
 
                     // Critical time period is defined as:
-                    // 1. if daiy critical time is 1pm or later, and 
+                    // 1. if daiy critical time is 1pm or later, and
                     // 2. 2 hours buffer before and after of a daily critical time
                     // Close outstanding positions if time within critical time, do not start trading until after critical time perio
                     if (CriticalTimePeriod())
@@ -2215,7 +2237,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             // When the OnBarUpdate() is called from the secondary bar series, in our case for each tick, handle End of session
             else if (BarsInProgress == 1)
             {
-                // If in attemptToFlattenPos then don't do anything until after position flatten 
+                // If in attemptToFlattenPos then don't do anything until after position flatten
                 if (attemptToFlattenPos && !PosFlat())
                     return;
 
@@ -2233,7 +2255,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "OnBarUpdate, ^VIX 10 days EMA " + EMA(BarsArray[2], 10)[0]);
                 MyPrint(defaultErrorType, "OnBarUpdate, ======================================================");
 
-                // write 10 days EMA VIX into VIX file 
+                // write 10 days EMA VIX into VIX file
                 swVIX = File.CreateText(pathVIX); // Open the path for VIX
                 swVIX.WriteLine(EMA(BarsArray[2], 10)[0].ToString());
                 swVIX.Close();

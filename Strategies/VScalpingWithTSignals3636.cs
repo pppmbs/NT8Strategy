@@ -97,11 +97,16 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Handle early position exit with HandleMarketShift
         private static bool UseExitFilter = true;
-        private static double ScalpingRange = 7;
-        private static bool CheckMarketDirection = true;
+        private static bool TServerCheckScalpingRange = false;  // whether to check for scalping range at TServer
+        private static bool VServerCheckScalpingRange = true;   // whether to check for scalping at VServer
+        private static double TServerScalpingRange = 7;
+        private static double VServerScalpingRange = 7;
+        private static bool TServerCheckMarketDirection = true; // whether to check for market direction at TServer
+        private static bool VServerCheckMarketDirection = false; // whether to check for market direction at VServer
         private static bool IgnoreWallStreetHour = false;
         private static bool UseMomentumFilter = false;
         private bool touchedMid = false;
+        private bool touchedTarget = false;
 
         // Macro Market Views
         enum MarketView
@@ -1123,6 +1128,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             attemptToFlattenPos = false;
             profitPercentMet = false; // reset profitPercentMet flag
             touchedMid = false; // reset touchedMid flag
+            touchedTarget = false; // reset touchedTarget flag
 
             MyPrint(defaultErrorType, "FlattenVirtualPositions, currPos=" + currPos + " ProfitChasingFlag=" + ProfitChasingFlag + " attemptToFlattenPos=" + attemptToFlattenPos);
         }
@@ -1163,6 +1169,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+
         // Using 2000 ticks indicators for trade interrupt
         private bool IsTradeInterrupted()
         {
@@ -1171,8 +1178,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 // Scalping Exits - profit taking and stop loss
-                // profit taking
-                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                // profit taking when touched profit target and next bar is Red
+                if (touchedTarget && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
+                // if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
@@ -1202,8 +1210,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosShort())
             {
                 // Scalping Exits - profit taking and stop loss
-                // profit taking
-                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                // profit taking when touched profit target and next bar is Green
+                if (touchedTarget && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                // if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
@@ -1258,12 +1267,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return false;
                     }
                     // if Close > Open, market heading higher, skip the trade
-                    if (CheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
+                    if (VServerCheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
                     {
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
                         return false;
                     }
-                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
+                    if (VServerCheckScalpingRange && (Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= VServerScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
@@ -1276,18 +1285,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return false;
                     }
                     // if Open > Close, market heading lower, skip the trade
-                    if (CheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
+                    if (VServerCheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
                     {
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
                         return false;
                     }
-                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
+                    if (VServerCheckScalpingRange && (Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= VServerScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrower than ScalpingRange");
                     break;
             }
-            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Trade decision=" + trade.ToString());
+            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Trade decision= {{{  " + trade.ToString() + "  }}}");
             return false;
         }
 
@@ -1326,19 +1335,19 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Carry out new trade per tServerDecision
             if (tServerDecision == TServerTradeDecison.Sell)
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
                 AiShort();
                 PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
             }
             else if (tServerDecision == TServerTradeDecison.Buy)
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
                 AiLong();
                 PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
             }
             else
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
             }
         }
 
@@ -1396,6 +1405,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             // check if current High or Low touched mid Bollinger
             CheckTouchedMid();
+            // check if current Close touched profit target
+            CheckTouchedTarget();
 
             if (PosLong())
             {
@@ -1847,6 +1858,22 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
+        // Check if touched Boll_hi for Buy and Boll_lo for Sell
+        private void CheckTouchedTarget()
+        {
+            if (PosLong())
+            {
+                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                    touchedTarget = true;
+            }
+            if (PosShort())
+            {
+                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                    touchedTarget = true;
+            }
+        }
+
+
         // 2000 ticks bars
         private void CheckTouchedMid()
         {
@@ -1877,12 +1904,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return false;
                     }
                     // if Close > Open, market heading higher, skip the trade
-                    if (CheckMarketDirection && (BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar)))
+                    if (TServerCheckMarketDirection && (BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar)))
                     {
                         MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
                         return false;
                     }
-                    if ((BarsArray[3].GetClose(BarsArray[3].CurrentBar) - Bollinger(BarsArray[3], 2, 20).Lower[0]) >= ScalpingRange)
+                    // Scalping is done at 2000 ticks chart, hence let V-server scalping to filter ScalpingRange
+                    if (TServerCheckScalpingRange && (BarsArray[3].GetClose(BarsArray[3].CurrentBar) - Bollinger(BarsArray[3], 2, 20).Lower[0]) >= TServerScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Narrow ScalpingRange");
@@ -1895,12 +1923,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return false;
                     }
                     // if Open > Close, market heading lower, skip the trade
-                    if (CheckMarketDirection && (BarsArray[3].GetOpen(CurrentBar) > BarsArray[3].GetClose(CurrentBar)))
+                    if (TServerCheckMarketDirection && (BarsArray[3].GetOpen(CurrentBar) > BarsArray[3].GetClose(CurrentBar)))
                     {
                         MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
                         return false;
                     }
-                    if ((Bollinger(BarsArray[3], 2, 20).Upper[0] - BarsArray[3].GetClose(Bars.CurrentBar)) >= ScalpingRange)
+                    // Scalping is done at 2000 ticks chart, hence let V-server scalping to filter ScalpingRange
+                    if (TServerCheckScalpingRange && (Bollinger(BarsArray[3], 2, 20).Upper[0] - BarsArray[3].GetClose(Bars.CurrentBar)) >= TServerScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Narrower than ScalpingRange");
