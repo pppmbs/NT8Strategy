@@ -31,7 +31,7 @@ using System.Xml;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class VScalpingWithTSignals3636 : Strategy
+    public class SP5MinScalping3939 : Strategy
     {
         // log, error, current capital, profit percentage for early exit, market view and vix  files
         private string pathLog;
@@ -53,7 +53,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Order entryOrder = null; // This variable holds an object representing our entry order
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
-
 
         // **********************************************************************************************************
         // Configuration file settings
@@ -117,28 +116,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
         TServerTradeDecison tServerDecision = TServerTradeDecison.Hold;
 
-        // --------------------------------------------------
-        // TRADE FILTERS
-        // --------------------------------------------------
-
-        // Handle early position exit with HandleMarketShift
-        //private static bool UseExitFilter = true;
-        private static bool TServerCheckScalpingRange = false;  // whether to check for scalping range at TServer
-        //private static double ScalpingRange = 7;
-        //private static bool CheckMarketDirection = true; // whether to check for market direction at VServer
-        private static bool IgnoreWallStreetHour = false;
-        // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
-        //private static bool UseMomentumFilter = true;
-        //private static double MaxMomentumDiff = 5;
-        // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
-        //private static bool SMA20MarketDirection = true;
-        //// when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
-        //private static bool SMA9MarketDirection = true;
-        //// When true, use YF defined stop-loss, else use standard stop-loss check
-        //private static bool UseYFStopLoss = true;
-        private bool touchedMid = false;
-        private bool touchedTarget = false;
-
         // Macro Market Views
         enum MarketView
         {
@@ -185,38 +162,49 @@ namespace NinjaTrader.NinjaScript.Strategies
         // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose,
         //            the monthly drawdown comparison is based on %percentage% of $10,000
         //            even though capital to lot ratio can be set to $25,000 per lot
-        private static double InitStartingCapital;
+        //private static double InitStartingCapital = 10000 * LotSize;
+        private double InitStartingCapital;
 
         /* **********************************************************************************************************
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate;
+        //private static double CommissionRate = 5.58 * LotSize;
+        private double CommissionRate;
         /*
          * **********************************************************************************************************
          */
 
         // these variables affects how the daily drawdown policy is being enforced
+        //private int maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+        //private int maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+        //private int minConsecutiveWins = LVmaxConsecutiveLossesUpper;
         private int maxConsecutiveLossesUpper;
         private int maxConsecutiveLosses;
         private int minConsecutiveWins;
         private int initMaxConsecutiveLosses;
 
         // these variables affects how the monthly drawdown policy is being enforced
+        //private double ProfitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
+        //private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        //private double ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
         private double ProfitChasingTarget; // % monthly gain profit target
         private double maxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         private double ProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
+        //private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
         private double virtualCurrentCapital; // set to startingCapital before the day
         private double currentMonthlyLosses = 0; // starts with zero losses for the monthly
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
         // they are to be initialized when State == State.DataLoaded during start up
-        private double yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
+        //private double yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
+        private double yesterdayVirtualCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
         private bool stopMonthlyTrading = false;
         private double lastTotalRealtimePnL = 0;
 
+        //private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
         private int maxConsecutiveDailyLosses;
         private int consecutiveDailyLosses = 0;
         private int consecutiveDailyWins = 0;
@@ -231,15 +219,50 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int TicksPerStop = 4;
         //private static readonly int DefaultPStops = 20;
         //private static readonly int DefaultLStops = 10;
-        private int ProfitChasing; // the target where HandleProfitChasing kicks in
-        private int SoftDeck; // number of stops for soft stop loss
-        private int SMADeck; // Using SMA to stop loss earlier than SoftDeck
-        private int HardDeck; //hard deck for auto stop loss
-        private int PStops;
-        private int LStops;
+        //private static int ProfitChasing = DefaultPStops * TicksPerStop; // the target where HandleProfitChasing kicks in
+        //private static int SoftDeck = DefaultLStops * TicksPerStop; // number of stops for soft stop loss
+        ////private static double SMADeckPercent = 0.6;
+        //private static int SMADeck = Convert.ToInt32(SMADeckPercent * DefaultLStops * TicksPerStop); // Using SMA to stop loss earlier than SoftDeck
+        //private static int HardDeck = DefaultPStops * TicksPerStop; //hard deck for auto stop loss
+        //private static int PStops = DefaultPStops;
+        //private static int LStops = DefaultLStops;
+        private static int ProfitChasing; // the target where HandleProfitChasing kicks in
+        private static int SoftDeck; // number of stops for soft stop loss
+        //private static double SMADeckPercent = 0.6;
+        private static int SMADeck; // Using SMA to stop loss earlier than SoftDeck
+        private static int HardDeck; //hard deck for auto stop loss
+        private static int PStops;
+        private static int LStops;
         private static readonly int vPortNumber = 3008;
-        private static readonly int tPortNumber = 3636;
+        private static readonly int tPortNumber = 3939;
         private static readonly string hostName = Dns.GetHostName();
+
+        // --------------------------------------------------
+        // TRADE FILTERS
+        // --------------------------------------------------
+
+        // Handle early position exit with HandleMarketShift
+        // Entry Filters
+        // --------------------------------------------------
+        //private static double ScalpingRange = 7;
+        //private static bool CheckMarketDirection = false;
+        //// when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+        //private static bool UseMomentumFilter = false;
+        //private static double MaxMomentumDiff = 5;
+        //// when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+        //private static bool SMA20MarketDirection = true;
+        //// when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+        //private static bool SMA9MarketDirection = true;
+
+        private bool touchedMid = false;
+        private bool touchedTarget = false;
+
+        // Exit Filters
+        // --------------------------------------------------
+        //private static bool UseExitFilter = true;
+        //// When true, use YF defined stop-loss, else use standard stop-loss check
+        //private static bool UseYFStopLoss = false;
+
         /*
          * **********************************************************************************************************
          */
@@ -250,7 +273,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
         //private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
-        private DateTime NineAM = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 00, 00);
+        private DateTime StartTradeTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 00, 00);
         private bool endSession = false;
         private bool firstBarOfDay = true;
 
@@ -293,6 +316,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             limit,
             market
         };
+
 
 
         // --------------------------------------------------
@@ -378,6 +402,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
 
             MyPrint(defaultErrorType, "SearchCriticalTime failed to locate= " + date.ToLongDateString());
+
             // If matching date not found, return 7:00 AM, in order to start 9:00 AM
             return DateTime.ParseExact("7:00 AM", "h:mm tt", null);
         }
@@ -405,6 +430,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             MyPrint(defaultErrorType, "CriticalTimePeriod: trading proceed as normal.");
             return false;
         }
+
 
 
         private void ConnectTimeServer()
@@ -522,7 +548,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-
         private void ReadConfigurationFile()
         {
             String pathConfig;
@@ -565,6 +590,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                 UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
                 UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
 
+                MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
+                    " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
+                    " LVmaxPercentAllowableDrawdown=" + LVmaxPercentAllowableDrawdown + " LVProfitChasingAllowableDrawdown=" + LVProfitChasingAllowableDrawdown +
+                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent);
+
+
+                MyPrint(defaultErrorType, "ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
+                    " UseMomentumFilter=" + UseMomentumFilter + " SMA20MarketDirection=" + SMA20MarketDirection + " SMA9MarketDirection=" + SMA9MarketDirection +
+                    " UseExitFilter=" + UseExitFilter + " UseYFStopLoss=" + UseYFStopLoss);
+
                 //Initialize local variables
                 InitStartingCapital = 10000 * LotSize;
                 CommissionRate = 5.58 * LotSize;
@@ -600,7 +635,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "State == State.SetDefaults");
 
                 Description = @"Implements Using T-Server signals to implement 5 minutes bar scalping strategy.";
-                Name = "VScalpingWithTSignals3636";
+                Name = "SP5MinScalping3939";
                 //Calculate = Calculate.OnEachTick; // don't need this, taken care of with AddDataSeries(Data.BarsPeriodType.Tick, 1);
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;           //only 1 position in each direction (long/short) at a time per strategy
@@ -1408,35 +1443,41 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-
-
-        // Using 2000 ticks indicators for trade interrupt
+        // Using 5 minutes indicators for trade interrupt
         private bool IsTradeInterrupted()
         {
+            double midBollinger = ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2);
+
             MyPrint(defaultErrorType, "IsTradeInterrupted Checked.");
+            MyPrint(defaultErrorType, "midBollinger=" + midBollinger);
+            MyPrint(defaultErrorType, "BarsArray[3].GetOpen(BarsArray[3].CurrentBar)=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar));
+            MyPrint(defaultErrorType, "BarsArray[3].GetLow(BarsArray[3].CurrentBar)=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar));
+            MyPrint(defaultErrorType, "BarsArray[3].GetHigh(BarsArray[3].CurrentBar)=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar));
+            MyPrint(defaultErrorType, "BarsArray[3].GetClose(BarsArray[3].CurrentBar)=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar));
+
 
             if (PosLong())
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking when touched profit target and next bar is Red
-                if (touchedTarget && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
-                // if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
+                if (touchedTarget && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
+                // if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                // Low below Bollinger_lo and red bar
-                if (Bars.GetLow(CurrentBar) < Bollinger(2, 20).Lower[0] && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
+                // Low below Bollinger_lo && Red bar
+                if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < Bollinger(BarsArray[3], 2, 20).Lower[0] && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
                     return true;
                 }
-                // When true, use YF defined stop-loss, else use standard stop-loss check
+
                 if (UseYFStopLoss)
                 {
-                    // YF Best settings: touched mid Bollinger and red bar BELOW mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    // YF best settings: touched mid Bollinger, red bar and ABOVE mid Bollinger
+                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > midBollinger)
                     {
                         MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar ABOVE mid Bollinger");
                         return true;
@@ -1445,7 +1486,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 else
                 {
                     // touched mid Bollinger and red bar BELOW mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) < midBollinger)
                     {
                         MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
                         return true;
@@ -1456,33 +1497,33 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // Scalping Exits - profit taking and stop loss
                 // profit taking when touched profit target and next bar is Green
-                if (touchedTarget && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
-                // if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
+                if (touchedTarget && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
+                //if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted, taking profits");
                     return true;
                 }
                 // Scalping stop loss
-                // High above Bolinger_hi and Gree bar
-                if (Bars.GetHigh(CurrentBar) > Bollinger(2, 20).Upper[0] && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
+                // High above Bolinger_hi && Green bar
+                if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > Bollinger(BarsArray[3], 2, 20).Upper[0] && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar))
                 {
                     MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
                     return true;
                 }
-                // When true, use YF defined stop-loss, else use standard stop-loss check
+
                 if (UseYFStopLoss)
                 {
-                    // YF best settings: touched mid Bollinger and green bar BELOW mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    // YF best settings: touched mid Bollinger, green bar and ABOVE mid Bollinger
+                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > midBollinger)
                     {
-                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar BELOW mid Bollinger");
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
                         return true;
                     }
                 }
                 else
                 {
                     // touched mid Bollinger and green bar ABOVE mid Bollinger
-                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    if (touchedMid && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar) && BarsArray[3].GetClose(BarsArray[3].CurrentBar) > midBollinger)
                     {
                         MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
                         return true;
@@ -1498,174 +1539,12 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool WallstreetOpenHours()
         {
             // Wallstreet opening hours trade opportunities
-            if (Time[0].Hour >= NineAM.Hour)
+            if (Time[0].Hour >= StartTradeTime.Hour)
                 return true;
             else
                 return false;
         }
 
-
-        private bool CheckSMA20MarketDirection(TServerTradeDecison trade)
-        {
-            bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
-
-            switch (trade)
-            {
-                case TServerTradeDecison.Sell:
-                    if (!SMA20TrendingUp)
-                        return true;
-                    break;
-                case TServerTradeDecison.Buy:
-                    if (SMA20TrendingUp)
-                        return true;
-                    break;
-            }
-            return false;
-        }
-
-
-        private bool CheckSMA9MarketDirection(TServerTradeDecison trade)
-        {
-            bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
-
-            switch (trade)
-            {
-                case TServerTradeDecison.Sell:
-                    if (!SMA9TrendingUp)
-                        return true;
-                    break;
-                case TServerTradeDecison.Buy:
-                    if (SMA9TrendingUp)
-                        return true;
-                    break;
-            }
-            return false;
-        }
-
-
-        private bool CheckMomentumDirection(TServerTradeDecison trade)
-        {
-            bool MomentumTrendingUp = Momentum(20)[0] > Momentum(20)[1];
-            double momentumDiff;
-
-            momentumDiff = Math.Abs(Momentum(20)[0]) - Math.Abs(Momentum(20)[1]);
-
-            switch (trade)
-            {
-                case TServerTradeDecison.Sell:
-                    if (!MomentumTrendingUp)
-                        return true;
-                    else // trending up
-                    {
-                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
-                            return true;
-                    }
-                    break;
-                case TServerTradeDecison.Buy:
-                    if (MomentumTrendingUp)
-                        return true;
-                    else // trending down
-                    {
-                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
-                            return true;
-                    }
-                    break;
-            }
-            return false;
-        }
-
-
-        private bool ScalpEntryPassed(TServerTradeDecison trade)
-        {
-            switch (trade)
-            {
-                case TServerTradeDecison.Sell:
-                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
-                    if (UseMomentumFilter)
-                    {
-                        if (!CheckMomentumDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckMomentumDirection failed.");
-                            return false;
-                        }
-                    }
-                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
-                    if (SMA20MarketDirection)
-                    {
-                        if (!CheckSMA20MarketDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
-                            return false;
-                        }
-                    }
-                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
-                    if (SMA9MarketDirection)
-                    {
-                        if (!CheckSMA9MarketDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
-                            return false;
-                        }
-                    }
-                    // if Close > Open, market heading higher, skip the trade
-                    if (CheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
-                    {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
-                        return false;
-                    }
-
-                    // LEAVE THIS AS LAST CHECK
-                    if ((Bars.GetClose(CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
-                        return true;
-                    else
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
-                    break;
-                case TServerTradeDecison.Buy:
-                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
-                    if (UseMomentumFilter)
-                    {
-                        if (!CheckMomentumDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckMomentumDirection failed.");
-                            return false;
-                        }
-                    }
-                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
-                    if (SMA20MarketDirection)
-                    {
-                        if (!CheckSMA20MarketDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
-                            return false;
-                        }
-                    }
-                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
-                    if (SMA9MarketDirection)
-                    {
-                        if (!CheckSMA9MarketDirection(trade))
-                        {
-                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
-                            return false;
-                        }
-                    }
-                    // if Open > Close, market heading lower, skip the trade
-                    if (CheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
-                    {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
-                        return false;
-                    }
-
-                    // LEAVE THIS AS LAST CHECK
-                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(CurrentBar)) >= ScalpingRange)
-                        return true;
-                    else
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrower than ScalpingRange");
-
-                    break;
-            }
-            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Trade decision= {{{  " + trade.ToString() + "  }}}");
-            return false;
-        }
 
 
         // starting a new trade position by submitting an order to the brokerage, OnOrderUpdate callback will reflect the state of the order submitted
@@ -1696,25 +1575,22 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            if (!ScalpEntryPassed(tServerDecision))
-                return;
-
             // Carry out new trade per tServerDecision
             if (tServerDecision == TServerTradeDecison.Sell)
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
                 AiShort();
                 PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
             }
             else if (tServerDecision == TServerTradeDecison.Buy)
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
                 AiLong();
                 PlaySound(NinjaTrader.Core.Globals.InstallDir + @"\sounds\windows_vista_notify.wav");
             }
             else
             {
-                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision= {{{  " + tServerDecision.ToString() + "  }}}");
+                MyPrint(defaultErrorType, "StartNewTradePosition, tServerDecision=" + tServerDecision.ToString());
             }
         }
 
@@ -1770,10 +1646,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 return;
             }
 
-            // check if current High or Low touched mid Bollinger, using 2000 ticks
-            CheckVServerTouchedMid();
-            // check if current Close touched profit target, using 2000 ticks
-            CheckVServerTouchedTarget();
+            // check if current High or Low touched mid Bollinger
+            CheckTServerTouchedMid();
+            // check if current Close touched profit target
+            CheckTServerTouchedTarget();
 
             if (PosLong())
             {
@@ -1934,7 +1810,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (SMA(9)[0] < SMA(20)[0])
                 {
-                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] < SMA(20)[0] and loss 60% of position!");
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] < SMA(20)[0]");
                     return (Bars.GetClose(CurrentBar) <= (closedPrice - SMADeck * TickSize));
                 }
             }
@@ -1942,7 +1818,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (SMA(9)[0] > SMA(20)[0])
                 {
-                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] > SMA(20)[0] and loss 60% of position!");
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] > SMA(20)[0]");
                     return (Bars.GetClose(CurrentBar) >= (closedPrice + SMADeck * TickSize));
                 }
             }
@@ -2187,7 +2063,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // Attempt to flatten position with limit order if EOD
+        // Attempt to flatten position with limit order if EOD, do not start new trade if by EOD start hour still flat
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;
@@ -2239,37 +2115,219 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        // Check if touched Boll_hi for Buy and Boll_lo for Sell
-        private void CheckVServerTouchedTarget()
+        private void CheckTServerTouchedMid()
         {
+            double midBollinger = (Bollinger(BarsArray[3], 2, 20).Lower[0] + Bollinger(BarsArray[3], 2, 20).Upper[0]) / 2;
+
             if (PosLong())
             {
-                if (Bars.GetClose(CurrentBar) >= Bollinger(2, 20).Upper[0])
-                    touchedTarget = true;
+                if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > midBollinger)
+                    touchedMid = true;
             }
             if (PosShort())
             {
-                if (Bars.GetClose(CurrentBar) <= Bollinger(2, 20).Lower[0])
-                    touchedTarget = true;
+                if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < midBollinger)
+                    touchedMid = true;
             }
+            MyPrint(defaultErrorType, "CheckTServerTouchedMid, touchedMid=" + touchedMid);
         }
 
 
-        // 2000 ticks bars
-        private void CheckVServerTouchedMid()
+        private void CheckTServerTouchedTarget()
         {
-            double midBollinger = (Bollinger(2, 20).Lower[0] + Bollinger(2, 20).Upper[0]) / 2;
-
             if (PosLong())
             {
-                if (Bars.GetHigh(CurrentBar) > midBollinger)
-                    touchedMid = true;
+                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
+                    touchedTarget = true;
             }
             if (PosShort())
             {
-                if (Bars.GetLow(CurrentBar) < midBollinger)
-                    touchedMid = true;
+                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
+                    touchedTarget = true;
             }
+            MyPrint(defaultErrorType, "CheckTServerTouchedTargets, touchedTarget=" + touchedTarget);
+        }
+
+
+        private bool CheckSMA50MarketDirection(char signal)
+        {
+            bool SMA50TrendingUp = SMA(BarsArray[3], 50)[0] > SMA(BarsArray[3], 50)[1];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA50TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA50TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool CheckSMA20MarketDirection(char signal)
+        {
+            bool SMA20TrendingUp = SMA(BarsArray[3], 20)[0] > SMA(BarsArray[3], 20)[1];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA20TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA20TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool CheckSMA9MarketDirection(char signal)
+        {
+            bool SMA9TrendingUp = SMA(BarsArray[3], 9)[0] > SMA(BarsArray[3], 9)[1];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA9TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool CheckMomentumDirection(char signal)
+        {
+            bool MomentumTrendingUp = Momentum(BarsArray[3], 20)[0] > Momentum(BarsArray[3], 20)[1];
+            double momentumDiff;
+
+            momentumDiff = Math.Abs(Momentum(BarsArray[3], 20)[0]) - Math.Abs(Momentum(BarsArray[3], 20)[1]);
+
+            switch (signal)
+            {
+                case '0':
+                    if (!MomentumTrendingUp)
+                        return true;
+                    else // trending up
+                    {
+                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (MomentumTrendingUp)
+                        return true;
+                    else // trending down
+                    {
+                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool TServerScalpEntryPassed(char signal)
+        {
+            switch (signal)
+            {
+                case '0':
+                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+                    if (UseMomentumFilter)
+                    {
+                        if (!CheckMomentumDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckMomentumDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+                    if (SMA20MarketDirection)
+                    {
+                        if (!CheckSMA20MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+                    if (SMA9MarketDirection)
+                    {
+                        if (!CheckSMA9MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // if Close > Open, market heading higher, skip the trade
+                    if (CheckMarketDirection && (BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
+                        return false;
+                    }
+
+                    // LEAVE THIS AS LAST CHECK
+                    if ((BarsArray[3].GetClose(BarsArray[3].CurrentBar) - Bollinger(BarsArray[3], 2, 20).Lower[0]) >= ScalpingRange)
+                        return true;
+                    else
+                        MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Narrow ScalpingRange");
+                    break;
+                case '2':
+                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+                    if (UseMomentumFilter)
+                    {
+                        if (!CheckMomentumDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckMomentumDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+                    if (SMA20MarketDirection)
+                    {
+                        if (!CheckSMA20MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+                    if (SMA9MarketDirection)
+                    {
+                        if (!CheckSMA9MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // if Open > Close, market heading lower, skip the trade
+                    if (CheckMarketDirection && (BarsArray[3].GetOpen(CurrentBar) > BarsArray[3].GetClose(CurrentBar)))
+                    {
+                        MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
+                        return false;
+                    }
+
+                    // LEAVE THIS AS LAST CHECK
+                    if ((Bollinger(BarsArray[3], 2, 20).Upper[0] - BarsArray[3].GetClose(Bars.CurrentBar)) >= ScalpingRange)
+                        return true;
+                    else
+                        MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Narrower than ScalpingRange");
+
+                    break;
+            }
+            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! Signal=" + signal);
+            return false;
         }
 
 
@@ -2491,17 +2549,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
                         if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                         {
+                            // Handle Scalping profit taking and stop loss
+                            if (UseExitFilter)
+                                HandleMarketShift();
+
                             // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
                             if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
                                 MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition is true, Stop loss.");
                                 HandleSoftDeck();
-                            }
-                            else
-                            {
-                                // Handle Scalping profit taking and stop loss
-                                if (UseExitFilter)
-                                    HandleMarketShift();
                             }
 
                             // if ProfitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing
@@ -2632,15 +2688,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "Start time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar - 1).ToString("HHmmss") + " End time=" + BarsArray[3].GetTime(BarsArray[3].CurrentBar).ToString("HHmmss"));
                 MyPrint(defaultErrorType, "OnBarUpdate, TServer response= <<< " + tServerSignal + " >>> Current Bar: Open=" + BarsArray[3].GetOpen(BarsArray[3].CurrentBar) + " Close=" + BarsArray[3].GetClose(BarsArray[3].CurrentBar) + " High=" + BarsArray[3].GetHigh(BarsArray[3].CurrentBar) + " Low=" + BarsArray[3].GetLow(BarsArray[3].CurrentBar));
 
-                // =========================================
-                // For V+T Scalping Not filtering T Signals
-                // =========================================
                 // if TServerScalpEntryPassed failed, then tServerDecision sets to HOLD
-                //if (!TServerScalpEntryPassed(tServerSignal[0]))
-                //{
-                //    tServerDecision = TServerTradeDecison.Hold;
-                //    return;
-                //}
+                if (!TServerScalpEntryPassed(tServerSignal[0]))
+                {
+                    tServerDecision = TServerTradeDecison.Hold;
+                    return;
+                }
 
                 switch (tServerSignal[0])
                 {

@@ -28,7 +28,7 @@ using System.Net;
 //This namespace holds Strategies in this folder and is required. Do not change it.
 namespace NinjaTrader.NinjaScript.Strategies
 {
-    public class TServerViewGenerator : Strategy
+    public class T2ServerViewGenerator : Strategy
     {
         private string pathMktView;
         private StreamWriter swMkt = null; // Store market view, 0=Bear, 1=Neutral, 2=Bull
@@ -66,7 +66,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Socket tSender = null;
         private byte[] tBytes = new byte[1024];
         int tLineNo = 0;
-        private static readonly int tPortNumber = 3883;
+        private static readonly int tPortNumber = 3993;
         private static readonly string hostName = Dns.GetHostName();
         private string tServerSignal = "1";
 
@@ -211,8 +211,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"T-Server provides market views for Buy, Sell or Hold";
-                Name = "TServerViewGenerator";
+                Description = @"T2-Server using mirror data provides market views for Buy, Sell or Hold";
+                Name = "T2ServerViewGenerator";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
                 EntryHandling = EntryHandling.AllEntries;
@@ -249,7 +249,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void WriteMarketView(MarketView mktView)
         {
             pathMktView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathMktView = System.IO.Path.Combine(pathMktView, "Artista" + ".mkt");
+            pathMktView = System.IO.Path.Combine(pathMktView, "Artista" + ".mkt2");
 
             swMkt = File.CreateText(pathMktView); // Open the path for Market View
             switch (mktView)
@@ -272,7 +272,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void WriteExitView(ExitView exitView)
         {
             pathExitView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathExitView = System.IO.Path.Combine(pathExitView, "Artista" + ".xit");
+            pathExitView = System.IO.Path.Combine(pathExitView, "Artista" + ".xit2");
 
             swExit = File.CreateText(pathExitView); // Open the path for Exit View
             switch (exitView)
@@ -408,56 +408,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // returns false if failed the check
-        private bool CheckSMA20MarketDirection(char signal)
-        {
-            bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
-
-            MyPrint(defaultErrorType, "SMA20TrendingUp= @@" + SMA20TrendingUp + " @@");
-
-            switch (signal)
-            {
-                case '0':
-                    if (!SMA20TrendingUp)
-                        return true;
-                    break;
-                case '2':
-                    if (SMA20TrendingUp)
-                        return true;
-                    break;
-            }
-            return false;
-        }
-
-
-        // returns false if failed the check
-        private bool CheckSMA9MarketDirection(char signal)
-        {
-            bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
-
-            MyPrint(defaultErrorType, "SMA9TrendingUp= @@ " + SMA9TrendingUp + " @@");
-
-            switch (signal)
-            {
-                case '0':
-                    if (!SMA9TrendingUp)
-                        return true;
-                    break;
-                case '2':
-                    if (SMA9TrendingUp)
-                        return true;
-                    break;
-            }
-            return false;
-        }
-
-
         // Different filtering mechanism employed for the T-Server signals, if anyone of them returned true, T-Server will be set to Hold
         private bool FilterTServer(char signal)
         {
-            CheckSMA9MarketDirection(signal);
-            CheckSMA20MarketDirection(signal);
-
             /*
             if (BollingerFlat())
                         {

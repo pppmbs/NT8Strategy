@@ -24,6 +24,8 @@ using NinjaTrader.NinjaScript.Indicators;
 using NinjaTrader.NinjaScript.DrawingTools;
 using System.Diagnostics;
 using System.IO;
+using System.Globalization;
+using System.Xml;
 #endregion
 
 //This namespace holds Strategies in this folder and is required. Do not change it.
@@ -40,6 +42,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private string pathPpercent;
         private string pathMktView; // Store marekt view, 0==Bear, 1==Neutral, 2==Bull
         private string pathExitView; // Store exit view, 0==Sell, 1==Hold, 2==Buy
+        private string pathEcon;
         private StreamWriter swLog = null; // runtime log file
         private StreamWriter swErr = null; // error file
         private StreamWriter swCC = null;  // Store current capital for each strategy
@@ -51,6 +54,27 @@ namespace NinjaTrader.NinjaScript.Strategies
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
         private Order targetOrder = null; // This variable holds an object representing our profit target order
 
+        // **********************************************************************************************************
+        // Configuration file settings
+        // **********************************************************************************************************
+        private int LotSize;
+        private int LVmaxConsecutiveLossesUpper;
+        private int LVmaxConsecutiveLosses;
+        private int LVminConsecutiveWins;
+        private double LVProfitChasingTarget;
+        private double LVmaxPercentAllowableDrawdown;
+        private double LVProfitChasingAllowableDrawdown;
+        private double DefaultPStops;
+        private double DefaultLStops;
+        private double SMADeckPercent;
+        private int ScalpingRange;
+        private bool CheckMarketDirection;
+        private bool UseMomentumFilter;
+        private int MaxMomentumDiff;
+        private bool SMA20MarketDirection;
+        private bool SMA9MarketDirection;
+        private bool UseExitFilter;
+        private bool UseYFStopLoss;
 
         /* **********************************************************************************************************
          * Following settings need to be set before run
@@ -62,9 +86,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Daily drawdown (counting wins and losses) strategy settings
         // Low VIX daily drawdown control settings
-        private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
-        private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
-        private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses
+        //private static int LVmaxConsecutiveLossesUpper = 7;  // upper limit allowable daily losses
+        //private static int LVmaxConsecutiveLosses = 5;      // max allowable daily losses if no win
+        //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses
         //private static int LVmaxConsecutiveLossesUpper = 4;  // upper limit allowable daily losses
         //private static int LVmaxConsecutiveLosses = 2;      // max allowable daily losses if no win
         //private static int LVminConsecutiveWins = 2;       // min wins to increment max allowable daily losses
@@ -75,9 +99,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         //below are Monthly drawdown (Profit chasing and stop loss) strategy settings
         //Low VIX monthly drawdown control settings
-        private static double LVprofitChasingTarget = 0.6; // % monthly gain profit target
-        private static double LVmaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private static double LVprofitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        //private static double LVprofitChasingTarget = 0.6; // % monthly gain profit target
+        //private static double LVmaxPercentAllowableDrawdown = 0.3; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        //private static double LVprofitChasingAllowableDrawdown = 0.1; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
         // High VIX monthly drawdown control settings
         private static double HVprofitChasingTarget = 0.75; // % monthly gain profit target
         private static double HVmaxPercentAllowableDrawdown = 0.1; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
@@ -88,11 +112,19 @@ namespace NinjaTrader.NinjaScript.Strategies
         // --------------------------------------------------
 
         // Handle early position exit with HandleMarketShift
-        private static bool UseExitFilter = true;
-        private static double ScalpingRange = 7;
-        private static bool CheckMarketDirection = true;
-        private static bool IgnoreWallStreetHour = false;
-        private static bool UseMomentumFilter = false;
+        //private static bool UseExitFilter = true;
+        //private static double ScalpingRange = 7;
+        //private static bool CheckMarketDirection = false;
+        //private static bool IgnoreWallStreetHour = false;
+        //// when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+        //private static bool UseMomentumFilter = false;
+        //private static double MaxMomentumDiff = 5;
+        //// when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+        //private static bool SMA20MarketDirection = true;
+        //// when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+        //private static bool SMA9MarketDirection = true;
+        //// When true, use YF defined stop-loss, else use standard stop-loss check
+        //private static bool UseYFStopLoss = true;
         private bool touchedMid = false;
         private bool touchedTarget = false;
 
@@ -134,7 +166,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
-        private static readonly int LotSize = 2;
+        //private static readonly int LotSize = 2;
 
         // Dollar value for ONE point, i.e. 4 ticks, 4 x $12.50 (value per tick) = $50
         private static double dollarValPerPoint = 50;
@@ -142,39 +174,39 @@ namespace NinjaTrader.NinjaScript.Strategies
         // IMPORTANT: initial starting capital is set to $10,000 for monthly drawdown control strategy accounting purpose,
         //            the monthly drawdown comparison is based on %percentage% of $10,000
         //            even though capital to lot ratio can be set to $25,000 per lot
-        private static double InitStartingCapital = 10000 * LotSize;
+        private double InitStartingCapital;
 
         /* **********************************************************************************************************
          * Commission rate needs to be set to the current commission rate
          * **********************************************************************************************************
          */
-        private static double CommissionRate = 5.58 * LotSize;
+        private double CommissionRate;
         /*
          * **********************************************************************************************************
          */
 
         // these variables affects how the daily drawdown policy is being enforced
-        private int maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
-        private int maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
-        private int minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+        private int maxConsecutiveLossesUpper;
+        private int maxConsecutiveLosses;
+        private int minConsecutiveWins;
         private int initMaxConsecutiveLosses;
 
         // these variables affects how the monthly drawdown policy is being enforced
-        private double profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
-        private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private double profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        private double profitChasingTarget; // % monthly gain profit target
+        private double maxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+        private double profitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-        private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
+        private double virtualCurrentCapital; // set to startingCapital before the day
         private double currentMonthlyLosses = 0; // starts with zero losses for the monthly
 
         // below are variables accounting for each trading day, tracking monthly drawdown control strategy
         // they are to be initialized when State == State.DataLoaded during start up
-        private double yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
+        private double yesterdayVirtualCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
         private bool monthlyProfitChasingFlag = false; // set to false before the month
         private bool stopMonthlyTrading = false;
         private double lastTotalRealtimePnL = 0;
 
-        private int maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
+        private int maxConsecutiveDailyLosses;
         private int consecutiveDailyLosses = 0;
         private int consecutiveDailyWins = 0;
 
@@ -189,11 +221,11 @@ namespace NinjaTrader.NinjaScript.Strategies
         private static readonly int defaultLstops = 10;
         private int profitChasing = defaultPstops * TicksPerStop; // the target where HandleProfitChasing kicks in
         private int softDeck = defaultLstops * TicksPerStop; // number of stops for soft stop loss
-        private int softerDeck = Convert.ToInt32(0.6 * defaultLstops * TicksPerStop);
+        private int SMADeck = Convert.ToInt32(0.6 * defaultLstops * TicksPerStop);
         private int hardDeck = defaultPstops * TicksPerStop; //hard deck for auto stop loss
         private int pStops = defaultPstops;
         private int lStops = defaultLstops;
-        private static readonly int portNumber = 3002;
+        private static readonly int vPortNumber = 3002;
         private static readonly string hostName = Dns.GetHostName();
         /*
          * **********************************************************************************************************
@@ -205,7 +237,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private DateTime regularEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
         //private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 15, (15 - bufferUntilEOD), 00);
         private DateTime fridayEndSessionTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 14, 30, 00);
-        private DateTime NineAM = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 00, 00);
+        private DateTime StartTradeTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 00, 00);
         private bool endSession = false;
         private bool firstBarOfDay = true;
 
@@ -215,7 +247,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool attemptToFlattenPos = false;
         private bool haltTrading = false;
 
-        private Socket sender = null;
+        private Socket vSender = null;
         private byte[] bytes = new byte[1024];
         int lineNo = 0;
 
@@ -245,6 +277,257 @@ namespace NinjaTrader.NinjaScript.Strategies
             limit,
             market
         };
+
+
+        // --------------------------------------------------
+        // Critical Economic News
+        // --------------------------------------------------
+        private Dictionary<DateTime, DateTime> data;
+        private DateTime DailyCriticalTime;
+
+        private void LoadEconomicCalendar()
+        {
+            data = new Dictionary<DateTime, DateTime>();
+
+            // read the Economic Calendar File "EconomicCalendar.csv"
+            pathEcon = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathEcon = System.IO.Path.Combine(pathEcon, "EconomicCalendar.csv");
+
+            using (StreamReader reader = new StreamReader(pathEcon))
+            {
+                string line;
+                DateTime currentDate = DateTime.MinValue;
+                DateTime currentTime;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    int commaIndex = line.IndexOf(',');
+                    line = line.Substring(0, commaIndex);
+
+                    if (line.StartsWith("Monday") || line.StartsWith("Tuesday") || line.StartsWith("Wednesday") ||
+                        line.StartsWith("Thursday") || line.StartsWith("Friday") || line.StartsWith("Saturday") ||
+                        line.StartsWith("Sunday"))
+                    {
+                        // Parse date
+                        string[] dateParts = line.Split(' ');
+                        string dateString = string.Join(" ", dateParts.Skip(1).Take(3)); // Extract "January 04 2023"
+
+                        // Try parsing the date string
+                        DateTime parsedDate;
+                        if (DateTime.TryParseExact(dateString, "MMMM dd yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                        {
+                            currentDate = parsedDate;
+
+                            MyPrint(defaultErrorType, "currentDate=" + currentDate.ToLongDateString());
+                        }
+                        else
+                        {
+                            // Log or handle the parsing error
+                            Print("Error parsing date: " + dateString);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        // Parse time
+                        string[] parts = line.Split(',');
+                        string timeString = parts[0];
+
+                        // Parse the time string
+                        DateTime parsedTime = DateTime.ParseExact(timeString, "h:mm tt", null);
+
+                        // Create a new DateTime variable with desired hour and minute
+                        currentTime = new DateTime(parsedTime.Year, parsedTime.Month, parsedTime.Day, parsedTime.Hour, parsedTime.Minute, 0);
+
+                        MyPrint(defaultErrorType, "currentTime=" + currentTime.ToLongTimeString());
+
+                        DateTime insertDate = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day);
+                        // Add to data dictionary
+                        data[insertDate] = currentTime;
+
+                        MyPrint(defaultErrorType, "key=" + insertDate.ToLongDateString() + " data=" + currentTime.ToLongTimeString());
+                    }
+                }
+            }
+
+            MyPrint(defaultErrorType, "LoadEconomicCalendar done!");
+        }
+
+
+        private DateTime SearchCriticalTime(DateTime date)
+        {
+            if (data.ContainsKey(new DateTime(date.Year, date.Month, date.Day)))
+            {
+                MyPrint(defaultErrorType, "SearchCriticalTime found data= " + data[date].ToShortTimeString() + " using key=" + date.ToShortDateString());
+                return data[date];
+            }
+
+            MyPrint(defaultErrorType, "SearchCriticalTime failed to locate= " + date.ToLongDateString());
+
+            // If matching date not found, return 7:00 AM, in order to start 9:00 AM
+            return DateTime.ParseExact("7:00 AM", "h:mm tt", null);
+        }
+
+
+
+        // return true if current time is within time buffer of the critical time period or if daily ctitical time is 1:00pm or later
+        private bool CriticalTimePeriod()
+        {
+            TimeSpan diff = Time[0] - DailyCriticalTime;
+
+            // skip trading if daily critical time is 1:00pm or later
+            if (DailyCriticalTime.TimeOfDay >= new TimeSpan(12, 0, 0))
+            {
+                MyPrint(defaultErrorType, "CriticalTimePeriod: skip trading!");
+                return true;
+            }
+
+            // skip trading if current time is within 2 hours buffer of daily criticial time
+            if (Math.Abs(diff.TotalHours) <= 2)
+            {
+                MyPrint(defaultErrorType, "CriticalTimePeriod: skip trading!");
+                return true;
+            }
+            MyPrint(defaultErrorType, "CriticalTimePeriod: trading proceed as normal.");
+            return false;
+        }
+
+
+        private void ConnectVolumeServer()
+        {
+            // Connect to Volume Server  
+            try
+            {
+                // Do not attempt connection if already connected
+                if (vSender != null)
+                    return;
+
+                // Establish the remote endpoint for the socket.  
+                // connecting server on vvPortNumber  
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
+
+                IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                                                                 //IPAddress ipAddress = ipHostInfo.AddressList[3];
+                                                                 //ipAddress = ipAddress.MapToIPv4();
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, vPortNumber);
+
+                MyPrint(defaultErrorType, "ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
+
+                // Create a TCP/IP  socket.  
+                vSender = new Socket(ipAddress.AddressFamily,
+                    SocketType.Stream, ProtocolType.Tcp);
+
+                // Connect the socket to the remote endpoint. Catch any errors.  
+                try
+                {
+                    vSender.Connect(remoteEP);
+
+                    MyPrint(defaultErrorType, " ************ Socket connected to : " +
+                        vSender.RemoteEndPoint.ToString() + "*************");
+
+                    // set receive timeout 10 secs
+                    vSender.ReceiveTimeout = 10000;
+                    // set send timeout 10 secs
+                    vSender.SendTimeout = 10000;
+                }
+                catch (ArgumentNullException ane)
+                {
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: ArgumentNullException : " + ane.ToString());
+                }
+                catch (SocketException se)
+                {
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: SocketException : " + se.ToString());
+                }
+                catch (Exception e)
+                {
+                    MyErrPrint(ErrorType.fatal, "Socket Connect Error: Unexpected exception : " + e.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                MyErrPrint(ErrorType.fatal, e.ToString());
+            }
+        }
+
+
+        private void ReadConfigurationFile()
+        {
+            String pathConfig;
+
+            pathConfig = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+            pathConfig = System.IO.Path.Combine(pathConfig, "Artista-Config-" + vPortNumber.ToString() + ".xml");
+
+            Print("pathConfig=" + pathConfig);
+
+            try
+            {
+                // Load the XML document
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(pathConfig);
+
+                MyPrint(defaultErrorType, "Config file loaded");
+
+                // Extract values from the General section
+                // Extract values from the Artista section
+                LotSize = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/General/LotSize").InnerText);
+
+                // Extract values from the ProfitAndLoss section
+                LVmaxConsecutiveLossesUpper = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVmaxConsecutiveLossesUpper").InnerText);
+                LVmaxConsecutiveLosses = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVmaxConsecutiveLosses").InnerText);
+                LVminConsecutiveWins = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVminConsecutiveWins").InnerText);
+                LVProfitChasingTarget = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVProfitChasingTarget").InnerText);
+                LVmaxPercentAllowableDrawdown = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVmaxPercentAllowableDrawdown").InnerText);
+                LVProfitChasingAllowableDrawdown = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/LVProfitChasingAllowableDrawdown").InnerText);
+                DefaultPStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultPStops").InnerText);
+                DefaultLStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultLStops").InnerText);
+                SMADeckPercent = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/SMADeckPercent").InnerText);
+
+                // Extract values from the TradeFilters section
+                ScalpingRange = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
+                CheckMarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckMarketDirection").InnerText);
+                UseMomentumFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseMomentumFilter").InnerText);
+                MaxMomentumDiff = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/MaxMomentumDiff").InnerText);
+                SMA20MarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA20MarketDirection").InnerText);
+                SMA9MarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA9MarketDirection").InnerText);
+                UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
+                UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
+
+                MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
+                    " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
+                    " LVmaxPercentAllowableDrawdown=" + LVmaxPercentAllowableDrawdown + " LVProfitChasingAllowableDrawdown=" + LVProfitChasingAllowableDrawdown +
+                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent);
+
+
+                MyPrint(defaultErrorType, "ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
+                    " UseMomentumFilter=" + UseMomentumFilter + " SMA20MarketDirection=" + SMA20MarketDirection + " SMA9MarketDirection=" + SMA9MarketDirection +
+                    " UseExitFilter=" + UseExitFilter + " UseYFStopLoss=" + UseYFStopLoss);
+
+                //Initialize local variables
+                InitStartingCapital = 10000 * LotSize;
+                CommissionRate = 5.58 * LotSize;
+                maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
+                maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
+                minConsecutiveWins = LVmaxConsecutiveLossesUpper;
+                profitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
+                maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                profitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+                virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
+                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
+                maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
+
+                profitChasing = Convert.ToInt32(DefaultPStops * TicksPerStop); // the target where HandleProfitChasing kicks in
+                softDeck = Convert.ToInt32(DefaultLStops * TicksPerStop); // number of stops for soft stop loss
+                SMADeck = Convert.ToInt32(SMADeckPercent * DefaultLStops * TicksPerStop); // Using SMA to stop loss earlier than SoftDeck
+                hardDeck = Convert.ToInt32(DefaultPStops * TicksPerStop); //hard deck for auto stop loss
+                pStops = Convert.ToInt32(DefaultPStops);
+                lStops = Convert.ToInt32(DefaultLStops);
+            }
+            catch (Exception ex)
+            {
+                MyErrPrint(ErrorType.fatal, "Error reading configuration file: " + ex.Message);
+            }
+        }
+
 
         protected override void OnStateChange()
         {
@@ -298,11 +581,21 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //Sets the manner in which your strategy will behave when a connection loss is detected.
                 //When using ConnectionLossHandling.Recalculate, recalculations will only occur if the strategy was stopped based on the conditions below.
-                //�If data feed disconnects for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
-                //�If the order feed disconnects and the strategy places an order action while disconnected, the strategy is stopped.
-                //�If both the data and order feeds disconnect for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
+                // If data feed disconnects for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
+                // If the order feed disconnects and the strategy places an order action while disconnected, the strategy is stopped.
+                // If both the data and order feeds disconnect for longer than the time specified in DisconnectDelaySeconds, currently set at 10 secs, the strategy is stopped.
                 //Strategies will attempt to recalculate its strategy position when a connection is reestablished.
                 ConnectionLossHandling = ConnectionLossHandling.Recalculate;
+
+                // Read configuration file
+                ReadConfigurationFile();
+
+                MyPrint(defaultErrorType, "UseExitFilter=" + UseExitFilter + " ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
+                    " UseMomentumFilter=" + UseMomentumFilter + " MaxMomentumDiff=" + MaxMomentumDiff + " SMA20MarketDirection=" + SMA20MarketDirection +
+                    " SMA9MarketDirection=" + SMA9MarketDirection + " UseYFStopLoss=" + UseYFStopLoss);
+
+                MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses + " LVminConsecutiveWins=" + LVminConsecutiveWins);
+                MyPrint(defaultErrorType, "defaultPstops=" + DefaultPStops + " defaultLstops=" + DefaultLStops);
             }
             else if (State == State.Configure)
             {
@@ -337,63 +630,20 @@ namespace NinjaTrader.NinjaScript.Strategies
                     stopOrder = GetRealtimeOrder(stopOrder);
                 if (targetOrder != null)
                     targetOrder = GetRealtimeOrder(targetOrder);
+
+                // Read DailyCriticalTime for each day
+                MyPrint(defaultErrorType, "Bars.GetTime(CurrentBar).Date=" + Bars.GetTime(CurrentBar).Date.ToLongDateString() + ":" + Bars.GetTime(CurrentBar).Date.ToLongTimeString());
+                DailyCriticalTime = SearchCriticalTime(Bars.GetTime(CurrentBar).Date);
+                MyPrint(defaultErrorType, "DailyCriticalTime= " + DailyCriticalTime.ToLongTimeString());
             }
             else if (State == State.DataLoaded)
             {
                 MyPrint(ErrorType.warning, "State == State.DataLoaded");
 
-                // Connect to DLNN Server  
-                try
-                {
-                    // Do not attempt connection if already connected
-                    if (sender != null)
-                        return;
+                ConnectVolumeServer();
 
-                    // Establish the remote endpoint for the socket.  
-                    // connecting server on portNumber  
-                    IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
-
-                    IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
-                    //IPAddress ipAddress = ipHostInfo.AddressList[3];
-                    //ipAddress = ipAddress.MapToIPv4();
-                    IPEndPoint remoteEP = new IPEndPoint(ipAddress, portNumber);
-
-                    MyPrint(defaultErrorType, "ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
-
-                    // Create a TCP/IP  socket.  
-                    sender = new Socket(ipAddress.AddressFamily,
-                        SocketType.Stream, ProtocolType.Tcp);
-
-                    // Connect the socket to the remote endpoint. Catch any errors.  
-                    try
-                    {
-                        sender.Connect(remoteEP);
-
-                        MyPrint(defaultErrorType, " ************ Socket connected to : " +
-                            sender.RemoteEndPoint.ToString() + "*************");
-
-                        // set receive timeout 10 secs
-                        sender.ReceiveTimeout = 10000;
-                        // set send timeout 10 secs
-                        sender.SendTimeout = 10000;
-                    }
-                    catch (ArgumentNullException ane)
-                    {
-                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: ArgumentNullException : " + ane.ToString());
-                    }
-                    catch (SocketException se)
-                    {
-                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: SocketException : " + se.ToString());
-                    }
-                    catch (Exception e)
-                    {
-                        MyErrPrint(ErrorType.fatal, "Socket Connect Error: Unexpected exception : " + e.ToString());
-                    }
-                }
-                catch (Exception e)
-                {
-                    MyErrPrint(ErrorType.fatal, e.ToString());
-                }
+                // load economics news release time
+                LoadEconomicCalendar();
 
                 // Setup the drawdown protections, Pstops and Lstops
                 DailyTradingPolicySetup();
@@ -465,11 +715,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (order.OrderState == OrderState.Filled || order.OrderState == OrderState.PartFilled)
                 {
-                    closedPrice = order.AverageFillPrice;
+                    // IMPORTANT NOTE: Has to update currPos here, because PartFilled does not update OnPositionUpdate 
                     if (order.Name == "Long")
                         currPos = Position.posLong;
                     if (order.Name == "Short")
                         currPos = Position.posShort;
+
+                    closedPrice = order.AverageFillPrice;
 
                     if (order.Filled == LotSize)
                     {
@@ -486,8 +738,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // Order cancellation is confirmed by the exchange, cancellation only done manually, therefore will flatten position
                 if (order.OrderState == OrderState.Cancelled)
                 {
-                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Order cancellation was confirmed by exchange. Will flatten all positions.");
-                    FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
+                    MyErrPrint(ErrorType.warning, "OnOrderUpdate, Order cancellation was confirmed by exchange. Partially filled position will continue.");
+
+                    // IMPORTANT: I should not FlattenVirtualPositions, because there may be partially filled positions, OnPositionUpdate will flatten all positions
+                    //FlattenVirtualPositions();    // this will flatten virtual positions and reset all flags
                 }
 
                 // Report error and flatten position if new order submissoin rejected, fatal error if closing position rejected
@@ -653,10 +907,12 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
             if (position.MarketPosition == MarketPosition.Long)
             {
+                currPos = Position.posLong;
                 MyPrint(defaultErrorType, "OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Long %%%%%%%%%%%%%%%%%%%%%%%%");
             }
             if (position.MarketPosition == MarketPosition.Short)
             {
+                currPos = Position.posShort;
                 MyPrint(defaultErrorType, "OnPositionUpdate, %%%%%%%%%%%%%%%%%%%%%%%% Account Positions: Short %%%%%%%%%%%%%%%%%%%%%%%%");
             }
         }
@@ -666,10 +922,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void ReadCurrentCapital()
         {
             // read the current capital file .cc for the current capital, create one if it does not exist
-            // Create file in the portNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
+            // Create file in the vPortNumber.cc format, the Path to current capital file, cc file does not have date as part of file name
             pathCC = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            //pathCC = System.IO.Path.Combine(pathCC, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cc");
-            pathCC = System.IO.Path.Combine(pathCC, hostName + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cc");
+            //pathCC = System.IO.Path.Combine(pathCC, Dns.GetHostName() + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cc");
+            pathCC = System.IO.Path.Combine(pathCC, hostName + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cc");
 
             if (File.Exists(pathCC))
             {
@@ -696,10 +952,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void ReadCurrentMonthlyLosses()
         {
             // read the current monthly losses file .c1 for the current monthly losses, create one if it does not exist
-            // Create file in the hostname-portNumber.cl format, the Path to current losses file, cl file does not have date as part of file name
+            // Create file in the hostname-vPortNumber.cl format, the Path to current losses file, cl file does not have date as part of file name
             pathCL = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            //pathCL = System.IO.Path.Combine(pathCL, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cl");
-            pathCL = System.IO.Path.Combine(pathCL, hostName + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cl");
+            //pathCL = System.IO.Path.Combine(pathCL, Dns.GetHostName() + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cl");
+            pathCL = System.IO.Path.Combine(pathCL, hostName + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMM") + ".cl");
 
             if (File.Exists(pathCL))
             {
@@ -720,10 +976,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings
         private void ReadEMAVixToSetUpDrawdownSettings()
         {
-            //Read file in the portNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
+            //Read file in the vPortNumber.cc format, the Path to current vix file, vix file does not have date as part of file name
             pathVIX = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
             // VIX is the same across all strategies
-            //pathVIX = System.IO.Path.Combine(pathVIX, Dns.GetHostName() + "-" + portNumber.ToString() + ".vix");
+            //pathVIX = System.IO.Path.Combine(pathVIX, Dns.GetHostName() + "-" + vPortNumber.ToString() + ".vix");
             pathVIX = System.IO.Path.Combine(pathVIX, "Artista" + ".vix");
 
             if (File.Exists(pathVIX))
@@ -757,9 +1013,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     minConsecutiveWins = LVminConsecutiveWins;
                     initMaxConsecutiveLosses = LVmaxConsecutiveLosses;
 
-                    profitChasingTarget = LVprofitChasingTarget; // % monthly gain profit target
+                    profitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
                     maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                    profitChasingAllowableDrawdown = LVprofitChasingAllowableDrawdown;
+                    profitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown;
                 }
 
                 MyPrint(defaultErrorType, "ReadEMAVixToSetUpDrawdownSettings, maxConsecutiveLossesUpper=" + maxConsecutiveLossesUpper + " maxConsecutiveLosses=" + maxConsecutiveLosses + " minConsecutiveWins=" + minConsecutiveWins);
@@ -902,8 +1158,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (swErr == null)
             {
                 pathErr = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                //pathErr = System.IO.Path.Combine(pathErr, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
-                pathErr = System.IO.Path.Combine(pathErr, hostName + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
+                //pathErr = System.IO.Path.Combine(pathErr, Dns.GetHostName() + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
+                pathErr = System.IO.Path.Combine(pathErr, hostName + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".err");
                 swErr = File.AppendText(pathErr);  // Open the path for err file writing
             }
 
@@ -939,10 +1195,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (swLog == null)
             {
-                //Create log file in the portNumber-yyyyMMdd.log format
+                //Create log file in the vPortNumber-yyyyMMdd.log format
                 pathLog = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-                //pathLog = System.IO.Path.Combine(pathLog, Dns.GetHostName() + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
-                pathLog = System.IO.Path.Combine(pathLog, hostName + "-" + portNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+                //pathLog = System.IO.Path.Combine(pathLog, Dns.GetHostName() + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+                pathLog = System.IO.Path.Combine(pathLog, hostName + "-" + vPortNumber.ToString() + "-" + DateTime.Today.ToString("yyyyMMdd") + ".log");
                 swLog = File.AppendText(pathLog);  // Open the path for log file writing
             }
 
@@ -958,8 +1214,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     //Set this scripts MyPrint() calls to the second output tab
                     PrintTo = PrintTo.OutputTab2;
 
-                //Print(hostName + ":" + portNumber.ToString() + ":" + DateTime.Now + " " + buf);
-                Print(portNumber.ToString() + ":" + DateTime.Now.ToString("HHmmss") + " " + buf);
+                //Print(hostName + ":" + vPortNumber.ToString() + ":" + DateTime.Now + " " + buf);
+                Print(vPortNumber.ToString() + ":" + DateTime.Now.ToString("HHmmss") + " " + buf);
             }
 
 
@@ -1103,19 +1359,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, Low below Bollinger_lo");
                     return true;
                 }
-
-                // touched mid Bollinger and red bar BELOW mid Bollinger
-                //if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                //{
-                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
-                //    return true;
-                //}
-
-                // YF Best settings: touched mid Bollinger and red bar BELOW mid Bollinger
-                if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // When true, use YF defined stop-loss, else use standard stop-loss check
+                if (UseYFStopLoss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
-                    return true;
+                    // YF Best settings: touched mid Bollinger and red bar BELOW mid Bollinger
+                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
+                        return true;
+                    }
+                }
+                else
+                {
+                    // touched mid Bollinger and red bar BELOW mid Bollinger
+                    if (touchedMid && Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and red bar BELOW mid Bollinger");
+                        return true;
+                    }
                 }
             }
             if (PosShort())
@@ -1135,19 +1396,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, High above Bolinger_hi");
                     return true;
                 }
-
-                // touched mid Bollinger and green bar ABOVE mid Bollinger
-                //if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
-                //{
-                //    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
-                //    return true;
-                //}
-
-                // YF best settings: touched mid Bollinger and green bar BELOW mid Bollinger
-                if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                // When true, use YF defined stop-loss, else use standard stop-loss check
+                if (UseYFStopLoss)
                 {
-                    MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar BELOW mid Bollinger");
-                    return true;
+                    // YF best settings: touched mid Bollinger and green bar BELOW mid Bollinger
+                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) < ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar BELOW mid Bollinger");
+                        return true;
+                    }
+                }
+                else
+                {
+                    // touched mid Bollinger and green bar ABOVE mid Bollinger
+                    if (touchedMid && Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar) && Bars.GetClose(CurrentBar) > ((Bollinger(2, 20).Upper[0] + Bollinger(2, 20).Lower[0]) / 2))
+                    {
+                        MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
+                        return true;
+                    }
                 }
             }
             return false;
@@ -1157,14 +1423,106 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private bool WallstreetOpenHours()
         {
-            if (IgnoreWallStreetHour)
-                return true;
-
             // Wallstreet opening hours trade opportunities
-            if (Time[0].Hour >= NineAM.Hour)
+            if (Time[0].Hour >= StartTradeTime.Hour)
                 return true;
             else
                 return false;
+        }
+
+
+
+        private bool CheckSMA9SMA20Agreement(char signal)
+        {
+            bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
+            bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
+
+            if (SMA9TrendingUp == SMA20TrendingUp)
+            {
+                switch (signal)
+                {
+                    case '0':
+                        if (!SMA20TrendingUp)
+                            return true;
+                        break;
+                    case '2':
+                        if (SMA20TrendingUp)
+                            return true;
+                        break;
+                }
+            }
+            return false;
+        }
+
+
+        private bool CheckSMA20MarketDirection(char signal)
+        {
+            bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA20TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA20TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool CheckSMA9MarketDirection(char signal)
+        {
+            bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA9TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+
+        private bool CheckMomentumDirection(char signal)
+        {
+            bool MomentumTrendingUp = Momentum(20)[0] > Momentum(20)[1];
+            double momentumDiff;
+
+            momentumDiff = Math.Abs(Momentum(20)[0]) - Math.Abs(Momentum(20)[1]);
+
+            switch (signal)
+            {
+                case '0':
+                    if (!MomentumTrendingUp)
+                        return true;
+                    else // trending up
+                    {
+                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (MomentumTrendingUp)
+                        return true;
+                    else // trending down
+                    {
+                        if (Math.Abs(momentumDiff) < MaxMomentumDiff)
+                            return true;
+                    }
+                    break;
+            }
+            return false;
         }
 
 
@@ -1173,11 +1531,32 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal)
             {
                 case '0':
-                    // Check if momentum < 0
-                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+                    if (UseMomentumFilter)
                     {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
-                        return false;
+                        if (!CheckMomentumDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckMomentumDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+                    if (SMA20MarketDirection)
+                    {
+                        if (!CheckSMA20MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+                    if (SMA9MarketDirection)
+                    {
+                        if (!CheckSMA9MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
+                            return false;
+                        }
                     }
                     // if Close > Open, market heading higher, skip the trade
                     if (CheckMarketDirection && (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)))
@@ -1185,17 +1564,40 @@ namespace NinjaTrader.NinjaScript.Strategies
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar)");
                         return false;
                     }
-                    if ((Bars.GetClose(Bars.CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
+
+                    // LEAVE THIS AS LAST CHECK
+                    if ((Bars.GetClose(CurrentBar) - Bollinger(2, 20).Lower[0]) >= ScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrow ScalpingRange");
                     break;
                 case '2':
-                    // Check if momentum < 0
-                    if (UseMomentumFilter && (Momentum(20)[0] < 0))
+                    // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
+                    if (UseMomentumFilter)
                     {
-                        MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Momentum too low.");
-                        return false;
+                        if (!CheckMomentumDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckMomentumDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA20 direction against T-Server signal
+                    if (SMA20MarketDirection)
+                    {
+                        if (!CheckSMA20MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA20MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA9 direction against T-Server signal
+                    if (SMA9MarketDirection)
+                    {
+                        if (!CheckSMA9MarketDirection(signal))
+                        {
+                            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
+                            return false;
+                        }
                     }
                     // if Open > Close, market heading lower, skip the trade
                     if (CheckMarketDirection && (Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)))
@@ -1203,13 +1605,16 @@ namespace NinjaTrader.NinjaScript.Strategies
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Against market direction, Bars.GetOpen(CurrentBar) > Bars.GetClose(CurrentBar)");
                         return false;
                     }
-                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(Bars.CurrentBar)) >= ScalpingRange)
+
+                    // LEAVE THIS AS LAST CHECK
+                    if ((Bollinger(2, 20).Upper[0] - Bars.GetClose(CurrentBar)) >= ScalpingRange)
                         return true;
                     else
                         MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Narrower than ScalpingRange");
+
                     break;
             }
-            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Signal=" + signal);
+            MyPrint(defaultErrorType, "ScalpEntryPassed No Entry! Signal= {{{  " + signal + "  }}}");
             return false;
         }
 
@@ -1332,8 +1737,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
 
-                    //AiFlat(ExitOrderType.limit);
-                    AiFlat(ExitOrderType.market);
+                    AiFlat(ExitOrderType.limit);
+                    //AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate) < 0)
@@ -1370,8 +1775,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
 
-                    //AiFlat(ExitOrderType.limit);
-                    AiFlat(ExitOrderType.market);
+                    AiFlat(ExitOrderType.limit);
+                    //AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate) < 0)
@@ -1491,16 +1896,16 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 if (SMA(9)[0] < SMA(20)[0])
                 {
-                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] < SMA(20)[0] and loss 60% of position!");
-                    return (Bars.GetClose(CurrentBar) <= (closedPrice - softerDeck * TickSize));
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] < SMA(20)[0]");
+                    return (Bars.GetClose(CurrentBar) <= (closedPrice - SMADeck * TickSize));
                 }
             }
             if (PosShort())
             {
                 if (SMA(9)[0] > SMA(20)[0])
                 {
-                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] > SMA(20)[0] and loss 60% of position!");
-                    return (Bars.GetClose(CurrentBar) >= (closedPrice + softerDeck * TickSize));
+                    MyPrint(defaultErrorType, "MarketAgainstPosition, SMA(9)[0] > SMA(20)[0]");
+                    return (Bars.GetClose(CurrentBar) >= (closedPrice + SMADeck * TickSize));
                 }
             }
             return false;
@@ -1707,7 +2112,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             byte[] resetMsg = Encoding.UTF8.GetBytes(resetString);
 
             // Send reset string of "-1" to the server  
-            int resetSent = sender.Send(resetMsg);
+            int resetSent = vSender.Send(resetMsg);
 
             lineNo = 0;
         }
@@ -1743,8 +2148,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             swCL = null;
         }
 
-
-        // Attempt to flatten position with limit order if EOD
+        // Attempt to flatten position with limit order if EOD, do not start new trade if by EOD start hour still flat
         private void HandleEndOfSession()
         {
             DateTime endSessionTime;
@@ -1763,22 +2167,36 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             if (!endSession && Time[0].Hour == endSessionTime.Hour)
             {
-                if (Time[0].Minute > endSessionTime.Minute)
+                // if no existing trade then no more new trade
+                if (PosFlat())
                 {
-                    MyPrint(defaultErrorType, "HandleEndOfSession, Time= " + endSessionTime.ToString("HH:mm"));
-                    MyPrint(defaultErrorType, "HandleEndOfSession, Current Time[0]= " + Time[0].ToString("HH:mm"));
-
-                    CloseCurrentPositions();
-
-                    // No need to reset server in Live trading
-                    //ResetServer();
                     endSession = true;
 
-                    SetDailyWinLossState();
-
+                    MyPrint(defaultErrorType, "HandleEndOfSession, Time= " + endSessionTime.ToString("HH:mm"));
+                    MyPrint(defaultErrorType, "HandleEndOfSession, Current Time[0]= " + Time[0].ToString("HH:mm"));
                     MyPrint(defaultErrorType, "^^^^^^^^^^^^ High of the day=" + highOfDay);
                     MyPrint(defaultErrorType, "vvvvvvvvvvvv Low of the day=" + lowOfDay);
                 }
+                else
+                {
+                    if (Time[0].Minute > endSessionTime.Minute)
+                    {
+                        MyPrint(defaultErrorType, "HandleEndOfSession, Time= " + endSessionTime.ToString("HH:mm"));
+                        MyPrint(defaultErrorType, "HandleEndOfSession, Current Time[0]= " + Time[0].ToString("HH:mm"));
+
+                        CloseCurrentPositions();
+
+                        // No need to reset server in Live trading
+                        //ResetServer();
+                        endSession = true;
+
+                        SetDailyWinLossState();
+
+                        MyPrint(defaultErrorType, "^^^^^^^^^^^^ High of the day=" + highOfDay);
+                        MyPrint(defaultErrorType, "vvvvvvvvvvvv Low of the day=" + lowOfDay);
+                    }
+                }
+
             }
         }
 
@@ -1837,6 +2255,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
+                MyPrint(defaultErrorType, "$$$$$$$$ Current Position $$$$$$$$= " + currPos);
+
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
                     return;
@@ -1987,10 +2407,10 @@ namespace NinjaTrader.NinjaScript.Strategies
                 try
                 {
                     // Send the data through the socket.  
-                    bytesSent = sender.Send(msg);
+                    bytesSent = vSender.Send(msg);
 
                     // Receive the response from the remote device.  
-                    bytesRec = sender.Receive(bytes);
+                    bytesRec = vSender.Receive(bytes);
                 }
                 catch (SocketException ex)
                 {
@@ -2012,6 +2432,17 @@ namespace NinjaTrader.NinjaScript.Strategies
                     // Either trading starts after 9:00am CST or when currentMarketView is FocedSell or ForceBuy
                     if (WallstreetOpenHours() || currMarketView == MarketView.ForcedBuy || currMarketView == MarketView.ForcedSell)
                     {
+                        // Critical time period is defined as:
+                        // 1. if daiy critical time is 1pm or later, and
+                        // 2. 2 hours buffer before and after of a daily critical time
+                        // Close outstanding positions if time within critical time, do not start trading until after critical time perio
+                        if (CriticalTimePeriod())
+                        {
+                            if (!PosFlat())
+                                AiFlat(ExitOrderType.limit);
+                            return;
+                        }
+
                         ExecuteAITrade(svrSignal);
 
                         // if position is flat, no need to do anything
@@ -2021,14 +2452,17 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
                         if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                         {
-                            if (UseExitFilter)
-                                HandleMarketShift();
-
                             // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
                             if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
                                 MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition is true");
                                 HandleSoftDeck(svrSignal);
+                            }
+                            else
+                            {
+                                // Handle Scalping profit taking and stop loss
+                                if (UseExitFilter)
+                                    HandleMarketShift();
                             }
 
                             // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing

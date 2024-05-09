@@ -417,7 +417,7 @@
     <Compile Include="Strategies\%40%40SP500EminiLiveAITrader3001.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLiveAITrader3002.cs" />
     <Compile Include="Strategies\%40%40SP500EminiLiveAITrader3003.cs" />
-    <Compile Include="Strategies\SP500EminiBackTest3333.cs" />
+    <Compile Include="Strategies\%40%40SP500EminiBackTest3333.cs" />
     <Compile Include="Strategies\%40%40MarketViewGenerator.cs" />
     <Compile Include="Strategies\%40%40MarketViewFile.cs" />
     <Compile Include="Strategies\%40%40RegularBackTest3333.cs" />
@@ -438,6 +438,13 @@
     <Compile Include="Strategies\Scalping2000BackTest3333.cs" />
     <Compile Include="Strategies\Scalping5MinBackTest3434.cs" />
     <Compile Include="Strategies\VScalpingWithTSignals3636.cs" />
+    <Compile Include="Strategies\SP5MinScalping3939.cs" />
+    <Compile Include="Strategies\VandTScalpingBacktest3535.cs" />
+    <Compile Include="Strategies\SP5MinScalping3737.cs" />
+    <Compile Include="Strategies\T2ServerViewGenerator.cs" />
+    <Compile Include="Strategies\TurtleBacktest3663.cs" />
+    <Compile Include="Strategies\TurtleNoVBacktest3663.cs" />
+    <Compile Include="Strategies\TurtleNoVServer3003.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
