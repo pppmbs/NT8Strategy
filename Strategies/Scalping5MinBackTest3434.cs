@@ -2485,12 +2485,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (Bars.IsFirstBarOfSession)
                 {
+                    // Load configuration file BEFORE DailyTradingPolicySetup so that virtualCurrentCapital is set correctly
+                    ReadConfigurationFile();
+
                     // Setup the drawdown protections, Pstops and Lstops - do it here for backtest instead of State==DataLoaded
                     // so that the cc and cl files can use backtest Time object for files creation
                     DailyTradingPolicySetup();
-
-                    // Load configuration file
-                    ReadConfigurationFile();
 
                     // Read DailyCriticalTime for each day
                     MyPrint(defaultErrorType, "Bars.GetTime(CurrentBar).Date=" + Bars.GetTime(CurrentBar).Date.ToLongDateString() + ":" + Bars.GetTime(CurrentBar).Date.ToLongTimeString());

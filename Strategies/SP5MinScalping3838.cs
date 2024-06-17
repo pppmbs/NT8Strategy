@@ -67,6 +67,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double DefaultPStops;
         private double DefaultLStops;
         private double SMADeckPercent;
+        private double earlyExitProfitPercentage;
         private int ScalpingRange;
         private bool CheckMarketDirection;
         private bool UseMomentumFilter;
@@ -149,8 +150,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // TRADE FILTERS THRESHOLDS
         // --------------------------------------------------
         private static int SMAConstant = 20;
-        private static double DefaultProfitPercent = 0.75;
-        private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
+        // Note: ProfitPercentage has been moved to Configuration file
+        //private static double DefaultProfitPercent = 0.75;
+        //private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
         private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
@@ -579,6 +581,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 DefaultPStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultPStops").InnerText);
                 DefaultLStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultLStops").InnerText);
                 SMADeckPercent = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/SMADeckPercent").InnerText);
+                earlyExitProfitPercentage = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/ProfitPercentage").InnerText);
 
                 // Extract values from the TradeFilters section
                 ScalpingRange = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
@@ -593,7 +596,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
                     " LVmaxPercentAllowableDrawdown=" + LVmaxPercentAllowableDrawdown + " LVProfitChasingAllowableDrawdown=" + LVProfitChasingAllowableDrawdown +
-                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent);
+                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent + " ProfitPercentage=" + earlyExitProfitPercentage);
 
 
                 MyPrint(defaultErrorType, "ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
@@ -610,8 +613,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
                 ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-                virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
-                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
                 maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
 
                 ProfitChasing = Convert.ToInt32(DefaultPStops * TicksPerStop); // the target where HandleProfitChasing kicks in
@@ -925,7 +926,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             ReadMarketViewFile();
 
             // Read the profit percentage for triggering the early exit
-            ReadEarlyExitProftPercent();
+            // Note: ProfitPercentage has been moved to Configuration file
+            //ReadEarlyExitProftPercent();
 
             // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings
             ReadEMAVixToSetUpDrawdownSettings();
@@ -1042,6 +1044,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // initializing the monthly control strategy variables with currentCapital from the cc file
                 yesterdayVirtualCapital = virtualCurrentCapital; // keep track of capital from previous day
                 monthlyProfitChasingFlag = false; // set to false before the month
+            }
+            else
+            {
+                virtualCurrentCapital = InitStartingCapital; // set to InitStartingCapital
+                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital
             }
             MyPrint(defaultErrorType, "ReadCurrentCapital virtualCurrentCapital=" + virtualCurrentCapital);
 
@@ -1234,26 +1241,27 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Read the PStops and LStops to set up the profit chasing and stop loss settings
         // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
-        private void ReadEarlyExitProftPercent()
-        {
-            //Read PStops file, PStops is the same across all strategies
-            pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
+        // Note: ProfitPercentage has been moved to Configuration file
+        //private void ReadEarlyExitProftPercent()
+        //{
+        //    //Read PStops file, PStops is the same across all strategies
+        //    pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+        //    pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
 
-            if (File.Exists(pathPpercent))
-            {
-                string ppString = File.ReadAllText(pathPpercent); // read PStops
+        //    if (File.Exists(pathPpercent))
+        //    {
+        //        string ppString = File.ReadAllText(pathPpercent); // read PStops
 
-                earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
+        //        earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
 
-                MyPrint(defaultErrorType, "ReadEarlyExitProftPercent, earlyExitProfitPercentage=" + earlyExitProfitPercentage.ToString());
-            }
-            else
-            {
-                earlyExitProfitPercentage = DefaultProfitPercent;
-                MyErrPrint(ErrorType.warning, pathPpercent + " Profit Percent file does not exist! Revert to default earlyExitProfitPercentage=" + earlyExitProfitPercentage);
-            }
-        }
+        //        MyPrint(defaultErrorType, "ReadEarlyExitProftPercent, earlyExitProfitPercentage=" + earlyExitProfitPercentage.ToString());
+        //    }
+        //    else
+        //    {
+        //        earlyExitProfitPercentage = DefaultProfitPercent;
+        //        MyErrPrint(ErrorType.warning, pathPpercent + " Profit Percent file does not exist! Revert to default earlyExitProfitPercentage=" + earlyExitProfitPercentage);
+        //    }
+        //}
 
 
         // CloseStrategy() is called in the event of a fatal error, which will close all positions and disable strategy
@@ -2351,7 +2359,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                MyPrint(defaultErrorType, "$$$$$$$$ Current Position $$$$$$$$ = " + currPos);
+                MyPrint(defaultErrorType, "$$$$$$$$ Current Position $$$$$$$$= " + currPos);
 
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
@@ -2596,6 +2604,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     return;
                 if (Bars.GetTime(CurrentBar).ToString("HHmm").Equals("0000"))
                     return;
+
+                // Read configuration file
+                ReadConfigurationFile();
 
                 if (Bars.IsFirstBarOfSession)
                 {

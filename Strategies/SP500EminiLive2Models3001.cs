@@ -2065,6 +2065,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
+                MyPrint(defaultErrorType, "$$$$$$$$ Current Position = " + currPos + " $$$$$$$$");
+
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
                     return;

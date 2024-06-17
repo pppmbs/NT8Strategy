@@ -445,6 +445,10 @@
     <Compile Include="Strategies\TurtleBacktest3663.cs" />
     <Compile Include="Strategies\TurtleNoVBacktest3663.cs" />
     <Compile Include="Strategies\TurtleNoVServer3003.cs" />
+    <Compile Include="Strategies\TurtleNoVServer3002.cs" />
+    <Compile Include="Strategies\TurtleNoVServer3001.cs" />
+    <Compile Include="Strategies\TurtleNoVServer3004.cs" />
+    <Compile Include="Strategies\TurtleNoVServer3005.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

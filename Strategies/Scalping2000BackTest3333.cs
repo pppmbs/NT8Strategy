@@ -81,6 +81,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool SMA9MarketDirection;
         private bool UseExitFilter;
         private bool UseYFStopLoss;
+        private bool SellTradesAllowed;
+        private bool IsCheckTouchedMid;
 
 
         /* **********************************************************************************************************
@@ -370,9 +372,19 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // connecting server on vPortNumber  
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
 
-                IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
+                foreach (IPAddress ip in ipHostInfo.AddressList)
+                {
+                    IPAddress ipv4;
+
+                    ipv4 = ip.MapToIPv4();
+                    MyPrint(defaultErrorType, "ipv4= " + ipv4.ToString());
+                }
+
+                IPAddress ipAddress = ipHostInfo.AddressList[4]; // depending on the Wifi set up, this index may change accordingly
                                                                  //IPAddress ipAddress = ipHostInfo.AddressList[3];
                                                                  //ipAddress = ipAddress.MapToIPv4();
+                ipAddress = ipAddress.MapToIPv4();
+
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, vPortNumber);
 
                 MyPrint(defaultErrorType, "ipHostInfo=" + ipHostInfo.HostName.ToString() + " ipAddress=" + ipAddress.ToString());
@@ -455,6 +467,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 SMA9MarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA9MarketDirection").InnerText);
                 UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
                 UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
+                SellTradesAllowed = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SellTradesAllowed").InnerText);
+                IsCheckTouchedMid = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckTouchedMid").InnerText);
 
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
@@ -1516,6 +1530,9 @@ namespace NinjaTrader.NinjaScript.Strategies
             switch (signal)
             {
                 case '0':
+                    if (!SellTradesAllowed)
+                        return false;
+
                     // when true, filter Buy/Sell signals when momentum direction against T-server signal, and the diff between previous and current momentum is >= MaxMomentumDiff
                     if (UseMomentumFilter)
                     {
@@ -1704,7 +1721,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
 
             // check if current High or Low touched mid Bollinger
-            CheckTouchedMid();
+            if (IsCheckTouchedMid)
+                CheckTouchedMid();
             // check if current Close touched profit target
             CheckTouchedTarget();
 
@@ -2315,7 +2333,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (Bars.IsFirstBarOfSession)
                 {
-                    // Read configuration file
+                    // Load configuration file BEFORE DailyTradingPolicySetup so that virtualCurrentCapital is set correctly
                     ReadConfigurationFile();
 
                     // Setup the drawdown protections, Pstops and Lstops - do it here for backtest instead of State==DataLoaded

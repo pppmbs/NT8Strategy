@@ -67,6 +67,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double DefaultPStops;
         private double DefaultLStops;
         private double SMADeckPercent;
+        private double earlyExitProfitPercentage;
         private int ScalpingRange;
         private bool CheckMarketDirection;
         private bool UseMomentumFilter;
@@ -161,8 +162,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         // TRADE FILTERS THRESHOLDS
         // --------------------------------------------------
         private static int SMAConstant = 20;
-        private static double DefaultProfitPercent = 0.75;
-        private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
+        // Note: moved ProfitPercentage to Configuration file
+        //private static double DefaultProfitPercent = 0.75;
+        //private double earlyExitProfitPercentage = 0.75;  // 75% Profit target met to use SMA Exit filter
         private bool profitPercentMet = false;
 
         // initial trading capital and trading lot size
@@ -480,6 +482,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 DefaultPStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultPStops").InnerText);
                 DefaultLStops = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/DefaultLStops").InnerText);
                 SMADeckPercent = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/SMADeckPercent").InnerText);
+                earlyExitProfitPercentage = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/ProfitPercentage").InnerText);
 
                 // Extract values from the TradeFilters section
                 ScalpingRange = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
@@ -494,7 +497,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
                     " LVmaxPercentAllowableDrawdown=" + LVmaxPercentAllowableDrawdown + " LVProfitChasingAllowableDrawdown=" + LVProfitChasingAllowableDrawdown +
-                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent);
+                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent + " ProfitPercentage=" + earlyExitProfitPercentage);
 
 
                 MyPrint(defaultErrorType, "ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
@@ -819,7 +822,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             //ReadMarketViewFile();
 
             // Read the profit percentage for triggering the early exit
-            ReadEarlyExitProftPercent();
+            // Note: moved ProfitPercentage to Configuration file
+            //ReadEarlyExitProftPercent();
 
             // Read the 10 days EMA VIX from the VIX file to set up drawdown control settings
             ReadEMAVixToSetUpDrawdownSettings();
@@ -1128,26 +1132,27 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         // Read the pStops and lStops to set up the profit chasing and stop loss settings
         // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
-        private void ReadEarlyExitProftPercent()
-        {
-            //Read pstops file, pstops is the same across all strategies
-            pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
+        // Note: moved ProfitPercentage to Configuration file
+        //private void ReadEarlyExitProftPercent()
+        //{
+        //    //Read pstops file, pstops is the same across all strategies
+        //    pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
+        //    pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
 
-            if (File.Exists(pathPpercent))
-            {
-                string ppString = File.ReadAllText(pathPpercent); // read pStops
+        //    if (File.Exists(pathPpercent))
+        //    {
+        //        string ppString = File.ReadAllText(pathPpercent); // read pStops
 
-                earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
+        //        earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
 
-                MyPrint(defaultErrorType, "ReadEarlyExitProftPercent, earlyExitProfitPercentage=" + earlyExitProfitPercentage.ToString());
-            }
-            else
-            {
-                earlyExitProfitPercentage = DefaultProfitPercent;
-                MyErrPrint(ErrorType.warning, pathPpercent + " Profit Percent file does not exist! Revert to default earlyExitProfitPercentage=" + earlyExitProfitPercentage);
-            }
-        }
+        //        MyPrint(defaultErrorType, "ReadEarlyExitProftPercent, earlyExitProfitPercentage=" + earlyExitProfitPercentage.ToString());
+        //    }
+        //    else
+        //    {
+        //        earlyExitProfitPercentage = DefaultProfitPercent;
+        //        MyErrPrint(ErrorType.warning, pathPpercent + " Profit Percent file does not exist! Revert to default earlyExitProfitPercentage=" + earlyExitProfitPercentage);
+        //    }
+        //}
 
 
         // CloseStrategy() is called in the event of a fatal error, which will close all positions and disable strategy
@@ -1737,8 +1742,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
 
-                    AiFlat(ExitOrderType.limit);
-                    //AiFlat(ExitOrderType.market);
+                    //AiFlat(ExitOrderType.limit);
+                    AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((Close[0] - closedPrice) * dollarValPerPoint - CommissionRate) < 0)
@@ -1775,8 +1780,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                     MyPrint(defaultErrorType, "HandleMarketShift," + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0] + " soft deck=" + (softDeck * TickSize).ToString() + " @@@@@ EARLY EXIT @@@@@@ loss= " + ((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate).ToString());
                     MyPrint(defaultErrorType, "");
 
-                    AiFlat(ExitOrderType.limit);
-                    //AiFlat(ExitOrderType.market);
+                    //AiFlat(ExitOrderType.limit);
+                    AiFlat(ExitOrderType.market);
 
                     // if early exit is a loss then increment daily losses count
                     if (((closedPrice - Close[0]) * dollarValPerPoint - CommissionRate) < 0)
@@ -2296,6 +2301,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 if (State == State.Realtime)
                 {
+                    // Read configuration file
+                    ReadConfigurationFile();
+
                     // If failed to exit position with limit order, switch to exit with market order
                     if (attemptToFlattenPos && !PosFlat())
                     {
@@ -2452,17 +2460,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                         // handle stop loss or profit chasing if there is existing position and order action is either SellShort or Buy
                         if (entryOrder != null && (entryOrder.OrderAction == OrderAction.Buy || entryOrder.OrderAction == OrderAction.SellShort) && (entryOrder.OrderState == OrderState.Filled || entryOrder.OrderState == OrderState.PartFilled))
                         {
+                            // Handle Scalping profit taking and stop loss
+                            if (UseExitFilter)
+                                HandleMarketShift();
+
                             // if Close[0] violates soft deck or Close[0] against SMA20, if YES handle stop loss accordingly
                             if (ViolateSoftDeck() || MarketAgainstPosition())
                             {
                                 MyPrint(defaultErrorType, "ViolateSoftDeck or MarketAgainstPosition is true");
                                 HandleSoftDeck(svrSignal);
-                            }
-                            else
-                            {
-                                // Handle Scalping profit taking and stop loss
-                                if (UseExitFilter)
-                                    HandleMarketShift();
                             }
 
                             // if profitChasingFlag is TRUE or TouchedProfitChasing then handle profit chasing

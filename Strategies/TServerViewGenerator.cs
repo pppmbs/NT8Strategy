@@ -164,6 +164,14 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // connecting server on vtPortNumber  
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
 
+                foreach (IPAddress ip in ipHostInfo.AddressList)
+                {
+                    IPAddress ipv4;
+
+                    ipv4 = ip.MapToIPv4();
+                    MyPrint(defaultErrorType, "ipv4= " + ipv4.ToString());
+                }
+
                 IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
                                                                  //IPAddress ipAddress = ipHostInfo.AddressList[3];
                                                                  //ipAddress = ipAddress.MapToIPv4();
@@ -409,6 +417,27 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 
         // returns false if failed the check
+        private bool CheckSMA50MarketDirection(char signal)
+        {
+            bool SMA50TrendingUp = SMA(50)[0] > SMA(50)[1];
+
+            MyPrint(defaultErrorType, "CheckSMA50MarketDirection= @@" + SMA50TrendingUp + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA50TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA50TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        // returns false if failed the check
         private bool CheckSMA20MarketDirection(char signal)
         {
             bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
@@ -452,11 +481,35 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        private bool CheckSMA9MarketDirection2X(char signal)
+        {
+            bool SMA9TrendingUp1 = SMA(9)[0] > SMA(9)[1];
+            bool SMA9TrendingUp2 = SMA(9)[1] > SMA(9)[2];
+
+            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @@ " + SMA9TrendingUp1 + ":" + SMA9TrendingUp2 + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!(SMA9TrendingUp1 && SMA9TrendingUp2))
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp1 && SMA9TrendingUp2)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
         // Different filtering mechanism employed for the T-Server signals, if anyone of them returned true, T-Server will be set to Hold
         private bool FilterTServer(char signal)
         {
             CheckSMA9MarketDirection(signal);
+            CheckSMA9MarketDirection2X(signal);
             CheckSMA20MarketDirection(signal);
+            CheckSMA50MarketDirection(signal);
 
             /*
             if (BollingerFlat())
@@ -670,6 +723,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // Receive the response from the remote device.  
                     tBytesRec = tSender.Receive(tBytes);
+
+                    // increment tlineNo for T-Server
+                    tLineNo++;
                 }
                 catch (SocketException ex)
                 {
@@ -683,9 +739,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 SetTServerSignals(tServerSignal[0]);
                 SetExitSignals(tServerSignal[0]);
-
-                // increment tlineNo for T-Server
-                tLineNo++;
 
                 WriteMarketView(currMarketView);
                 WriteExitView(currExitView);

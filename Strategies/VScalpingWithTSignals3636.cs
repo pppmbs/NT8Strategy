@@ -575,8 +575,6 @@ namespace NinjaTrader.NinjaScript.Strategies
                 maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
                 ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
-                virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
-                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
                 maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
 
                 ProfitChasing = Convert.ToInt32(DefaultPStops * TicksPerStop); // the target where HandleProfitChasing kicks in
@@ -1007,6 +1005,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // initializing the monthly control strategy variables with currentCapital from the cc file
                 yesterdayVirtualCapital = virtualCurrentCapital; // keep track of capital from previous day
                 monthlyProfitChasingFlag = false; // set to false before the month
+            }
+            else
+            {
+                virtualCurrentCapital = InitStartingCapital; // set to InitStartingCapital
+                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital
             }
             MyPrint(defaultErrorType, "ReadCurrentCapital virtualCurrentCapital=" + virtualCurrentCapital);
 
@@ -2294,7 +2297,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                MyPrint(defaultErrorType, "$$$$$$$$ Current Position $$$$$$$$= " + currPos);
+                MyPrint(defaultErrorType, "$$$$$$$$ Current Position = " + currPos + " $$$$$$$$");
 
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
