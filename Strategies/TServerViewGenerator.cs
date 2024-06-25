@@ -486,7 +486,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             bool SMA9TrendingUp1 = SMA(9)[0] > SMA(9)[1];
             bool SMA9TrendingUp2 = SMA(9)[1] > SMA(9)[2];
 
-            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @@ " + SMA9TrendingUp1 + ":" + SMA9TrendingUp2 + " @@");
+            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @@ " + SMA9TrendingUp2 + " :: " + SMA9TrendingUp1 + " @@");
 
             switch (signal)
             {

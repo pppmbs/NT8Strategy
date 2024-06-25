@@ -449,6 +449,7 @@
     <Compile Include="Strategies\TurtleNoVServer3001.cs" />
     <Compile Include="Strategies\TurtleNoVServer3004.cs" />
     <Compile Include="Strategies\TurtleNoVServer3005.cs" />
+    <Compile Include="Strategies\CaptureShift1MinuteData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
