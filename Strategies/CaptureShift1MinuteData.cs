@@ -25,18 +25,24 @@ using NinjaTrader.NinjaScript.DrawingTools;
 using System.IO;
 
 /* ******* READ ME *******
- * 1, Run CaptureShift1MinuteData strategy in *** 1 minute *** time scale in Strategy Analyzer
- * 2, CaptureShift1MinuteData will generate shifted 1 minute data in ES 06-YY.Last.txt file format
- * 3, Upload ES 06-YY.Last.txt to NinjaTrader ES 06 historical database - remember to set appropriate upload time zone 
+ * 1, Run CaptureShift1MinuteData strategy in *** 1 minute *** bar in Strategy Analyzer, Type=Minute, Value=1
+ * 2, CaptureShift1MinuteData will generate shifted 1 through 4 minutes data in ES 06-YY.Last.txt file format in 1-4 folders
+ * 3, REMOVE existing ES 06-YY before Uploading ES 06-YY.Last.txt to NinjaTrader ES 06 historical database - remember to set appropriate upload time zone
  * 4, It is UTC-6 for CST (Spring Forward), and UTC-5 for CDT - Central Daylight Time or Daylight Saving Time (Fall Back)
- * 5, Run Capture5MinuteData to get shifted primary and secondary data
+ * 5, From Instrument ES 06-YY, run Capture5MinuteData (4 times, one for each shifted ES 06-YY) to get shifted primary and secondary data, run in 5 min bar, Type=Minute, Value=5
  */
 //This namespace holds Strategies in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Strategies
 {
+
     public class CaptureShift1MinuteData : Strategy
     {
-        string path;
+        string path1, path2, path3, path4;
+        int skip1 = 1; // from 1 to 4
+        int skip2 = 2;
+        int skip3 = 3;
+        int skip4 = 4;
+        int skipCount;
 
         protected override void OnStateChange()
         {
@@ -72,26 +78,75 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (BarsInProgress == 0)
             {
-                string bufString;
-                string header = "START_TIME,END_TIME,OPEN_PRICE,CLOSE_PRICE,HIGH_PRICE,LOW_PRICE,TOTAL_VOLUME,SMA9,SMA20,SMA50,MACD_DIFF,RSI,BOLL_LOW,BOLL_HIGH,CCI,ATR_TrueHigh,ATR_TrueLow,Momentum,ADX_DIPositive,ADX_DINegative,VROC,NEXT_OPEN_BAR1,NEXT_CLOSE_BAR1,NEXT_OPEN_BAR2,NEXT_CLOSE_BAR2,NEXT_OPEN_BAR3,NEXT_CLOSE_BAR3,NEXT_OPEN_BAR4,NEXT_CLOSE_BAR4,NEXT_OPEN_BAR5,NEXT_CLOSE_BAR5";
-                path = NinjaTrader.Core.Globals.UserDataDir + "CaptureShift1MinuteData\\" + "ES 06-" + Bars.GetTime(CurrentBar).ToString("yy") + ".Last.txt";
+                string bufString = "";
+
+                path1 = NinjaTrader.Core.Globals.UserDataDir + "CaptureShift1MinuteData\\1\\" + "ES 06-" + Bars.GetTime(CurrentBar).ToString("yy") + ".Last.txt.";
+                path2 = NinjaTrader.Core.Globals.UserDataDir + "CaptureShift1MinuteData\\2\\" + "ES 06-" + Bars.GetTime(CurrentBar).ToString("yy") + ".Last.txt.";
+                path3 = NinjaTrader.Core.Globals.UserDataDir + "CaptureShift1MinuteData\\3\\" + "ES 06-" + Bars.GetTime(CurrentBar).ToString("yy") + ".Last.txt.";
+                path4 = NinjaTrader.Core.Globals.UserDataDir + "CaptureShift1MinuteData\\4\\" + "ES 06-" + Bars.GetTime(CurrentBar).ToString("yy") + ".Last.txt.";
 
                 if (Bars.IsFirstBarOfSession)
                 {
-                    //skip first minute
+                    //reset skipCount daily
+                    skipCount = 1;
                     return;
                 }
                 else
                 {
-                    // shifted 1 minute forward in time
-                    bufString = Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + " " +
-                        Bars.GetTime(CurrentBar - 1).ToString("HHmmss") + ';' +
-                        Bars.GetOpen(CurrentBar).ToString() + ';' +
-                        Bars.GetHigh(CurrentBar).ToString() + ';' +
-                        Bars.GetLow(CurrentBar).ToString() + ';' +
-                        Bars.GetClose(CurrentBar).ToString() + ';' +
-                        Bars.GetVolume(CurrentBar).ToString();
-                    File.AppendAllText(path, bufString + Environment.NewLine);
+                    // skip 1st minute
+                    if (skipCount >= skip1)
+                    {
+                        // shifted 1 minute forward in time
+                        bufString = Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + " " +
+                            Bars.GetTime(CurrentBar - skip1).ToString("HHmmss") + ';' +
+                            Bars.GetOpen(CurrentBar).ToString() + ';' +
+                            Bars.GetHigh(CurrentBar).ToString() + ';' +
+                            Bars.GetLow(CurrentBar).ToString() + ';' +
+                            Bars.GetClose(CurrentBar).ToString() + ';' +
+                            Bars.GetVolume(CurrentBar).ToString();
+                        File.AppendAllText(path1, bufString + Environment.NewLine);
+                    }
+                    // skip 2nd minute
+                    if (skipCount >= skip2)
+                    {
+                        // shifted 2 minutes forward in time
+                        bufString = Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + " " +
+                            Bars.GetTime(CurrentBar - skip2).ToString("HHmmss") + ';' +
+                            Bars.GetOpen(CurrentBar).ToString() + ';' +
+                            Bars.GetHigh(CurrentBar).ToString() + ';' +
+                            Bars.GetLow(CurrentBar).ToString() + ';' +
+                            Bars.GetClose(CurrentBar).ToString() + ';' +
+                            Bars.GetVolume(CurrentBar).ToString();
+                        File.AppendAllText(path2, bufString + Environment.NewLine);
+                    }
+                    // skip 3rd minute
+                    if (skipCount >= skip3)
+                    {
+                        // shifted 3 minutes forward in time
+                        bufString = Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + " " +
+                            Bars.GetTime(CurrentBar - skip3).ToString("HHmmss") + ';' +
+                            Bars.GetOpen(CurrentBar).ToString() + ';' +
+                            Bars.GetHigh(CurrentBar).ToString() + ';' +
+                            Bars.GetLow(CurrentBar).ToString() + ';' +
+                            Bars.GetClose(CurrentBar).ToString() + ';' +
+                            Bars.GetVolume(CurrentBar).ToString();
+                        File.AppendAllText(path3, bufString + Environment.NewLine);
+                    }
+                    // skip 4th minute
+                    if (skipCount >= skip4)
+                    {
+                        // shifted 3 minutes forward in time
+                        bufString = Bars.GetTime(CurrentBar).ToString("yyyyMMdd") + " " +
+                            Bars.GetTime(CurrentBar - skip3).ToString("HHmmss") + ';' +
+                            Bars.GetOpen(CurrentBar).ToString() + ';' +
+                            Bars.GetHigh(CurrentBar).ToString() + ';' +
+                            Bars.GetLow(CurrentBar).ToString() + ';' +
+                            Bars.GetClose(CurrentBar).ToString() + ';' +
+                            Bars.GetVolume(CurrentBar).ToString();
+                        File.AppendAllText(path4, bufString + Environment.NewLine);
+                    }
+
+                    skipCount++;
                     Print(bufString);
                 }
             }
