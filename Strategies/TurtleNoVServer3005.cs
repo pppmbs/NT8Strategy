@@ -79,6 +79,12 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool UseExitFilter;
         private bool UseYFStopLoss;
         private bool SellTradesAllowed;
+        private bool CheckATR;
+        private double AcceptableATR;
+        private bool CheckRSI;
+        private bool RSITurtle;
+        private double RSIHigh;
+        private double RSILow;
 
 
         /* **********************************************************************************************************
@@ -470,6 +476,12 @@ namespace NinjaTrader.NinjaScript.Strategies
                 UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
                 UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
                 SellTradesAllowed = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SellTradesAllowed").InnerText);
+                CheckATR = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckATR").InnerText);
+                AcceptableATR = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/AverageTrueRange").InnerText);
+                CheckRSI = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckRSI").InnerText);
+                RSIHigh = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSIHigh").InnerText);
+                RSILow = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSILow").InnerText);
+                RSITurtle = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSITurtle").InnerText);
 
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
@@ -1381,6 +1393,55 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        // return false if failed check
+        private bool CheckExtremeATR()
+        {
+            double ATR5Min = ATR(BarsArray[3], 5)[0];
+
+            if (ATR5Min < AcceptableATR)
+                return true;
+            else
+                return false;
+        }
+
+
+        private bool CheckRSIThreshold(char signal)
+        {
+            switch (signal)
+            {
+                case '0':
+                    if (RSITurtle)
+                    {
+                        // Sell if RSI > RSILow
+                        if (RSI(BarsArray[3], 14, 3)[0] > RSILow)
+                            return true;
+                    }
+                    else
+                    {
+                        // sell if RSI > RSIHigh
+                        if (RSI(BarsArray[3], 14, 3)[0] > RSIHigh)
+                            return true;
+                    }
+                    break;
+                case '2':
+                    if (RSITurtle)
+                    {
+                        // Buy if RSI < RSIHigh
+                        if (RSI(BarsArray[3], 14, 3)[0] < RSIHigh)
+                            return true;
+                    }
+                    else
+                    {
+                        // buy if RSI < RSILow
+                        if (RSI(BarsArray[3], 14, 3)[0] < RSILow)
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+
         private bool TurtleEntryPassed(char signal)
         {
             switch (signal)
@@ -1433,6 +1494,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                                 return false;
                             }
                         }
+                        // Check minimum acceptable ATR before new trade allowed
+                        if (CheckATR)
+                        {
+                            if (!CheckExtremeATR())
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckHighLowRange failed.");
+                                return false;
+                            }
+                        }
+                        // when true, filter Buy/Sell with RSI
+                        if (CheckRSI)
+                        {
+                            if (!CheckRSIThreshold(signal))
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckRSIThreshold failed.");
+                                return false;
+                            }
+                        }
                         return true;
                     }
                     return false;
@@ -1479,6 +1558,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (!Check5MinMarketDirection(signal))
                         {
                             MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! Check5MinMarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // Check minimum acceptable ATR before new trade allowed
+                    if (CheckATR)
+                    {
+                        if (!CheckExtremeATR())
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckHighLowRange failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell with RSI
+                    if (CheckRSI)
+                    {
+                        if (!CheckRSIThreshold(signal))
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckRSIThreshold failed.");
                             return false;
                         }
                     }
