@@ -351,13 +351,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 
 
-        // return true if current time is within time buffer of the critical time period or if daily ctitical time is 1:00pm or later
+        // return true if current time is within time buffer of the critical time period or if daily ctitical time is 11:30pm or later
         private bool CriticalTimePeriod()
         {
             TimeSpan diff = Time[0] - DailyCriticalTime;
 
-            // skip trading if daily critical time is 1:00pm or later
-            if (DailyCriticalTime.TimeOfDay >= new TimeSpan(12, 0, 0))
+            // skip trading if daily critical time is 11:30pm or later
+            if (DailyCriticalTime.TimeOfDay >= new TimeSpan(11, 30, 0))
             {
                 MyPrint(defaultErrorType, "CriticalTimePeriod: skip trading!");
                 return true;
