@@ -344,18 +344,34 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        private DateTime SearchCriticalTime(DateTime date)
+        private void AssignCriticalTime(DateTime date)
         {
+            string dateTimeString;
+
+            // Assume these are your short date and time strings
+            string shortDate; // e.g., "7/22/2024"
+            string shortTime; // e.g., "10:15 AM"
+            string format;
+
             if (data.ContainsKey(new DateTime(date.Year, date.Month, date.Day)))
             {
-                MyPrint(defaultErrorType, "SearchCriticalTime found data= " + data[date].ToShortTimeString() + " using key=" + date.ToShortDateString());
-                return data[date];
+                MyPrint(defaultErrorType, "AssignCriticalTime found data= " + data[date].ToShortTimeString() + " using key=" + date.ToShortDateString());
+
+                shortDate = date.ToShortDateString(); // e.g., "7/22/2024"
+                shortTime = data[date].ToShortTimeString(); // e.g., "10:15 AM"
+                dateTimeString = string.Format("{0} {1}", shortDate, shortTime); // e.g., "7/22/2024 10:15 AM"
+                format = "M/d/yyyy h:mm tt"; // format for short date and short time in en-US culture
+                DailyCriticalTime = DateTime.ParseExact(dateTimeString, format, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                MyPrint(defaultErrorType, "AssignCriticalTime failed to locate= " + date.ToLongDateString());
+
+                // If matching date not found, return 7:00 AM, in order to start 9:00 AM
+                DailyCriticalTime = DateTime.ParseExact("7:00 AM", "h:mm tt", null);
             }
 
-            MyPrint(defaultErrorType, "SearchCriticalTime failed to locate= " + date.ToLongDateString());
-
-            // If matching date not found, return 7:00 AM, in order to start 9:00 AM
-            return DateTime.ParseExact("7:00 AM", "h:mm tt", null);
+            MyPrint(defaultErrorType, "AssignCriticalTime, DailyCriticalTime=" + DailyCriticalTime);
         }
 
 
@@ -364,6 +380,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool CriticalTimePeriod()
         {
             TimeSpan diff = Time[0] - DailyCriticalTime;
+
+            AssignCriticalTime(Bars.GetTime(CurrentBar).Date);
 
             // skip trading if daily critical time is 1:00pm or later
             if (DailyCriticalTime.TimeOfDay >= new TimeSpan(12, 0, 0))
@@ -626,9 +644,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     targetOrder = GetRealtimeOrder(targetOrder);
 
                 // Read DailyCriticalTime for each day
-                MyPrint(defaultErrorType, "Bars.GetTime(CurrentBar).Date=" + Bars.GetTime(CurrentBar).Date.ToLongDateString() + ":" + Bars.GetTime(CurrentBar).Date.ToLongTimeString());
-                DailyCriticalTime = SearchCriticalTime(Bars.GetTime(CurrentBar).Date);
-                MyPrint(defaultErrorType, "DailyCriticalTime= " + DailyCriticalTime.ToLongTimeString());
+                AssignCriticalTime(Bars.GetTime(CurrentBar).Date);
             }
             else if (State == State.DataLoaded)
             {
@@ -1846,8 +1862,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 // Due to market volatility, taking profits no longer double check with server signals
-                //if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
-                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
+                //Exit if red bar
+                if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
                 {
                     //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + ProfitChasing=" + (closedPrice + ProfitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     MyPrint(defaultErrorType, "");
@@ -1877,8 +1893,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosShort())
             {
                 // Due to market volatility, taking profits no longer double check with server signals
-                //if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
-                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
+                //Exit if green bar
+                if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
                 {
                     MyPrint(defaultErrorType, "");
                     MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
@@ -2065,8 +2081,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             When the OnBarUpdate() is called from the primary bar series (2000 ticks series in this example), do the following */
             if (BarsInProgress == 0)
             {
-                MyPrint(defaultErrorType, "$$$$$$$$ Current Position = " + currPos + " $$$$$$$$");
-
                 // Skip all previous day bars until second bar of the day
                 if (!Bars.GetTime(CurrentBar).Date.ToString("dd/MM/yyyy").Equals(DateTime.Now.ToString("dd/MM/yyyy")))
                     return;

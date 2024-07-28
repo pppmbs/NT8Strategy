@@ -48,7 +48,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private StreamWriter swCC = null;  // Store current capital for each strategy
         private StreamWriter swCL = null;  // Store current monthly losses for each strategy
         private StreamWriter swVIX = null;  // Store 10 days Moving average VIX
-        private StreamWriter swPpercent = null; // Store dynamic PStops
+        private StreamWriter swPpercent = null; // Store dynamic pStops
 
         private Order entryOrder = null; // This variable holds an object representing our entry order
         private Order stopOrder = null; // This variable holds an object representing our stop loss order
@@ -74,8 +74,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         private int MaxMomentumDiff;
         private bool SMA20MarketDirection;
         private bool SMA9MarketDirection;
+        private bool SMA9MarketDirection2X;
         private bool UseExitFilter;
         private bool UseYFStopLoss;
+        private bool SellTradesAllowed;
+        private bool IsCheckTouchedMid;
+        private bool UseHighLowCheck;
+        private bool CheckATR;
+        private double AcceptableATR;
+        private bool CheckRSI;
+        private double RSIHigh;
+        private double RSILow;
+        private bool RSITurtle;
 
 
         /* **********************************************************************************************************
@@ -190,9 +200,9 @@ namespace NinjaTrader.NinjaScript.Strategies
         //private double ProfitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
         //private double maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
         //private double ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
-        private double ProfitChasingTarget; // % monthly gain profit target
+        private double profitChasingTarget; // % monthly gain profit target
         private double maxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-        private double ProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+        private double profitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
         //private double virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
         private double virtualCurrentCapital; // set to startingCapital before the day
@@ -225,16 +235,16 @@ namespace NinjaTrader.NinjaScript.Strategies
         //private static int SoftDeck = DefaultLStops * TicksPerStop; // number of stops for soft stop loss
         ////private static double SMADeckPercent = 0.6;
         //private static int SMADeck = Convert.ToInt32(SMADeckPercent * DefaultLStops * TicksPerStop); // Using SMA to stop loss earlier than SoftDeck
-        //private static int HardDeck = DefaultPStops * TicksPerStop; //hard deck for auto stop loss
-        //private static int PStops = DefaultPStops;
-        //private static int LStops = DefaultLStops;
+        //private static int hardDeck = DefaultPStops * TicksPerStop; //hard deck for auto stop loss
+        //private static int pStops = DefaultPStops;
+        //private static int lStops = DefaultLStops;
         private static int ProfitChasing; // the target where HandleProfitChasing kicks in
         private static int SoftDeck; // number of stops for soft stop loss
         //private static double SMADeckPercent = 0.6;
         private static int SMADeck; // Using SMA to stop loss earlier than SoftDeck
-        private static int HardDeck; //hard deck for auto stop loss
-        private static int PStops;
-        private static int LStops;
+        private static int hardDeck; //hard deck for auto stop loss
+        private static int pStops;
+        private static int lStops;
         private static readonly int vPortNumber = 3008;
         private static readonly int tPortNumber = 3939;
         private static readonly string hostName = Dns.GetHostName();
@@ -395,18 +405,34 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        private DateTime SearchCriticalTime(DateTime date)
+        private void AssignCriticalTime(DateTime date)
         {
+            string dateTimeString;
+
+            // Assume these are your short date and time strings
+            string shortDate; // e.g., "7/22/2024"
+            string shortTime; // e.g., "10:15 AM"
+            string format;
+
             if (data.ContainsKey(new DateTime(date.Year, date.Month, date.Day)))
             {
-                MyPrint(defaultErrorType, "SearchCriticalTime found data= " + data[date].ToShortTimeString() + " using key=" + date.ToShortDateString());
-                return data[date];
+                MyPrint(defaultErrorType, "AssignCriticalTime found data= " + data[date].ToShortTimeString() + " using key=" + date.ToShortDateString());
+
+                shortDate = date.ToShortDateString(); // e.g., "7/22/2024"
+                shortTime = data[date].ToShortTimeString(); // e.g., "10:15 AM"
+                dateTimeString = string.Format("{0} {1}", shortDate, shortTime); // e.g., "7/22/2024 10:15 AM"
+                format = "M/d/yyyy h:mm tt"; // format for short date and short time in en-US culture
+                DailyCriticalTime = DateTime.ParseExact(dateTimeString, format, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                MyPrint(defaultErrorType, "AssignCriticalTime failed to locate= " + date.ToLongDateString());
+
+                // If matching date not found, return 7:00 AM, in order to start 9:00 AM
+                DailyCriticalTime = DateTime.ParseExact("7:00 AM", "h:mm tt", null);
             }
 
-            MyPrint(defaultErrorType, "SearchCriticalTime failed to locate= " + date.ToLongDateString());
-
-            // If matching date not found, return 7:00 AM, in order to start 9:00 AM
-            return DateTime.ParseExact("7:00 AM", "h:mm tt", null);
+            MyPrint(defaultErrorType, "AssignCriticalTime, DailyCriticalTime=" + DailyCriticalTime);
         }
 
 
@@ -590,18 +616,18 @@ namespace NinjaTrader.NinjaScript.Strategies
                 MaxMomentumDiff = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/MaxMomentumDiff").InnerText);
                 SMA20MarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA20MarketDirection").InnerText);
                 SMA9MarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA9MarketDirection").InnerText);
+                SMA9MarketDirection2X = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SMA9MarketDirection2X").InnerText);
                 UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
                 UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
-
-                MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
-                    " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
-                    " LVmaxPercentAllowableDrawdown=" + LVmaxPercentAllowableDrawdown + " LVProfitChasingAllowableDrawdown=" + LVProfitChasingAllowableDrawdown +
-                    " DefaultPStops=" + DefaultPStops + " DefaultLStops=" + DefaultLStops + " SMADeckPercent=" + SMADeckPercent + " ProfitPercentage=" + earlyExitProfitPercentage);
-
-
-                MyPrint(defaultErrorType, "ScalpingRange=" + ScalpingRange + " CheckMarketDirection=" + CheckMarketDirection +
-                    " UseMomentumFilter=" + UseMomentumFilter + " SMA20MarketDirection=" + SMA20MarketDirection + " SMA9MarketDirection=" + SMA9MarketDirection +
-                    " UseExitFilter=" + UseExitFilter + " UseYFStopLoss=" + UseYFStopLoss);
+                CheckATR = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckATR").InnerText);
+                AcceptableATR = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/AverageTrueRange").InnerText);
+                SellTradesAllowed = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SellTradesAllowed").InnerText);
+                IsCheckTouchedMid = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckTouchedMid").InnerText);
+                UseHighLowCheck = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseHighLowCheck").InnerText);
+                CheckRSI = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckRSI").InnerText);
+                RSIHigh = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSIHigh").InnerText);
+                RSILow = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSILow").InnerText);
+                RSITurtle = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSITurtle").InnerText);
 
                 //Initialize local variables
                 InitStartingCapital = 10000 * LotSize;
@@ -609,18 +635,21 @@ namespace NinjaTrader.NinjaScript.Strategies
                 maxConsecutiveLossesUpper = LVmaxConsecutiveLossesUpper;
                 maxConsecutiveLosses = LVmaxConsecutiveLossesUpper;
                 minConsecutiveWins = LVmaxConsecutiveLossesUpper;
-                ProfitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
-                maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
 
+                profitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
+                maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
+                profitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown; // allowable max % drawdown if profit chasing target is achieved before trading halt for the month
+
+                virtualCurrentCapital = InitStartingCapital; // set to startingCapital before the day
+                yesterdayVirtualCapital = InitStartingCapital; // set to  InitStartingCapital before the run, it will get initialized when State == State.Realtime
                 maxConsecutiveDailyLosses = LVmaxConsecutiveLosses;
 
                 ProfitChasing = Convert.ToInt32(DefaultPStops * TicksPerStop); // the target where HandleProfitChasing kicks in
                 SoftDeck = Convert.ToInt32(DefaultLStops * TicksPerStop); // number of stops for soft stop loss
                 SMADeck = Convert.ToInt32(SMADeckPercent * DefaultLStops * TicksPerStop); // Using SMA to stop loss earlier than SoftDeck
-                HardDeck = Convert.ToInt32(DefaultPStops * TicksPerStop); //hard deck for auto stop loss
-                PStops = Convert.ToInt32(DefaultPStops);
-                LStops = Convert.ToInt32(DefaultLStops);
+                hardDeck = Convert.ToInt32(DefaultPStops * TicksPerStop); //hard deck for auto stop loss
+                pStops = Convert.ToInt32(DefaultPStops);
+                lStops = Convert.ToInt32(DefaultLStops);
             }
             catch (Exception ex)
             {
@@ -716,9 +745,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 //SetProfitTarget and SetStopLoss can not be used together with ExitLongLimit and ExitShortLimit, let HandleSoftDeck and HandleHardDeck handles the Exit.
                 //set static profit target and stop loss, this will ensure outstanding Account Positions are protected automatically
-                //MyPrint("Set static profit target and stop loss (ticks), profitTarget=" + profitTarget + " HardDeck=" + HardDeck);
+                //MyPrint("Set static profit target and stop loss (ticks), profitTarget=" + profitTarget + " hardDeck=" + hardDeck);
                 //SetProfitTarget(CalculationMode.Ticks, profitTarget);
-                //SetStopLoss(CalculationMode.Ticks, HardDeck);
+                //SetStopLoss(CalculationMode.Ticks, hardDeck);
             }
             else if (State == State.Realtime)
             {
@@ -735,9 +764,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                     targetOrder = GetRealtimeOrder(targetOrder);
 
                 // Read DailyCriticalTime for each day
-                MyPrint(defaultErrorType, "Bars.GetTime(CurrentBar).Date=" + Bars.GetTime(CurrentBar).Date.ToLongDateString() + ":" + Bars.GetTime(CurrentBar).Date.ToLongTimeString());
-                DailyCriticalTime = SearchCriticalTime(Bars.GetTime(CurrentBar).Date);
-                MyPrint(defaultErrorType, "DailyCriticalTime= " + DailyCriticalTime.ToLongTimeString());
+                AssignCriticalTime(Bars.GetTime(CurrentBar).Date);
             }
             else if (State == State.DataLoaded)
             {
@@ -749,7 +776,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // load economics news release time
                 LoadEconomicCalendar();
 
-                // Setup the drawdown protections, PStops and LStops
+                // Setup the drawdown protections, pStops and lStops
                 DailyTradingPolicySetup();
             }
             // Necessary to call in order to clean up resources used by the StreamWriter object
@@ -912,7 +939,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        // Setup the drawdown protections, PStops and LStops, VIX >> ADX >> DMR dynamic market range
+        // Setup the drawdown protections, pStops and lStops, VIX >> ADX >> DMR dynamic market range
         private void DailyTradingPolicySetup()
         {
             // Read the current capital file .cc for the current capital, create one if it does not exist
@@ -951,7 +978,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 // the dollar amount allowed for monthly losses depending if monthly profit chasing is met
                 if (monthlyProfitChasingFlag)
-                    allowableMonthlyLossesg = InitStartingCapital * ProfitChasingAllowableDrawdown;
+                    allowableMonthlyLossesg = InitStartingCapital * profitChasingAllowableDrawdown;
                 else
                     allowableMonthlyLossesg = InitStartingCapital * maxPercentAllowableDrawdown;
 
@@ -1057,7 +1084,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             swCC.Close();
             swCC.Dispose();
             swCC = null;
-
         }
 
 
@@ -1115,9 +1141,9 @@ namespace NinjaTrader.NinjaScript.Strategies
                     minConsecutiveWins = HVminConsecutiveWins;
                     initMaxConsecutiveLosses = HVmaxConsecutiveLosses;
 
-                    ProfitChasingTarget = HVProfitChasingTarget; // % monthly gain profit target
+                    profitChasingTarget = HVProfitChasingTarget; // % monthly gain profit target
                     maxPercentAllowableDrawdown = HVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                    ProfitChasingAllowableDrawdown = HVProfitChasingAllowableDrawdown;
+                    profitChasingAllowableDrawdown = HVProfitChasingAllowableDrawdown;
                 }
                 else
                 {
@@ -1126,13 +1152,13 @@ namespace NinjaTrader.NinjaScript.Strategies
                     minConsecutiveWins = LVminConsecutiveWins;
                     initMaxConsecutiveLosses = LVmaxConsecutiveLosses;
 
-                    ProfitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
+                    profitChasingTarget = LVProfitChasingTarget; // % monthly gain profit target
                     maxPercentAllowableDrawdown = LVmaxPercentAllowableDrawdown; // allowable maximum % monthly drawdown if profit target did not achieve before trading halt for the month
-                    ProfitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown;
+                    profitChasingAllowableDrawdown = LVProfitChasingAllowableDrawdown;
                 }
 
                 MyPrint(defaultErrorType, "ReadEMAVixToSetUpDrawdownSettings, maxConsecutiveLossesUpper=" + maxConsecutiveLossesUpper + " maxConsecutiveLosses=" + maxConsecutiveLosses + " minConsecutiveWins=" + minConsecutiveWins);
-                MyPrint(defaultErrorType, "ReadEMAVixToSetUpDrawdownSettings, ProfitChasingTarget=" + ProfitChasingTarget + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown + " ProfitChasingAllowableDrawdown" + ProfitChasingAllowableDrawdown);
+                MyPrint(defaultErrorType, "ReadEMAVixToSetUpDrawdownSettings, ProfitChasingTarget=" + profitChasingTarget + " maxPercentAllowableDrawdown=" + maxPercentAllowableDrawdown + " ProfitChasingAllowableDrawdown" + profitChasingAllowableDrawdown);
             }
             else
             {
@@ -1239,18 +1265,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
-        // Read the PStops and LStops to set up the profit chasing and stop loss settings
+        // Read the pStops and lStops to set up the profit chasing and stop loss settings
         // this has to be called before ReadEMAVixToSetUpDrawdownSettings(), VIX needs to override this dynamic adjustment
         // Note: ProfitPercentage has been moved to Configuration file
         //private void ReadEarlyExitProftPercent()
         //{
-        //    //Read PStops file, PStops is the same across all strategies
+        //    //Read pStops file, pStops is the same across all strategies
         //    pathPpercent = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
         //    pathPpercent = System.IO.Path.Combine(pathPpercent, "Artista" + ".pp");
 
         //    if (File.Exists(pathPpercent))
         //    {
-        //        string ppString = File.ReadAllText(pathPpercent); // read PStops
+        //        string ppString = File.ReadAllText(pathPpercent); // read pStops
 
         //        earlyExitProfitPercentage = Convert.ToDouble(ppString) / 100;
 
@@ -1451,7 +1477,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
         }
 
-        // Using 5 minutes indicators for trade interrupt
+        // Using 5 minutes indicators for trade interrupt for Bollinger, but 2000 ticks for PP early exits
         private bool IsTradeInterrupted()
         {
             double midBollinger = ((Bollinger(BarsArray[3], 2, 20).Upper[0] + Bollinger(BarsArray[3], 2, 20).Lower[0]) / 2);
@@ -1499,6 +1525,19 @@ namespace NinjaTrader.NinjaScript.Strategies
                         return true;
                     }
                 }
+
+                // Utilizing PP for early exit
+                if ((Close[0] >= (closedPrice + earlyExitProfitPercentage * pStops)))  // set profitPercentMet flag if percentage profit target met
+                {
+                    profitPercentMet = true;
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                }
+                // Exit if 2000 ticks Red Bar && profitPercentMet)
+                if ((Close[0] < Open[0]) && profitPercentMet)
+                {
+                    profitPercentMet = false; // reset profitPercentMet flag
+                    return true;
+                }
             }
             if (PosShort())
             {
@@ -1535,6 +1574,19 @@ namespace NinjaTrader.NinjaScript.Strategies
                         MyPrint(defaultErrorType, "IsTradeInterrupted stop loss, touched mid Bollinger and green bar ABOVE mid Bollinger");
                         return true;
                     }
+                }
+
+                // Utilizing PP for early exit
+                if ((Close[0] <= (closedPrice - earlyExitProfitPercentage * pStops))) // set profitPercentMet flag if percentage profit target met
+                {
+                    profitPercentMet = true;
+                    MyPrint(defaultErrorType, "IsTradeInterrupted, currPos=" + " >>>>>> 75% Hit >>>>>> ");
+                }
+                // Exit if 2000 ticks Green Bar && profitPercentMet)
+                if ((Close[0] > Open[0]) && profitPercentMet)
+                {
+                    profitPercentMet = false; // reset profitPercentMet flag
+                    return true;
                 }
             }
             return false;
@@ -1624,8 +1676,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             // Set monthlyProfitChasingFlag, once monthlyProfitChasingFlag sets to true, it will stay true until end of the month
             if (!monthlyProfitChasingFlag)
             {
-                MyPrint(defaultErrorType, "ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " InitStartingCapital=" + InitStartingCapital + " ProfitChasingTarget=" + ProfitChasingTarget);
-                if (virtualCurrentCapital > (InitStartingCapital * (1 + ProfitChasingTarget)))
+                MyPrint(defaultErrorType, "ExecuteAITrade, virtualCurrentCapital=" + virtualCurrentCapital + " InitStartingCapital=" + InitStartingCapital + " ProfitChasingTarget=" + profitChasingTarget);
+                if (virtualCurrentCapital > (InitStartingCapital * (1 + profitChasingTarget)))
                 {
                     MyPrint(defaultErrorType, "ExecuteAITrade, $$$$$$$$$$$$$ Monthly profit target met, Monthly Profit Chasing and Stop Loss begins! $$$$$$$$$$$$$");
                     monthlyProfitChasingFlag = true;
@@ -1654,7 +1706,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             }
 
             // check if current High or Low touched mid Bollinger
-            CheckTServerTouchedMid();
+            if (IsCheckTouchedMid)
+                CheckTServerTouchedMid();
             // check if current Close touched profit target
             CheckTServerTouchedTarget();
 
@@ -1901,14 +1954,15 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (PosLong())
             {
-                return (Close[0] <= (closedPrice - HardDeck * TickSize));
+                return (Close[0] <= (closedPrice - hardDeck * TickSize));
             }
             if (PosShort())
             {
-                return (Close[0] >= (closedPrice + HardDeck * TickSize));
+                return (Close[0] >= (closedPrice + hardDeck * TickSize));
             }
             return false;
         }
+
 
         private void HandleProfitChasing()
         {
@@ -1924,10 +1978,10 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosLong())
             {
                 // Due to market volatility, taking profits no longer double check with server signals
-                //if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1) && signal[0] == '0')
-                if (Bars.GetClose(CurrentBar) < Bars.GetClose(CurrentBar - 1))
+                //Exit if Red bar
+                if (Bars.GetClose(CurrentBar) < Bars.GetOpen(CurrentBar))
                 {
-                    //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + ProfitChasing=" + (closedPrice + ProfitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
+                    //MyPrint(Bars.GetTime(CurrentBar).ToString("yyyy-MM-ddTHH:mm:ss.ffffffK") + " HandleProfitChasing::" + " currPos=" + currPos.ToString() + " closedPrice=" + closedPrice.ToString() + " Close[0]=" + Close[0].ToString() + " closedPrice + profitChasing=" + (closedPrice + profitChasing * TickSize).ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + (Close[0] - closedPrice).ToString());
                     MyPrint(defaultErrorType, "");
                     MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos + " OPEN=" + closedPrice + " CLOSE=" + Close[0] + " >>>>>> W I N N E R >>>>>> Profits= " + ((Close[0] - closedPrice) * 50 - CommissionRate));
                     MyPrint(defaultErrorType, "");
@@ -1955,8 +2009,8 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (PosShort())
             {
                 // Due to market volatility, taking profits no longer double check with server signals
-                //if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1) && signal[0] == '2')
-                if (Bars.GetClose(CurrentBar) > Bars.GetClose(CurrentBar - 1))
+                //Exit if green bar
+                if (Bars.GetClose(CurrentBar) > Bars.GetOpen(CurrentBar))
                 {
                     MyPrint(defaultErrorType, "");
                     MyPrint(defaultErrorType, "HandleProfitChasing, currPos=" + currPos.ToString() + " OPEN=" + closedPrice.ToString() + " CLOSE=" + Close[0].ToString() + " >>>>>> W I N N E R >>>>>> Profits= " + ((closedPrice - Close[0]) * 50 - CommissionRate).ToString());
@@ -1983,6 +2037,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
             }
         }
+
+
 
         private bool TouchedProfitChasing()
         {
@@ -2213,6 +2269,26 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        private bool CheckSMA9MarketDirection2X(char signal)
+        {
+            bool SMA9TrendingUp1 = SMA(BarsArray[3], 9)[0] > SMA(BarsArray[3], 9)[1];
+            bool SMA9TrendingUp2 = SMA(BarsArray[3], 9)[1] > SMA(BarsArray[3], 9)[2];
+
+            switch (signal)
+            {
+                case '0':
+                    if (!(SMA9TrendingUp1 || SMA9TrendingUp2))
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp1 && SMA9TrendingUp2)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
         private bool CheckMomentumDirection(char signal)
         {
             bool MomentumTrendingUp = Momentum(BarsArray[3], 20)[0] > Momentum(BarsArray[3], 20)[1];
@@ -2277,6 +2353,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                             return false;
                         }
                     }
+                    // when true, filter Buy/Sell signals when SMA9 direction TWICE against T-Server signal
+                    if (SMA9MarketDirection2X)
+                    {
+                        if (!CheckSMA9MarketDirection2X(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA9MarketDirection2X failed.");
+                            return false;
+                        }
+                    }
                     // if Close > Open, market heading higher, skip the trade
                     if (CheckMarketDirection && (BarsArray[3].GetClose(BarsArray[3].CurrentBar) > BarsArray[3].GetOpen(BarsArray[3].CurrentBar)))
                     {
@@ -2315,6 +2400,15 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (!CheckSMA9MarketDirection(signal))
                         {
                             MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA9MarketDirection failed.");
+                            return false;
+                        }
+                    }
+                    // when true, filter Buy/Sell signals when SMA9 direction TWICE against T-Server signal
+                    if (SMA9MarketDirection2X)
+                    {
+                        if (!CheckSMA9MarketDirection2X(signal))
+                        {
+                            MyPrint(defaultErrorType, "TServerScalpEntryPassed No Entry! CheckSMA9MarketDirection2X failed.");
                             return false;
                         }
                     }
