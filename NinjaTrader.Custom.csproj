@@ -439,7 +439,7 @@
     <Compile Include="Strategies\Scalping5MinBackTest3434.cs" />
     <Compile Include="Strategies\VScalpingWithTSignals3636.cs" />
     <Compile Include="Strategies\SP5MinScalping3939.cs" />
-    <Compile Include="Strategies\VandTScalpingBacktest3535.cs" />
+    <Compile Include="Strategies\%40%40VandTScalpingBacktest3535.cs" />
     <Compile Include="Strategies\SP5MinScalping3737.cs" />
     <Compile Include="Strategies\T2ServerViewGenerator.cs" />
     <Compile Include="Strategies\TurtleBacktest3663.cs" />
@@ -450,6 +450,9 @@
     <Compile Include="Strategies\TurtleNoVServer3004.cs" />
     <Compile Include="Strategies\TurtleNoVServer3005.cs" />
     <Compile Include="Strategies\CaptureShift1MinuteData.cs" />
+    <Compile Include="Strategies\VScalpingWithTSignalsBackTest3434.cs" />
+    <Compile Include="Strategies\TScalpingTVBackTest3434.cs" />
+    <Compile Include="Strategies\TScalpingWithTVSignals3535.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">

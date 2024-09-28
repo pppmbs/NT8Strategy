@@ -570,7 +570,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 earlyExitProfitPercentage = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/ProfitPercentage").InnerText);
 
                 // Extract values from the TradeFilters section
-                ScalpingRange = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
+                ScalpingRange = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
                 CheckMarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckMarketDirection").InnerText);
                 UseMomentumFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseMomentumFilter").InnerText);
                 MaxMomentumDiff = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/MaxMomentumDiff").InnerText);

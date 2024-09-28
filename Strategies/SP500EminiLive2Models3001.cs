@@ -67,7 +67,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private double DefaultPStops;
         private double DefaultLStops;
         private double SMADeckPercent;
-        private int ScalpingRange;
+        private double ScalpingRange;
         private bool CheckMarketDirection;
         private bool UseMomentumFilter;
         private int MaxMomentumDiff;
@@ -491,7 +491,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 SMADeckPercent = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/ProfitAndLoss/SMADeckPercent").InnerText);
 
                 // Extract values from the TradeFilters section
-                ScalpingRange = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
+                ScalpingRange = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/ScalpingRange").InnerText);
                 CheckMarketDirection = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckMarketDirection").InnerText);
                 UseMomentumFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseMomentumFilter").InnerText);
                 MaxMomentumDiff = Convert.ToInt32(xmlDoc.SelectSingleNode("/Artista/TradeFilters/MaxMomentumDiff").InnerText);

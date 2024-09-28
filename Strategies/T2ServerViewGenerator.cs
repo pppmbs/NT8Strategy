@@ -164,6 +164,14 @@ namespace NinjaTrader.NinjaScript.Strategies
                 // connecting server on vtPortNumber  
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(hostName);
 
+                foreach (IPAddress ip in ipHostInfo.AddressList)
+                {
+                    IPAddress ipv4;
+
+                    ipv4 = ip.MapToIPv4();
+                    MyPrint(defaultErrorType, "ipv4= " + ipv4.ToString());
+                }
+
                 IPAddress ipAddress = ipHostInfo.AddressList[1]; // depending on the Wifi set up, this index may change accordingly
                                                                  //IPAddress ipAddress = ipHostInfo.AddressList[3];
                                                                  //ipAddress = ipAddress.MapToIPv4();
@@ -211,7 +219,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             if (State == State.SetDefaults)
             {
-                Description = @"T2-Server using mirror data provides market views for Buy, Sell or Hold";
+                Description = @"T-Server provides market views for Buy, Sell or Hold";
                 Name = "T2ServerViewGenerator";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 1;
@@ -249,7 +257,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void WriteMarketView(MarketView mktView)
         {
             pathMktView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathMktView = System.IO.Path.Combine(pathMktView, "Artista" + ".mkt2");
+            pathMktView = System.IO.Path.Combine(pathMktView, "Artista" + ".mkt");
 
             swMkt = File.CreateText(pathMktView); // Open the path for Market View
             switch (mktView)
@@ -272,7 +280,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void WriteExitView(ExitView exitView)
         {
             pathExitView = System.IO.Path.Combine(NinjaTrader.Core.Globals.UserDataDir, "runlog");
-            pathExitView = System.IO.Path.Combine(pathExitView, "Artista" + ".xit2");
+            pathExitView = System.IO.Path.Combine(pathExitView, "Artista" + ".xit");
 
             swExit = File.CreateText(pathExitView); // Open the path for Exit View
             switch (exitView)
@@ -408,9 +416,101 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        // returns false if failed the check
+        private bool CheckSMA50MarketDirection(char signal)
+        {
+            bool SMA50TrendingUp = SMA(50)[0] > SMA(50)[1];
+
+            MyPrint(defaultErrorType, "CheckSMA50MarketDirection= @@" + SMA50TrendingUp + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA50TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA50TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        // returns false if failed the check
+        private bool CheckSMA20MarketDirection(char signal)
+        {
+            bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
+
+            MyPrint(defaultErrorType, "SMA20TrendingUp= @@" + SMA20TrendingUp + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA20TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA20TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        // returns false if failed the check
+        private bool CheckSMA9MarketDirection(char signal)
+        {
+            bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
+
+            MyPrint(defaultErrorType, "SMA9TrendingUp= @@ " + SMA9TrendingUp + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!SMA9TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        private bool CheckSMA9MarketDirection2X(char signal)
+        {
+            bool SMA9TrendingUp1 = SMA(9)[0] > SMA(9)[1];
+            bool SMA9TrendingUp2 = SMA(9)[1] > SMA(9)[2];
+
+            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @@ " + SMA9TrendingUp2 + " :: " + SMA9TrendingUp1 + " @@");
+
+            switch (signal)
+            {
+                case '0':
+                    if (!(SMA9TrendingUp1 && SMA9TrendingUp2))
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp1 && SMA9TrendingUp2)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
         // Different filtering mechanism employed for the T-Server signals, if anyone of them returned true, T-Server will be set to Hold
         private bool FilterTServer(char signal)
         {
+            CheckSMA9MarketDirection(signal);
+            CheckSMA9MarketDirection2X(signal);
+            CheckSMA20MarketDirection(signal);
+            CheckSMA50MarketDirection(signal);
+
             /*
             if (BollingerFlat())
                         {
@@ -623,6 +723,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                     // Receive the response from the remote device.  
                     tBytesRec = tSender.Receive(tBytes);
+
+                    // increment tlineNo for T-Server
+                    tLineNo++;
                 }
                 catch (SocketException ex)
                 {
@@ -636,9 +739,6 @@ namespace NinjaTrader.NinjaScript.Strategies
 
                 SetTServerSignals(tServerSignal[0]);
                 SetExitSignals(tServerSignal[0]);
-
-                // increment tlineNo for T-Server
-                tLineNo++;
 
                 WriteMarketView(currMarketView);
                 WriteExitView(currExitView);
