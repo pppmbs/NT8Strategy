@@ -79,13 +79,14 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool UseExitFilter;
         private bool UseYFStopLoss;
         private bool SellTradesAllowed;
-        private bool IgnoreTSignals;
         private bool CheckATR;
         private double AcceptableATR;
         private bool CheckRSI;
         private bool RSITurtle;
         private double RSIHigh;
         private double RSILow;
+        private bool CheckVWAP;
+        private bool CheckVWAPAnd2Sigma;
 
         /* **********************************************************************************************************
          * Following settings need to be set before run
@@ -556,13 +557,14 @@ namespace NinjaTrader.NinjaScript.Strategies
                 UseExitFilter = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseExitFilter").InnerText);
                 UseYFStopLoss = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseYFStopLoss").InnerText);
                 SellTradesAllowed = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SellTradesAllowed").InnerText);
-                IgnoreTSignals = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/IgnoreTSignals").InnerText);
                 CheckATR = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckATR").InnerText);
                 AcceptableATR = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/AverageTrueRange").InnerText);
                 CheckRSI = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckRSI").InnerText);
                 RSIHigh = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSIHigh").InnerText);
                 RSILow = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSILow").InnerText);
                 RSITurtle = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSITurtle").InnerText);
+                CheckVWAP = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckVWAP").InnerText);
+                CheckVWAPAnd2Sigma = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckVWAPAnd2Sigma").InnerText);
 
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
@@ -1541,38 +1543,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA50TrendingUp = SMA(BarsArray[3], 50)[0] > SMA(BarsArray[3], 50)[1];
 
-            // if IgnoreTSignals == true, then use the indicators to set tServerDecision and return True
-            if (IgnoreTSignals)
+            switch (signal)
             {
-                if (!SMA50TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Sell;
-                    return true;
-                }
-                if (SMA50TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Buy;
-                    return true;
-                }
-
-                tServerDecision = TServerTradeDecison.Hold;
-                return false;
+                case '0':
+                    if (!SMA50TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA50TrendingUp)
+                        return true;
+                    break;
             }
-            else
-            {
-                switch (signal)
-                {
-                    case '0':
-                        if (!SMA50TrendingUp)
-                            return true;
-                        break;
-                    case '2':
-                        if (SMA50TrendingUp)
-                            return true;
-                        break;
-                }
-                return false;
-            }
+            return false;
         }
 
 
@@ -1580,38 +1562,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA20TrendingUp = SMA(BarsArray[3], 20)[0] > SMA(BarsArray[3], 20)[1];
 
-            // if IgnoreTSignals == true, then use the indicators to set tServerDecision and return True
-            if (IgnoreTSignals)
+            switch (signal)
             {
-                if (!SMA20TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Sell;
-                    return true;
-                }
-                if (SMA20TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Buy;
-                    return true;
-                }
-
-                tServerDecision = TServerTradeDecison.Hold;
-                return false;
+                case '0':
+                    if (!SMA20TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA20TrendingUp)
+                        return true;
+                    break;
             }
-            else
-            {
-                switch (signal)
-                {
-                    case '0':
-                        if (!SMA20TrendingUp)
-                            return true;
-                        break;
-                    case '2':
-                        if (SMA20TrendingUp)
-                            return true;
-                        break;
-                }
-                return false;
-            }
+            return false;
         }
 
 
@@ -1619,38 +1581,18 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA9TrendingUp = SMA(BarsArray[3], 9)[0] > SMA(BarsArray[3], 9)[1];
 
-            // if IgnoreTSignals == true, then use the indicators to set tServerDecision and return True
-            if (IgnoreTSignals)
+            switch (signal)
             {
-                if (!SMA9TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Sell;
-                    return true;
-                }
-                if (SMA9TrendingUp)
-                {
-                    tServerDecision = TServerTradeDecison.Buy;
-                    return true;
-                }
-
-                tServerDecision = TServerTradeDecison.Hold;
-                return false;
+                case '0':
+                    if (!SMA9TrendingUp)
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp)
+                        return true;
+                    break;
             }
-            else
-            {
-                switch (signal)
-                {
-                    case '0':
-                        if (!SMA9TrendingUp)
-                            return true;
-                        break;
-                    case '2':
-                        if (SMA9TrendingUp)
-                            return true;
-                        break;
-                }
-                return false;
-            }
+            return false;
         }
 
 
@@ -1660,79 +1602,38 @@ namespace NinjaTrader.NinjaScript.Strategies
             bool SMA9TrendingUp1 = SMA(BarsArray[3], 9)[0] > SMA(BarsArray[3], 9)[1];
             bool SMA9TrendingUp2 = SMA(BarsArray[3], 9)[1] > SMA(BarsArray[3], 9)[2];
 
-
-            // if IgnoreTSignals == true, then use the indicators to set tServerDecision and return True
-            if (IgnoreTSignals)
+            switch (signal)
             {
-                if (!(SMA9TrendingUp1 && SMA9TrendingUp2))
-                {
-                    tServerDecision = TServerTradeDecison.Sell;
-                    return true;
-                }
-                if (SMA9TrendingUp1 && SMA9TrendingUp2)
-                {
-                    tServerDecision = TServerTradeDecison.Buy;
-                    return true;
-                }
-
-                tServerDecision = TServerTradeDecison.Hold;
-                return false;
+                case '0':
+                    if (!(SMA9TrendingUp1 || SMA9TrendingUp2))
+                        return true;
+                    break;
+                case '2':
+                    if (SMA9TrendingUp1 && SMA9TrendingUp2)
+                        return true;
+                    break;
             }
-            else
-            {
-                switch (signal)
-                {
-                    case '0':
-                        if (!(SMA9TrendingUp1 || SMA9TrendingUp2))
-                            return true;
-                        break;
-                    case '2':
-                        if (SMA9TrendingUp1 && SMA9TrendingUp2)
-                            return true;
-                        break;
-                }
-                return false;
-            }
+            return false;
         }
 
 
 
         private bool Check5MinMarketDirection(char signal)
         {
-            // if IgnoreTSignals == true, then use the indicators to set tServerDecision and return True
-            if (IgnoreTSignals)
+            switch (signal)
             {
-                if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) > BarsArray[3].GetClose(BarsArray[3].CurrentBar))
-                {
-                    tServerDecision = TServerTradeDecison.Sell;
-                    return true;
-                }
-                if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) < BarsArray[3].GetClose(BarsArray[3].CurrentBar))
-                {
-                    tServerDecision = TServerTradeDecison.Buy;
-                    return true;
-                }
-
-                tServerDecision = TServerTradeDecison.Hold;
-                return false;
+                case '0':
+                    // sell confirms with T-Server market direction
+                    if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) > BarsArray[3].GetClose(BarsArray[3].CurrentBar))
+                        return true;
+                    break;
+                case '2':
+                    // buy confirms with T-Server market direction
+                    if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) < BarsArray[3].GetClose(BarsArray[3].CurrentBar))
+                        return true;
+                    break;
             }
-            else
-            {
-                switch (signal)
-                {
-                    case '0':
-                        // sell confirms with T-Server market direction
-                        if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) > BarsArray[3].GetClose(BarsArray[3].CurrentBar))
-                            return true;
-                        break;
-                    case '2':
-                        // buy confirms with T-Server market direction
-                        if (BarsArray[3].GetOpen(BarsArray[3].CurrentBar) < BarsArray[3].GetClose(BarsArray[3].CurrentBar))
-                            return true;
-                        break;
-                }
-                return false;
-            }
+            return false;
         }
 
 
@@ -1780,6 +1681,50 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (RSI(BarsArray[3], 14, 3)[0] < RSILow)
                             return true;
                     }
+                    break;
+            }
+            return false;
+        }
+
+
+        //Allow Buy trades when price above vwapValue, Sell when price below vwapValue
+        private bool CheckVWAPValue(char signal)
+        {
+            double vwapValue = OrderFlowVWAP(VWAPResolution.Standard, TradingHours.String2TradingHours("CME US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).VWAP[0];
+
+            switch (signal)
+            {
+                case '0':
+                    if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < vwapValue)
+                        return true;
+                    break;
+                case '2':
+                    if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > vwapValue)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+
+        private bool CheckVWAP2Sigma(char signal)
+        {
+            double VWAPValue = OrderFlowVWAP(VWAPResolution.Standard, TradingHours.String2TradingHours("CBOE US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).VWAP[0];
+            double VWAPStdDevUp2 = OrderFlowVWAP(VWAPResolution.Standard, Bars.TradingHours, VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Upper[0];
+            double VWAPStdDevLo2 = OrderFlowVWAP(VWAPResolution.Standard, Bars.TradingHours, VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Lower[0];
+
+            switch (signal)
+            {
+                case '0':
+                    // sell if Low is lower than vwap AND higher than 2igma lower, trend follow
+                    if ((BarsArray[3].GetLow(BarsArray[3].CurrentBar) < VWAPValue && BarsArray[3].GetLow(BarsArray[3].CurrentBar) > VWAPStdDevLo2))
+                        return true;
+                    break;
+                case '2':
+                    // buy if High is higher than vwap AND lower than 2sigma upper, trend follow
+                    if ((BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > VWAPValue && BarsArray[3].GetHigh(BarsArray[3].CurrentBar) < VWAPStdDevUp2))
+                        return true;
                     break;
             }
             return false;
@@ -1856,6 +1801,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                                 return false;
                             }
                         }
+                        // Check VWAP, allow Buy trades when price above VWAP, Sell when price below VWAP
+                        if (CheckVWAP)
+                        {
+                            if (!CheckVWAPValue(signal))
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAPValue failed.");
+                                return false;
+                            }
+                        }
+                        // Check VWAP and 2sigma, allow Buy trades when price above VWAP+below Hi 2sigma, Sell when price below VWAP+above Low 2sigma
+                        if (CheckVWAPAnd2Sigma)
+                        {
+                            if (!CheckVWAP2Sigma(signal))
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAP2Sigma failed.");
+                                return false;
+                            }
+                        }
                         return true;
                     }
                     return false;
@@ -1920,6 +1883,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (!CheckRSIThreshold(signal))
                         {
                             MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckRSIThreshold failed.");
+                            return false;
+                        }
+                    }
+                    // Check VWAP, allow Buy trades when price above VWAP, Sell when price below VWAP
+                    if (CheckVWAP)
+                    {
+                        if (!CheckVWAPValue(signal))
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAPValue failed.");
+                            return false;
+                        }
+                    }
+                    // Check VWAP and 2sigma, allow Buy trades when price above VWAP+below Hi 2sigma, Sell when price below VWAP+above Low 2sigma
+                    if (CheckVWAPAnd2Sigma)
+                    {
+                        if (!CheckVWAP2Sigma(signal))
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAP2Sigma failed.");
                             return false;
                         }
                     }
@@ -2928,23 +2909,19 @@ namespace NinjaTrader.NinjaScript.Strategies
                 }
                 else
                 {
-                    // If IgnoreTSignals is true, tServerDecision has been set in TurtleEntryPassed()
-                    if (!IgnoreTSignals)
+                    switch (tServerSignal[0])
                     {
-                        switch (tServerSignal[0])
-                        {
-                            case '0':
-                                tServerDecision = TServerTradeDecison.Sell;
-                                break;
-                            case '2':
-                                tServerDecision = TServerTradeDecison.Buy;
-                                break;
-                            default:
-                                tServerDecision = TServerTradeDecison.Hold;
-                                break;
-                        }
-                        MyPrint(defaultErrorType, "Time Server tServerDecision= {{{ " + tServerDecision.ToString() + " }}}");
+                        case '0':
+                            tServerDecision = TServerTradeDecison.Sell;
+                            break;
+                        case '2':
+                            tServerDecision = TServerTradeDecison.Buy;
+                            break;
+                        default:
+                            tServerDecision = TServerTradeDecison.Hold;
+                            break;
                     }
+                    MyPrint(defaultErrorType, "Time Server tServerDecision= {{{ " + tServerDecision.ToString() + " }}}");
                 }
             }
         }

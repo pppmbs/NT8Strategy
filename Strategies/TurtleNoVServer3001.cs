@@ -85,6 +85,8 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool RSITurtle;
         private double RSIHigh;
         private double RSILow;
+        private bool CheckVWAP;
+        private bool CheckVWAPAnd2Sigma;
 
 
         /* **********************************************************************************************************
@@ -506,6 +508,8 @@ namespace NinjaTrader.NinjaScript.Strategies
                 RSIHigh = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSIHigh").InnerText);
                 RSILow = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSILow").InnerText);
                 RSITurtle = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSITurtle").InnerText);
+                CheckVWAP = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckVWAP").InnerText);
+                CheckVWAPAnd2Sigma = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckVWAPAnd2Sigma").InnerText);
 
                 MyPrint(defaultErrorType, "LVmaxConsecutiveLossesUpper=" + LVmaxConsecutiveLossesUpper + " LVmaxConsecutiveLosses=" + LVmaxConsecutiveLosses +
                     " LVminConsecutiveWins=" + LVminConsecutiveWins + " LVProfitChasingTarget=" + LVProfitChasingTarget +
@@ -1464,6 +1468,50 @@ namespace NinjaTrader.NinjaScript.Strategies
         }
 
 
+        //Allow Buy trades when price above vwapValue, Sell when price below vwapValue
+        private bool CheckVWAPValue(char signal)
+        {
+            double vwapValue = OrderFlowVWAP(VWAPResolution.Standard, TradingHours.String2TradingHours("CME US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).VWAP[0];
+
+            switch (signal)
+            {
+                case '0':
+                    if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) < vwapValue)
+                        return true;
+                    break;
+                case '2':
+                    if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > vwapValue)
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
+        //Allow Buy trades when price above vwapValue + below hi 2sigma, Sell when price below vwapValue + above lo 2sigma
+        private bool CheckVWAP2Sigma(char signal)
+        {
+            double VWAPValue = OrderFlowVWAP(VWAPResolution.Standard, TradingHours.String2TradingHours("CBOE US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).VWAP[0];
+            double VWAPStdDevUp2 = OrderFlowVWAP(VWAPResolution.Standard, Bars.TradingHours, VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Upper[0];
+            double VWAPStdDevLo2 = OrderFlowVWAP(VWAPResolution.Standard, Bars.TradingHours, VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Lower[0];
+
+            switch (signal)
+            {
+                case '0':
+                    // sell if Low is lower than vwap AND higher than 2igma lower, trend follow
+                    if ((BarsArray[3].GetLow(BarsArray[3].CurrentBar) < VWAPValue && BarsArray[3].GetLow(BarsArray[3].CurrentBar) > VWAPStdDevLo2))
+                        return true;
+                    break;
+                case '2':
+                    // buy if High is higher than vwap AND lower than 2sigma upper, trend follow
+                    if ((BarsArray[3].GetHigh(BarsArray[3].CurrentBar) > VWAPValue && BarsArray[3].GetHigh(BarsArray[3].CurrentBar) < VWAPStdDevUp2))
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+
         private bool TurtleEntryPassed(char signal)
         {
             switch (signal)
@@ -1534,6 +1582,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                                 return false;
                             }
                         }
+                        // Check VWAP, allow Buy trades when price above VWAP, Sell when price below VWAP
+                        if (CheckVWAP)
+                        {
+                            if (!CheckVWAPValue(signal))
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAPValue failed.");
+                                return false;
+                            }
+                        }
+                        // Check VWAP and 2sigma, allow Buy trades when price above VWAP+below Hi 2sigma, Sell when price below VWAP+above Low 2sigma
+                        if (CheckVWAPAnd2Sigma)
+                        {
+                            if (!CheckVWAP2Sigma(signal))
+                            {
+                                MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAP2Sigma failed.");
+                                return false;
+                            }
+                        }
                         return true;
                     }
                     return false;
@@ -1598,6 +1664,24 @@ namespace NinjaTrader.NinjaScript.Strategies
                         if (!CheckRSIThreshold(signal))
                         {
                             MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckRSIThreshold failed.");
+                            return false;
+                        }
+                    }
+                    // Check VWAP, allow Buy trades when price above VWAP, Sell when price below VWAP
+                    if (CheckVWAP)
+                    {
+                        if (!CheckVWAPValue(signal))
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAPValue failed.");
+                            return false;
+                        }
+                    }
+                    // Check VWAP and 2sigma, allow Buy trades when price above VWAP+below Hi 2sigma, Sell when price below VWAP+above Low 2sigma
+                    if (CheckVWAPAnd2Sigma)
+                    {
+                        if (!CheckVWAP2Sigma(signal))
+                        {
+                            MyPrint(defaultErrorType, "TurtleEntryPassed No Entry! CheckVWAP2Sigma failed.");
                             return false;
                         }
                     }

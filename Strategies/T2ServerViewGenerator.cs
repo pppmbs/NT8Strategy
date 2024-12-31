@@ -421,7 +421,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA50TrendingUp = SMA(50)[0] > SMA(50)[1];
 
-            MyPrint(defaultErrorType, "CheckSMA50MarketDirection= @@" + SMA50TrendingUp + " @@");
+            MyPrint(defaultErrorType, "CheckSMA50MarketDirection= @ 50 @" + SMA50TrendingUp + " @ 50 @");
 
             switch (signal)
             {
@@ -442,7 +442,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA20TrendingUp = SMA(20)[0] > SMA(20)[1];
 
-            MyPrint(defaultErrorType, "SMA20TrendingUp= @@" + SMA20TrendingUp + " @@");
+            MyPrint(defaultErrorType, "SMA20TrendingUp= @ 20 @" + SMA20TrendingUp + " @ 20 @");
 
             switch (signal)
             {
@@ -464,7 +464,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             bool SMA9TrendingUp = SMA(9)[0] > SMA(9)[1];
 
-            MyPrint(defaultErrorType, "SMA9TrendingUp= @@ " + SMA9TrendingUp + " @@");
+            MyPrint(defaultErrorType, "SMA9TrendingUp= @ 9 @ " + SMA9TrendingUp + " @ 9 @");
 
             switch (signal)
             {
@@ -486,7 +486,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             bool SMA9TrendingUp1 = SMA(9)[0] > SMA(9)[1];
             bool SMA9TrendingUp2 = SMA(9)[1] > SMA(9)[2];
 
-            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @@ " + SMA9TrendingUp2 + " :: " + SMA9TrendingUp1 + " @@");
+            MyPrint(defaultErrorType, "CheckSMA9MarketDirection2X= @ 9x2 @ " + SMA9TrendingUp2 + " :: " + SMA9TrendingUp1 + " @ 9x2 @");
 
             switch (signal)
             {

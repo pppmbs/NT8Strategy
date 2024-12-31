@@ -80,6 +80,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private bool SellTradesAllowed;
         private bool IsCheckTouchedMid;
         private bool UseHighLowCheck;
+        private bool UseVWAP2SigmaTarget;
         private bool CheckATR;
         private double AcceptableATR;
         private bool CheckRSI;
@@ -632,6 +633,7 @@ namespace NinjaTrader.NinjaScript.Strategies
                 SellTradesAllowed = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/SellTradesAllowed").InnerText);
                 IsCheckTouchedMid = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckTouchedMid").InnerText);
                 UseHighLowCheck = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseHighLowCheck").InnerText);
+                UseVWAP2SigmaTarget = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/UseVWAP2SigmaTarget").InnerText);
                 CheckRSI = Convert.ToBoolean(xmlDoc.SelectSingleNode("/Artista/TradeFilters/CheckRSI").InnerText);
                 RSIHigh = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSIHigh").InnerText);
                 RSILow = Convert.ToDouble(xmlDoc.SelectSingleNode("/Artista/TradeFilters/RSILow").InnerText);
@@ -2206,17 +2208,77 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private void CheckTServerTouchedTarget()
         {
+            double TwoSigmaUpper = OrderFlowVWAP(BarsArray[3], VWAPResolution.Standard, TradingHours.String2TradingHours("CME US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Upper[0];
+            double TwoSigmaLower = OrderFlowVWAP(BarsArray[3], VWAPResolution.Standard, TradingHours.String2TradingHours("CME US Index Futures ETH"), VWAPStandardDeviations.Three, 1, 2, 3).StdDev2Lower[0];
+
+
             if (PosLong())
             {
-                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
-                    touchedTarget = true;
+                // if UseVWAP2SigmaTarget==true, use both VWAP 2 sigma and Bollinger bands as target
+                if (UseVWAP2SigmaTarget)
+                {
+                    // if UseHighLowCheck use High to check profit chasing, else use Close
+                    if (UseHighLowCheck)
+                    {
+                        if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0] ||
+                            BarsArray[3].GetHigh(BarsArray[3].CurrentBar) >= TwoSigmaUpper)
+                            touchedTarget = true;
+                    }
+                    else
+                    {
+                        if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0] ||
+                            BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= TwoSigmaUpper)
+                            touchedTarget = true;
+                    }
+                }
+                else
+                {
+                    // if UseHighLowCheck use High to check profit chasing, else use Close
+                    if (UseHighLowCheck)
+                    {
+                        if (BarsArray[3].GetHigh(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
+                            touchedTarget = true;
+                    }
+                    else
+                    {
+                        if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) >= Bollinger(BarsArray[3], 2, 20).Upper[0])
+                            touchedTarget = true;
+                    }
+                }
             }
             if (PosShort())
             {
-                if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
-                    touchedTarget = true;
+                if (UseVWAP2SigmaTarget)
+                {
+                    // if UseHighLowCheck use Low to check profit chasing, else use Close
+                    if (UseHighLowCheck)
+                    {
+                        if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0] ||
+                            BarsArray[3].GetLow(BarsArray[3].CurrentBar) <= TwoSigmaLower)
+                            touchedTarget = true;
+                    }
+                    else
+                    {
+                        if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0] ||
+                           BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= TwoSigmaLower)
+                            touchedTarget = true;
+                    }
+                }
+                else
+                {
+                    // if UseHighLowCheck use Low to check profit chasing, else use Close
+                    if (UseHighLowCheck)
+                    {
+                        if (BarsArray[3].GetLow(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
+                            touchedTarget = true;
+                    }
+                    else
+                    {
+                        if (BarsArray[3].GetClose(BarsArray[3].CurrentBar) <= Bollinger(BarsArray[3], 2, 20).Lower[0])
+                            touchedTarget = true;
+                    }
+                }
             }
-            MyPrint(defaultErrorType, "CheckTServerTouchedTargets, touchedTarget=" + touchedTarget);
         }
 
 

@@ -444,15 +444,17 @@
     <Compile Include="Strategies\T2ServerViewGenerator.cs" />
     <Compile Include="Strategies\TurtleBacktest3663.cs" />
     <Compile Include="Strategies\TurtleNoVBacktest3663.cs" />
-    <Compile Include="Strategies\TurtleNoVServer3003.cs" />
-    <Compile Include="Strategies\TurtleNoVServer3002.cs" />
+    <Compile Include="Strategies\%40%40TurtleNoVServer3003.cs" />
+    <Compile Include="Strategies\%40%40TurtleNoVServer3002.cs" />
     <Compile Include="Strategies\TurtleNoVServer3001.cs" />
-    <Compile Include="Strategies\TurtleNoVServer3004.cs" />
-    <Compile Include="Strategies\TurtleNoVServer3005.cs" />
+    <Compile Include="Strategies\%40%40TurtleNoVServer3004.cs" />
+    <Compile Include="Strategies\%40%40TurtleNoVServer3005.cs" />
     <Compile Include="Strategies\CaptureShift1MinuteData.cs" />
     <Compile Include="Strategies\VScalpingWithTSignalsBackTest3434.cs" />
     <Compile Include="Strategies\TScalpingTVBackTest3434.cs" />
     <Compile Include="Strategies\TScalpingWithTVSignals3535.cs" />
+    <Compile Include="Strategies\TurtleTVBacktest3663.cs" />
+    <Compile Include="Strategies\TurtleWithTVSignals3232.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
